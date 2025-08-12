@@ -9,7 +9,7 @@ import tokyo.peya.langjal.vm.values.VMDouble;
 
 public class OperatorDNeg extends AbstractInstructionOperator<InsnNode> {
     public OperatorDNeg() {
-        super(EOpcodes.DDIV, "ddiv");
+        super(EOpcodes.DNEG, "dneg");
     }
 
     @Override
@@ -17,6 +17,6 @@ public class OperatorDNeg extends AbstractInstructionOperator<InsnNode> {
         VMDouble val1 = frame.getStack().popType(VMDouble.class);
         VMDouble val2 = frame.getStack().popType(VMDouble.class);
 
-        frame.getStack().push(val2.div(val1));
+        frame.getStack().push(val2.neg(val1));
     }
 }

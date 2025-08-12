@@ -9,7 +9,7 @@ import tokyo.peya.langjal.vm.values.VMInteger;
 
 public class OperatorINeg extends AbstractInstructionOperator<InsnNode> {
     public OperatorINeg() {
-        super(EOpcodes.IADD, "iadd");
+        super(EOpcodes.INEG, "ineg");
     }
 
     @Override
@@ -17,6 +17,6 @@ public class OperatorINeg extends AbstractInstructionOperator<InsnNode> {
         VMInteger val1 = frame.getStack().popType(VMInteger.class);
         VMInteger val2 = frame.getStack().popType(VMInteger.class);
 
-        frame.getStack().push(val2.add(val1));
+        frame.getStack().push(val2.neg(val1));
     }
 }

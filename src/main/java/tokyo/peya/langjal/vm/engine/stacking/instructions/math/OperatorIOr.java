@@ -9,7 +9,7 @@ import tokyo.peya.langjal.vm.values.VMInteger;
 
 public class OperatorIOr extends AbstractInstructionOperator<InsnNode> {
     public OperatorIOr() {
-        super(EOpcodes.IMUL, "imul");
+        super(EOpcodes.IOR, "ior");
     }
 
     @Override
@@ -17,6 +17,6 @@ public class OperatorIOr extends AbstractInstructionOperator<InsnNode> {
         VMInteger val1 = frame.getStack().popType(VMInteger.class);
         VMInteger val2 = frame.getStack().popType(VMInteger.class);
 
-        frame.getStack().push(val2.mul(val1));
+        frame.getStack().push(val2.or(val1));
     }
 }

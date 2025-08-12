@@ -17,7 +17,7 @@ public class VMLocals {
         this.locals = new HashMap<>();
     }
 
-    public void setLocal(int index, @NotNull VMValue value) {
+    public void setSlot(int index, @NotNull VMValue value) {
         if (index < 0 || index >= this.maxSize)
             throw new NoReferencePanic("Local variable index " + index + " is out of bounds. Max size: " + this.maxSize);
 
@@ -44,5 +44,14 @@ public class VMLocals {
                 .map(entry -> entry.getKey() + ": " + entry.getValue().toString())
                 .reduce((a, b) -> a + ", " + b)
                 .orElse("") + "]";
+    }
+
+    public <T extends VMValue> T getType(int i, Class<T> vmIntegerClass) {
+        VMValue value = this.getLocal(i);
+        if (vmIntegerClass.isInstance(value)) {
+            return vmIntegerClass.cast(value);
+        } else {
+            throw new VMPanic("Local variable at index " + i + " is not of type " + vmIntegerClass.getSimpleName());
+        }
     }
 }

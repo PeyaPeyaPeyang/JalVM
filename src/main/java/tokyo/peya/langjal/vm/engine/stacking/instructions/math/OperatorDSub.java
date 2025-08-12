@@ -9,7 +9,7 @@ import tokyo.peya.langjal.vm.values.VMDouble;
 
 public class OperatorDSub extends AbstractInstructionOperator<InsnNode> {
     public OperatorDSub() {
-        super(EOpcodes.DADD, "dadd");
+        super(EOpcodes.DSUB, "dsub");
     }
 
     @Override
@@ -17,6 +17,6 @@ public class OperatorDSub extends AbstractInstructionOperator<InsnNode> {
         VMDouble val1 = frame.getStack().popType(VMDouble.class);
         VMDouble val2 = frame.getStack().popType(VMDouble.class);
 
-        frame.getStack().push(val1.add(val2));
+        frame.getStack().push(val2.sub(val1));
     }
 }

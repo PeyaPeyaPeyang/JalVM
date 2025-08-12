@@ -9,7 +9,7 @@ import tokyo.peya.langjal.vm.values.VMFloat;
 
  public class OperatorFDiv extends AbstractInstructionOperator<InsnNode> {
      public OperatorFDiv() {
-         super(EOpcodes.FMUL, "fmul");
+         super(EOpcodes.FDIV, "fdiv");
      }
 
      @Override
@@ -17,6 +17,6 @@ import tokyo.peya.langjal.vm.values.VMFloat;
          VMFloat val1 = frame.getStack().popType(VMFloat.class);
          VMFloat val2 = frame.getStack().popType(VMFloat.class);
 
-         frame.getStack().push(val2.mul(val1));
+         frame.getStack().push(val2.div(val1));
      }
  }

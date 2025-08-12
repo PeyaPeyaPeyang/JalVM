@@ -9,7 +9,7 @@ import tokyo.peya.langjal.vm.values.VMLong;
 
 public class OperatorLRem extends AbstractInstructionOperator<InsnNode> {
     public OperatorLRem() {
-        super(EOpcodes.LADD, "ladd");
+        super(EOpcodes.LREM, "lrem");
     }
 
     @Override
@@ -17,6 +17,6 @@ public class OperatorLRem extends AbstractInstructionOperator<InsnNode> {
         VMLong val1 = frame.getStack().popType(VMLong.class);
         VMLong val2 = frame.getStack().popType(VMLong.class);
 
-        frame.getStack().push(val2.add(val1));
+        frame.getStack().push(val2.rem(val1));
     }
 }

@@ -1,4 +1,4 @@
-package tokyo.peya.langjal.vm.engine.stacking.instructions.math;
+ package tokyo.peya.langjal.vm.engine.stacking.instructions.math;
 
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.InsnNode;
@@ -9,7 +9,7 @@ import tokyo.peya.langjal.vm.values.VMFloat;
 
 public class OperatorFSub extends AbstractInstructionOperator<InsnNode> {
     public OperatorFSub() {
-        super(EOpcodes.LADD, "ladd");
+        super(EOpcodes.FSUB, "fsub");
     }
 
     @Override
@@ -17,6 +17,6 @@ public class OperatorFSub extends AbstractInstructionOperator<InsnNode> {
         VMFloat val1 = frame.getStack().popType(VMFloat.class);
         VMFloat val2 = frame.getStack().popType(VMFloat.class);
 
-        frame.getStack().push(val2.add(val1));
+        frame.getStack().push(val2.sub(val1));
     }
 }

@@ -9,7 +9,7 @@ import tokyo.peya.langjal.vm.values.VMDouble;
 
 public class OperatorDMul extends AbstractInstructionOperator<InsnNode> {
     public OperatorDMul() {
-        super(EOpcodes.DADD, "dadd");
+        super(EOpcodes.DMUL, "dmul");
     }
 
     @Override
@@ -17,6 +17,6 @@ public class OperatorDMul extends AbstractInstructionOperator<InsnNode> {
         VMDouble val1 = frame.getStack().popType(VMDouble.class);
         VMDouble val2 = frame.getStack().popType(VMDouble.class);
 
-        frame.getStack().push(val1.add(val2));
+        frame.getStack().push(val1.mul(val2));
     }
 }

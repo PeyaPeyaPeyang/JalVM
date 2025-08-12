@@ -9,7 +9,7 @@ import tokyo.peya.langjal.vm.values.VMLong;
 
 public class OperatorLNeg extends AbstractInstructionOperator<InsnNode> {
     public OperatorLNeg() {
-        super(EOpcodes.LMUL, "lmul");
+        super(EOpcodes.LNEG, "lneg");
     }
 
     @Override
@@ -17,6 +17,6 @@ public class OperatorLNeg extends AbstractInstructionOperator<InsnNode> {
         VMLong val1 = frame.getStack().popType(VMLong.class);
         VMLong val2 = frame.getStack().popType(VMLong.class);
 
-        frame.getStack().push(val2.mul(val1));
+        frame.getStack().push(val2.neg(val1));
     }
 }

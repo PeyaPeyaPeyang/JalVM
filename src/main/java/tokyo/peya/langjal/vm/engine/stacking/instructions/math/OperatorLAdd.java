@@ -6,17 +6,18 @@ import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
 import tokyo.peya.langjal.vm.values.VMInteger;
+import tokyo.peya.langjal.vm.values.VMLong;
 
 public class OperatorLAdd extends AbstractInstructionOperator<InsnNode> {
     public OperatorLAdd() {
-        super(EOpcodes.IADD, "iadd");
+        super(EOpcodes.LADD, "ladd");
     }
 
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand) {
-        VMInteger i1 = frame.getStack().popType(VMInteger.class);
-        VMInteger i2 = frame.getStack().popType(VMInteger.class);
+        VMLong val1 = frame.getStack().popType(VMLong.class);
+        VMLong val2 = frame.getStack().popType(VMLong.class);
 
-        frame.getStack().push(i2.add(i1));
+        frame.getStack().push(val2.add(val1));
     }
 }

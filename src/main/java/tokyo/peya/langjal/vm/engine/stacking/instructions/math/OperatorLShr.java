@@ -9,7 +9,7 @@ import tokyo.peya.langjal.vm.values.VMLong;
 
 public class OperatorLShr extends AbstractInstructionOperator<InsnNode> {
     public OperatorLShr() {
-        super(EOpcodes.LSHL, "lshl");
+        super(EOpcodes.LSHR, "lshr");
     }
 
     @Override
@@ -17,6 +17,6 @@ public class OperatorLShr extends AbstractInstructionOperator<InsnNode> {
         VMLong val1 = frame.getStack().popType(VMLong.class);
         VMLong val2 = frame.getStack().popType(VMLong.class);
 
-        frame.getStack().push(val2.shl(val1));
+        frame.getStack().push(val2.shr(val1));
     }
 }

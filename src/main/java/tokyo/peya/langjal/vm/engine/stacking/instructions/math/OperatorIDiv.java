@@ -9,7 +9,7 @@ import tokyo.peya.langjal.vm.values.VMInteger;
 
 public class OperatorIDiv extends AbstractInstructionOperator<InsnNode> {
     public OperatorIDiv() {
-        super(EOpcodes.IMUL, "imul");
+        super(EOpcodes.IDIV, "idiv");
     }
 
     @Override
@@ -17,6 +17,6 @@ public class OperatorIDiv extends AbstractInstructionOperator<InsnNode> {
         VMInteger val1 = frame.getStack().popType(VMInteger.class);
         VMInteger val2 = frame.getStack().popType(VMInteger.class);
 
-        frame.getStack().push(val2.mul(val1));
+        frame.getStack().push(val2.div(val1));
     }
 }

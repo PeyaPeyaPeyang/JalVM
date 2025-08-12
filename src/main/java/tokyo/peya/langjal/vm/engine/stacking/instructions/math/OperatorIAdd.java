@@ -14,9 +14,9 @@ public class OperatorIAdd extends AbstractInstructionOperator<InsnNode> {
 
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand) {
-        VMInteger i1 = frame.getStack().popType(VMInteger.class);
-        VMInteger i2 = frame.getStack().popType(VMInteger.class);
+        VMInteger val1 = frame.getStack().popType(VMInteger.class);
+        VMInteger val2 = frame.getStack().popType(VMInteger.class);
 
-        frame.getStack().push(i2.add(i1));
+        frame.getStack().push(val2.add(val1));
     }
 }

@@ -9,7 +9,7 @@ import tokyo.peya.langjal.vm.values.VMFloat;
 
 public class OperatorFNeg extends AbstractInstructionOperator<InsnNode> {
     public OperatorFNeg() {
-        super(EOpcodes.FADD, "fadd");
+        super(EOpcodes.FNEG, "fneg");
     }
 
     @Override
@@ -17,6 +17,6 @@ public class OperatorFNeg extends AbstractInstructionOperator<InsnNode> {
         VMFloat val1 = frame.getStack().popType(VMFloat.class);
         VMFloat val2 = frame.getStack().popType(VMFloat.class);
 
-        frame.getStack().push(val2.add(val1));
+        frame.getStack().push(val2.neg(val1));
     }
 }

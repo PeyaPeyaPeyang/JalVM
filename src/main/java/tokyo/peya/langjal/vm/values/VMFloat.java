@@ -19,4 +19,28 @@ public final class VMFloat extends AbstractVMPrimitive {
     public String toString() {
         return String.format("%f", this.asNumber().floatValue()) + "f";
     }
+
+    public @NotNull VMFloat add(VMFloat l2) {
+        return new VMFloat(this.asNumber().floatValue() + l2.asNumber().floatValue());
+    }
+
+    public @NotNull VMFloat sub(VMFloat val1) {
+        return new VMFloat(this.asNumber().floatValue() - val1.asNumber().floatValue());
+    }
+
+    public @NotNull VMFloat mul(VMFloat val1) {
+        return new VMFloat(this.asNumber().floatValue() * val1.asNumber().floatValue());
+    }
+
+    public @NotNull VMFloat div(VMFloat val1) {
+        return new VMFloat(this.asNumber().floatValue() / val1.asNumber().floatValue());
+    }
+
+    public @NotNull VMFloat rem(VMFloat val1) {
+        return new VMFloat(this.asNumber().floatValue() % val1.asNumber().floatValue());
+    }
+
+    public @NotNull VMFloat neg(VMFloat val1) {
+        return new VMFloat(-val1.asNumber().floatValue());
+    }
 }

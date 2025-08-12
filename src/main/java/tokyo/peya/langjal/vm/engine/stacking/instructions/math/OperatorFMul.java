@@ -9,7 +9,7 @@ import tokyo.peya.langjal.vm.values.VMFloat;
 
  public class OperatorFMul extends AbstractInstructionOperator<InsnNode> {
      public OperatorFMul() {
-         super(EOpcodes.FSUB, "fsub");
+         super(EOpcodes.FMUL, "fmul");
      }
 
      @Override
@@ -17,6 +17,6 @@ import tokyo.peya.langjal.vm.values.VMFloat;
          VMFloat val1 = frame.getStack().popType(VMFloat.class);
          VMFloat val2 = frame.getStack().popType(VMFloat.class);
 
-         frame.getStack().push(val2.sub(val1));
+         frame.getStack().push(val2.mul(val1));
      }
  }

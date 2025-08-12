@@ -9,7 +9,7 @@ import tokyo.peya.langjal.vm.values.VMInteger;
 
 public class OperatorIXor extends AbstractInstructionOperator<InsnNode> {
     public OperatorIXor() {
-        super(EOpcodes.ISHR, "ishr");
+        super(EOpcodes.IXOR, "ixor");
     }
 
     @Override
@@ -17,6 +17,6 @@ public class OperatorIXor extends AbstractInstructionOperator<InsnNode> {
         VMInteger val1 = frame.getStack().popType(VMInteger.class);
         VMInteger val2 = frame.getStack().popType(VMInteger.class);
 
-        frame.getStack().push(val2.shr(val1));
+        frame.getStack().push(val2.xor(val1));
     }
 }

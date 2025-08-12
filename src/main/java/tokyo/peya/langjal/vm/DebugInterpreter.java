@@ -70,6 +70,38 @@ public class DebugInterpreter implements VMInterpreter {
                 int value = asInt(parts[1]);
                 return new IntInsnNode(EOpcodes.SIPUSH, value);
             }
+
+            // <editor-fold desc="Stack">
+            case "pop" -> {
+                return new InsnNode(EOpcodes.POP);
+            }
+            case "pop2" -> {
+                return new InsnNode(EOpcodes.POP2);
+            }
+            case "dup" -> {
+                return new InsnNode(EOpcodes.DUP);
+            }
+            case "dup2" -> {
+                return new InsnNode(EOpcodes.DUP2);
+            }
+            case "dup_x1" -> {
+                return new InsnNode(EOpcodes.DUP_X1);
+            }
+            case "dup_x2" -> {
+                return new InsnNode(EOpcodes.DUP_X2);
+            }
+            case "dup2_x1" -> {
+                return new InsnNode(EOpcodes.DUP2_X1);
+            }
+            case "dup2_x2" -> {
+                return new InsnNode(EOpcodes.DUP2_X2);
+            }
+            case "swap" -> {
+                return new InsnNode(EOpcodes.SWAP);
+            }
+            // </editor-fold>
+
+            // <editor-fold desc="Math">
             case "iadd" -> {
                 return new InsnNode(EOpcodes.IADD);
             }
@@ -186,6 +218,7 @@ public class DebugInterpreter implements VMInterpreter {
                 int increment = asInt(parts[2]);
                 return new IincInsnNode(index, increment);
             }
+            // </editor-fold>
 
             default -> {
                 out("Unknown instruction: ", input);

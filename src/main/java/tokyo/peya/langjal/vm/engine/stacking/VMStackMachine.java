@@ -2,11 +2,11 @@ package tokyo.peya.langjal.vm.engine.stacking;
 
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.AbstractInsnNode;
-import org.objectweb.asm.tree.IincInsnNode;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.math.*;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.OperatorSIPush;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.stack.*;
 import tokyo.peya.langjal.vm.exceptions.UnknownInstructionPanic;
 
 public class VMStackMachine {
@@ -14,6 +14,19 @@ public class VMStackMachine {
             // <editor-fold desc="Stack Manipulation">
             new OperatorSIPush(), // 0x11 - 17
 
+            // <editor-fold desc="Stack">
+            new OperatorPop(), // 0x57 - 87
+            new OperatorPop2(), // 0x58 - 88
+            new OperatorDup(), // 0x59 - 89
+            new OperatorDupX1(), // 0x5A - 90
+            new OperatorDupX2(), // 0x5B - 91
+            new OperatorDup2(), // 0x5C - 92
+            new OperatorDup2X1(), // 0x5D - 93
+            new OperatorDup2X2(), // 0x5E - 94
+            new OperatorSwap(), // 0x5F - 95
+            // </editor-fold>
+
+            // <editor-fold desc="Math Operations">
             new OperatorIAdd(), // 0x60 - 96
             new OperatorLAdd(), // 0x61 - 97
             new OperatorFAdd(), // 0x62 - 98
@@ -51,6 +64,7 @@ public class VMStackMachine {
             new OperatorIXor(), // 0x82 - 130
             new OperatorLXor(), // 0x83 - 131
             new OperatorIInc(), // 0x85 - 133
+            // </editor-fold>
 
 
             // </editor-fold>

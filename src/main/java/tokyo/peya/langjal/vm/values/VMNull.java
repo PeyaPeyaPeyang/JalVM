@@ -4,15 +4,15 @@ import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.compiler.jvm.Type;
 
 public class VMNull implements VMValue {
-    private final Type type;
+    private final VMType type;
 
-    public VMNull(@NotNull Type type) {
+    public VMNull(@NotNull VMType type) {
         this.type = type;
     }
 
     @Override
     public @NotNull Type getType() {
-        return this.type;
+        return this.type.getType();
     }
 
     @Override

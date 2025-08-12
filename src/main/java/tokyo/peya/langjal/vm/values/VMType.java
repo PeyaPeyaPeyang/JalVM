@@ -12,6 +12,16 @@ import tokyo.peya.langjal.vm.references.ClassReference;
 
 @Getter
 public class VMType {
+    public static final VMType VOID = new VMType(PrimitiveTypes.VOID, 0);
+    public static final VMType BOOLEAN = new VMType(PrimitiveTypes.BOOLEAN, 0);
+    public static final VMType BYTE = new VMType(PrimitiveTypes.BYTE, 0);
+    public static final VMType CHAR = new VMType(PrimitiveTypes.CHAR, 0);
+    public static final VMType SHORT = new VMType(PrimitiveTypes.SHORT, 0);
+    public static final VMType INTEGER = new VMType(PrimitiveTypes.INT, 0);
+    public static final VMType LONG = new VMType(PrimitiveTypes.LONG, 0);
+    public static final VMType FLOAT = new VMType(PrimitiveTypes.FLOAT, 0);
+    public static final VMType DOUBLE = new VMType(PrimitiveTypes.DOUBLE, 0);
+
     private final Type type;
     private final int arrayDimensions;
     private final boolean isPrimitive;  // 配列でも基底タイプがプリミティブなら true
@@ -37,7 +47,7 @@ public class VMType {
     public VMValue defaultValue() {
         // 非プリミティブまたは配列は「参照型」であるから， null
         if (!(this.isPrimitive || this.arrayDimensions > 1))
-            return new VMNull(this.type);
+            return new VMNull(this);
 
         // プリミティブ型のデフォルト値を返す
         return switch ((PrimitiveTypes) this.type) {

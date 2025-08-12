@@ -1,8 +1,6 @@
 package tokyo.peya.langjal.vm.values;
 
-import com.sun.jdi.PrimitiveType;
 import org.jetbrains.annotations.NotNull;
-import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 import tokyo.peya.langjal.compiler.jvm.Type;
 
 public interface VMValue {

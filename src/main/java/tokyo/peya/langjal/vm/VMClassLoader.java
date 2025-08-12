@@ -7,19 +7,28 @@ import org.objectweb.asm.tree.ClassNode;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.references.ClassReference;
 
+import java.nio.file.Path;
+
 public class VMClassLoader {
+    private final JalVM vm;
     private final VMHeap heap;
 
-    public VMClassLoader(@NotNull VMHeap heap) {
+    public VMClassLoader(@NotNull JalVM vm, @NotNull VMHeap heap) {
+        this.vm = vm;
         this.heap = heap;
     }
 
     @Nullable
     public VMClass findClassSafe(@NotNull ClassReference ref) {
         VMClass vmClass = this.heap.getLoadedClass(ref);
-        return vmClass;
+        if (vmClass != null)
+            return vmClass;
 
-        // TODO: クラスパスから読み込む
+        byte[] classBytes = this.vm.getClassPaths().findClassBytes(ref);
+        if (classBytes == null)
+            return null;
+
+        return this.defineClass(classBytes);
     }
 
     @NotNull

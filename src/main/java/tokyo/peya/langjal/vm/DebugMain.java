@@ -36,6 +36,6 @@ public class DebugMain {
 
         VMClass clazz = jalVM.getClassLoader().defineClass(classNode);
 
-        jalVM.getEngine().executeMain(clazz, new String[]{});
+        jalVM.executeMain(clazz, new String[]{});
     }
 }

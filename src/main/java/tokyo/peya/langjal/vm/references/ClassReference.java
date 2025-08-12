@@ -47,7 +47,7 @@ public class ClassReference {
     }
 
     public static ClassReference of(@NotNull ClassReferenceType type) {
-        return of(type.getDescriptor());
+        return of(type.getInternalName());
     }
 
     private static String[] normalizePackages(String[] packages) {

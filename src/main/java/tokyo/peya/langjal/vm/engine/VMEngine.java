@@ -1,18 +1,19 @@
 package tokyo.peya.langjal.vm.engine;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.vm.JalVM;
-import tokyo.peya.langjal.vm.engine.members.VMMethod;
 import tokyo.peya.langjal.vm.engine.threads.VMMainThread;
 import tokyo.peya.langjal.vm.engine.threads.VMThread;
-import tokyo.peya.langjal.vm.references.ClassReference;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class VMEngine {
+    @Getter
     private final JalVM vm;
 
+    @Getter
     private final VMMainThread mainThread;
     private final List<VMThread> threads;  // TODO: マルチスレッディング
 
@@ -22,6 +23,15 @@ public class VMEngine {
         this.threads = new ArrayList<>();
 
         this.threads.add(this.mainThread);
+    }
+
+    public boolean isRunning() {
+        return !this.threads.isEmpty();
+    }
+
+    public void startEngine() {
+        while(this.isRunning())
+            this.heartbeatThreads();
     }
 
     public void heartbeatThreads() {
@@ -41,21 +51,4 @@ public class VMEngine {
         }
     }
 
-    public void executeMain(@NotNull ClassReference clazz, @NotNull String[] args) {
-        VMClass vmClass = this.vm.getHeap().getLoadedClass(clazz);
-        if (vmClass == null)
-            throw new IllegalStateException("Unable to load class: " + clazz.getFullQualifiedName()
-                    + ", please define it with VMHeap#defineClass() first!");
-
-        this.executeMain(vmClass, args);
-    }
-
-    public void executeMain(@NotNull VMClass clazz, @NotNull String[] args) {
-        VMMethod mainMethod = clazz.findMainMethod();
-        if (mainMethod == null)
-            throw new IllegalStateException("There is no main method in class:  "
-                    + clazz.getReference().getFullQualifiedName());
-
-        this.mainThread.executeEntryPointMethod(mainMethod);
-    }
 }

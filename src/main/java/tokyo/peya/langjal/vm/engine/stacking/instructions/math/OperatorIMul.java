@@ -1,0 +1,22 @@
+package tokyo.peya.langjal.vm.engine.stacking.instructions.math;
+
+import org.jetbrains.annotations.NotNull;
+import org.objectweb.asm.tree.InsnNode;
+import tokyo.peya.langjal.compiler.jvm.EOpcodes;
+import tokyo.peya.langjal.vm.engine.VMFrame;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
+import tokyo.peya.langjal.vm.values.VMInteger;
+
+public class OperatorIMul extends AbstractInstructionOperator<InsnNode> {
+    public OperatorIMul() {
+        super(EOpcodes.IADD, "iadd");
+    }
+
+    @Override
+    public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand) {
+        VMInteger val1 = frame.getStack().popType(VMInteger.class);
+        VMInteger val2 = frame.getStack().popType(VMInteger.class);
+
+        frame.getStack().push(val2.add(val1));
+    }
+}

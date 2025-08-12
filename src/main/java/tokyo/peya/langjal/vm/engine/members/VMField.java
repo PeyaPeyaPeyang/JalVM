@@ -1,9 +1,10 @@
-package tokyo.peya.langjal.vm.engine;
+package tokyo.peya.langjal.vm.engine.members;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.FieldNode;
 import tokyo.peya.langjal.vm.VMClassLoader;
+import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
 

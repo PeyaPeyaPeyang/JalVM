@@ -3,7 +3,7 @@ package tokyo.peya.langjal.vm;
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import tokyo.peya.langjal.vm.engine.VMFrame;
-import tokyo.peya.langjal.vm.engine.VMThread;
+import tokyo.peya.langjal.vm.engine.threads.VMThread;
 
 import java.util.Scanner;
 

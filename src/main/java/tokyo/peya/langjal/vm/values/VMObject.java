@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.compiler.jvm.ClassReferenceType;
 import tokyo.peya.langjal.compiler.jvm.Type;
 import tokyo.peya.langjal.vm.engine.VMClass;
-import tokyo.peya.langjal.vm.engine.VMField;
+import tokyo.peya.langjal.vm.engine.members.VMField;
 
 import java.util.HashMap;
 import java.util.Map;

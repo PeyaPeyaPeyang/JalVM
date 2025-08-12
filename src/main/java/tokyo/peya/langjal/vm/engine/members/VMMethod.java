@@ -1,4 +1,4 @@
-package tokyo.peya.langjal.vm.engine;
+package tokyo.peya.langjal.vm.engine.members;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
@@ -8,6 +8,9 @@ import tokyo.peya.langjal.vm.DebugInterpreter;
 import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.VMClassLoader;
 import tokyo.peya.langjal.vm.VMInterpreter;
+import tokyo.peya.langjal.vm.engine.VMClass;
+import tokyo.peya.langjal.vm.engine.VMFrame;
+import tokyo.peya.langjal.vm.engine.threads.VMThread;
 import tokyo.peya.langjal.vm.values.VMType;
 
 import java.util.Arrays;

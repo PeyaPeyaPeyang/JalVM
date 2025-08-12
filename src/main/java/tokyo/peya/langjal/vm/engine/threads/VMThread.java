@@ -1,8 +1,10 @@
-package tokyo.peya.langjal.vm.engine;
+package tokyo.peya.langjal.vm.engine.threads;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.vm.JalVM;
+import tokyo.peya.langjal.vm.engine.VMFrame;
+import tokyo.peya.langjal.vm.engine.members.VMMethod;
 
 @Getter
 public class VMThread {

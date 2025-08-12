@@ -2,6 +2,9 @@ package tokyo.peya.langjal.vm.engine;
 
 import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.vm.JalVM;
+import tokyo.peya.langjal.vm.engine.members.VMMethod;
+import tokyo.peya.langjal.vm.engine.threads.VMMainThread;
+import tokyo.peya.langjal.vm.engine.threads.VMThread;
 import tokyo.peya.langjal.vm.references.ClassReference;
 
 import java.util.ArrayList;

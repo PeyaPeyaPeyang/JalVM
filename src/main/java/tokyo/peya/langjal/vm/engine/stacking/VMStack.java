@@ -1,4 +1,4 @@
-package tokyo.peya.langjal.vm.engine;
+package tokyo.peya.langjal.vm.engine.stacking;
 
 import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.vm.values.VMValue;

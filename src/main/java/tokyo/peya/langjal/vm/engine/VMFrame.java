@@ -5,6 +5,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.VMInterpreter;
+import tokyo.peya.langjal.vm.engine.members.VMMethod;
+import tokyo.peya.langjal.vm.engine.stacking.VMStack;
+import tokyo.peya.langjal.vm.engine.threads.VMThread;
 
 @Getter
 public class VMFrame {

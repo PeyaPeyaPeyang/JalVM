@@ -14,4 +14,9 @@ public class VMNull implements VMValue {
     public Type getType() {
         return this.type;
     }
+
+    @Override
+    public String toString() {
+        return "NULL";
+    }
 }

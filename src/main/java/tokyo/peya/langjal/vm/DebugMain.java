@@ -30,11 +30,12 @@ public class DebugMain {
         );
         methodNode.visitCode();
         methodNode.visitInsn(Opcodes.RETURN); // Return instruction
-        methodNode.visitMaxs(0, 0); // Max stack and local variables
+        methodNode.visitMaxs(-1, -1); // Max stack and local variables
         methodNode.visitEnd();
         classNode.methods.add(methodNode);
 
         VMClass clazz = jalVM.getClassLoader().defineClass(classNode);
+        System.out.println(jalVM.getHeap().getLoadedClasses().size());
 
         jalVM.executeMain(clazz, new String[]{});
     }

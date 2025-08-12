@@ -8,4 +8,9 @@ public final class VMDouble extends AbstractVMPrimitive {
     public VMDouble(final double value) {
         super(PrimitiveTypes.DOUBLE, value);
     }
+
+    @Override
+    public String toString() {
+        return String.format("%f", this.asNumber().doubleValue()) + "d";
+    }
 }

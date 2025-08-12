@@ -4,14 +4,15 @@ import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 
 import java.math.BigDecimal;
 
-public final class VMChar extends AbstractVMPrimitive {
-    public static final VMChar ZERO = new VMChar(BigDecimal.ZERO);
+public final class VMChar extends VMInteger {
+    public static final VMChar ZERO = new VMChar((char) 0);
 
-    private VMChar(final BigDecimal value) {
-        super(PrimitiveTypes.DOUBLE, value);
+    private VMChar(final char value) {
+        super(PrimitiveTypes.CHAR, value);
     }
 
-    public VMChar(final char value) {
-        this(BigDecimal.valueOf(value));
+    @Override
+    public String toString() {
+        return "'" + (char) this.asNumber().intValue() + "'";
     }
 }

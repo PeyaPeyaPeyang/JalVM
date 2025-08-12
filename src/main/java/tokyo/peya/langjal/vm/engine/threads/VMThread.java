@@ -8,7 +8,7 @@ import tokyo.peya.langjal.vm.engine.members.VMMethod;
 
 @Getter
 public class VMThread {
-    protected final String threadName;
+    protected final String name;
     protected final int currentFrameIndex;
     private final JalVM vm;
     @Getter
@@ -18,7 +18,7 @@ public class VMThread {
 
     public VMThread(@NotNull JalVM vm, @NotNull String name) {
         this.vm = vm;
-        this.threadName = name;
+        this.name = name;
 
         this.firstFrame = null;
         this.currentFrameIndex = 0;
@@ -26,7 +26,7 @@ public class VMThread {
     }
 
     public void runThread() {
-        System.out.println("Thread[" + this.threadName + "] is running...");
+        System.out.println("Thread[" + this.name + "] is running...");
         if (this.firstFrame == null)
             throw new IllegalStateException("No entry point method set. Cannot run the instructions!!!");
 
@@ -34,7 +34,6 @@ public class VMThread {
     }
 
     public void heartbeat() {
-        System.out.println("Thread[" + this.threadName + "] heartbeat.");
         this.currentFrame.heartbeat();
     }
 

@@ -11,6 +11,7 @@ import tokyo.peya.langjal.vm.VMInterpreter;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.threads.VMThread;
+import tokyo.peya.langjal.vm.exceptions.VMPanic;
 import tokyo.peya.langjal.vm.values.VMType;
 
 import java.util.Arrays;
@@ -53,16 +54,10 @@ public class VMMethod {
     }
 
     public int getMaxStackSize() {
-        if (this.methodNode.maxStack < 0) {
-            throw new IllegalStateException("Method " + this.methodNode.name + " has invalid max stack size: " + this.methodNode.maxStack);
-        }
         return this.methodNode.maxStack;
     }
 
     public int getMaxLocals() {
-        if (this.methodNode.maxLocals < 0) {
-            throw new IllegalStateException("Method " + this.methodNode.name + " has invalid max locals size: " + this.methodNode.maxLocals);
-        }
         return this.methodNode.maxLocals;
     }
 }

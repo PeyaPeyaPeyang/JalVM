@@ -10,6 +10,11 @@ public final class VMBoolean extends AbstractVMPrimitive {
 
 
     private VMBoolean(final boolean value) {
-        super(PrimitiveTypes.BOOLEAN, value ? new BigDecimal(1) : BigDecimal.ZERO);
+        super(PrimitiveTypes.BOOLEAN, value ? 0: 1);
+    }
+
+    @Override
+    public String toString() {
+        return this.asNumber().intValue() == 0 ? "true" : "false";
     }
 }

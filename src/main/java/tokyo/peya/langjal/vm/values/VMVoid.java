@@ -13,4 +13,9 @@ public class VMVoid implements VMValue {
     public Type getType() {
         return PrimitiveTypes.VOID;
     }
+
+    @Override
+    public String toString() {
+        return "VOID";
+    }
 }

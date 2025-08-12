@@ -32,4 +32,17 @@ public class VMObject implements VMValue {
     public Type getType() {
         return ClassReferenceType.parse(this.objectType.getReference().getFullQualifiedName());
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(this.objectType.getReference().getFullQualifiedName()).append(" {");
+        for (Map.Entry<VMField, VMValue> entry : fields.entrySet())
+            sb.append("\n  ")
+              .append(entry.getKey().getName())
+              .append(": ")
+              .append(entry.getValue().toString());
+        sb.append("\n}");
+        return sb.toString();
+    }
 }

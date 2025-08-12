@@ -41,7 +41,7 @@ public class VMHeap {
         return null;
     }
 
-    /* non-public */ List<VMClass> getLoadedClasses() {
-        return this.loadedClasses;
+    public List<VMClass> getLoadedClasses() {
+        return new ArrayList<>(loadedClasses);
     }
 }

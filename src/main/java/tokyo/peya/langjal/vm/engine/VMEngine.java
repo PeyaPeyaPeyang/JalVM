@@ -40,13 +40,13 @@ public class VMEngine {
             if (thread.isAlive())
                 thread.heartbeat();
             else {
-                System.out.println("Thread " + thread.getThreadName() + " is dead, marking for removal.");
+                System.out.println("Thread " + thread.getName() + " is dead, marking for removal.");
                 deadThreads.add(thread);
             }
         }
 
         for (VMThread deadThread : deadThreads) {
-            System.out.println("Dead thread wiped out: " + deadThread.getThreadName());
+            System.out.println("Dead thread wiped out: " + deadThread.getName());
             this.threads.remove(deadThread);
         }
     }

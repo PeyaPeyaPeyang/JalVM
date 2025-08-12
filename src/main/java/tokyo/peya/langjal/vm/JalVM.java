@@ -26,6 +26,7 @@ public class JalVM {
     public void startJVM() {
         System.out.println("Starting J(al)VM...");
         this.engine.startEngine();
+        System.out.println("J(al)VM has stopped successfully.");
     }
 
     public void executeMain(@NotNull ClassReference clazz, @NotNull String[] args) {

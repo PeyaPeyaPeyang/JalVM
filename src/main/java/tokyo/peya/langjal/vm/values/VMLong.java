@@ -8,4 +8,9 @@ public final class VMLong extends AbstractVMPrimitive {
     public VMLong(final long value) {
         super(PrimitiveTypes.LONG, value);
     }
+
+    @Override
+    public String toString() {
+        return String.valueOf(this.asNumber().longValue());
+    }
 }

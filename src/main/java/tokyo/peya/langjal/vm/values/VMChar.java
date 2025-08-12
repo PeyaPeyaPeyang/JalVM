@@ -1,5 +1,6 @@
 package tokyo.peya.langjal.vm.values;
 
+import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 
 import java.math.BigDecimal;
@@ -9,6 +10,19 @@ public final class VMChar extends VMInteger {
 
     private VMChar(final char value) {
         super(PrimitiveTypes.CHAR, value);
+    }
+
+    @Override
+    public boolean isCompatibleTo(@NotNull VMValue other) {
+        if (other instanceof VMChar)
+            return true;
+
+        if (other instanceof VMInteger intVal) {
+            int value = intVal.asNumber().intValue();
+            return value >= Character.MIN_VALUE && value <= Character.MAX_VALUE;
+        }
+
+        return false;
     }
 
     @Override

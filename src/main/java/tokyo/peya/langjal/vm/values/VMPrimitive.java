@@ -1,6 +1,8 @@
 package tokyo.peya.langjal.vm.values;
 
-public interface VMPrimitive extends VMValue {
+import org.jetbrains.annotations.NotNull;
 
+public interface VMPrimitive extends VMValue {
+    @NotNull
     Number asNumber();
 }

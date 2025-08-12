@@ -1,5 +1,6 @@
 package tokyo.peya.langjal.vm.values;
 
+import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 
 public final class VMLong extends AbstractVMPrimitive {
@@ -7,6 +8,11 @@ public final class VMLong extends AbstractVMPrimitive {
 
     public VMLong(final long value) {
         super(PrimitiveTypes.LONG, value);
+    }
+
+    @Override
+    public boolean isCompatibleTo(@NotNull VMValue other) {
+        return other instanceof VMLong;
     }
 
     @Override

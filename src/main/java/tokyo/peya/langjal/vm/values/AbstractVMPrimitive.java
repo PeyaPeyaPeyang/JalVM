@@ -13,12 +13,12 @@ public abstract class AbstractVMPrimitive implements VMPrimitive {
     }
 
     @Override
-    public PrimitiveTypes getType() {
+    public @NotNull PrimitiveTypes getType() {
         return this.type;
     }
 
     @Override
-    public Number asNumber() {
+    public @NotNull Number asNumber() {
         return this.rawValue;
     }
 }

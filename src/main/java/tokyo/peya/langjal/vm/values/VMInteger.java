@@ -20,6 +20,11 @@ public sealed class VMInteger extends AbstractVMPrimitive permits VMByte, VMChar
     }
 
     @Override
+    public boolean isCompatibleTo(@NotNull VMValue other) {
+        return other instanceof VMInteger;
+    }
+
+    @Override
     public String toString() {
         return String.valueOf(this.asNumber().intValue());
     }

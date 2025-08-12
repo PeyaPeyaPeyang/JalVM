@@ -11,8 +11,13 @@ public class VMNull implements VMValue {
     }
 
     @Override
-    public Type getType() {
+    public @NotNull Type getType() {
         return this.type;
+    }
+
+    @Override
+    public boolean isCompatibleTo(@NotNull VMValue other) {
+        return other instanceof VMNull || this.type.equals(other.getType());
     }
 
     @Override

@@ -1,5 +1,6 @@
 package tokyo.peya.langjal.vm.values;
 
+import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 import tokyo.peya.langjal.compiler.jvm.Type;
 
@@ -10,8 +11,13 @@ public class VMVoid implements VMValue {
     }
 
     @Override
-    public Type getType() {
+    public @NotNull Type getType() {
         return PrimitiveTypes.VOID;
+    }
+
+    @Override
+    public boolean isCompatibleTo(@NotNull VMValue other) {
+        return other instanceof VMVoid;
     }
 
     @Override

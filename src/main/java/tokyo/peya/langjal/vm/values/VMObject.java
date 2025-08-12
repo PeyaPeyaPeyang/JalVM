@@ -29,8 +29,21 @@ public class VMObject implements VMValue {
 
 
     @Override
-    public Type getType() {
+    public @NotNull Type getType() {
         return ClassReferenceType.parse(this.objectType.getReference().getFullQualifiedName());
+    }
+
+    @Override
+    public boolean isCompatibleTo(@NotNull VMValue other) {
+        Type otherType;
+        if (other instanceof VMNull nullValue)
+             otherType = nullValue.getType();
+        else if (other instanceof VMObject objValue)
+            otherType = objValue.getType();
+        else
+            return false;
+
+        return this.getType().equals(otherType);
     }
 
     @Override

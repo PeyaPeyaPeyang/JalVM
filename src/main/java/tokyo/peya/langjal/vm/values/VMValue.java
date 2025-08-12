@@ -1,7 +1,11 @@
 package tokyo.peya.langjal.vm.values;
 
+import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.compiler.jvm.Type;
 
 public interface VMValue {
+    @NotNull
     Type getType();
+
+    boolean isCompatibleTo(@NotNull VMValue other);
 }

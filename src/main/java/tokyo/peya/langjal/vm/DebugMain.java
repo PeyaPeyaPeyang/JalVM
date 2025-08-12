@@ -34,8 +34,8 @@ public class DebugMain {
         methodNode.visitEnd();
         classNode.methods.add(methodNode);
 
-        VMClass clazz = jalVM.getHeap().defineClass(classNode);
+        VMClass clazz = jalVM.getClassLoader().defineClass(classNode);
 
-        jalVM.execMain(clazz, new String[]{});
+        jalVM.getEngine().executeMain(clazz, new String[]{});
     }
 }

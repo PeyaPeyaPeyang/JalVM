@@ -1,16 +1,13 @@
-package tokyo.peya.langjal.vm.engine.primitives;
+package tokyo.peya.langjal.vm.values;
 
-import com.sun.jdi.PrimitiveType;
 import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 
-import java.math.BigDecimal;
-
 public abstract class AbstractVMPrimitive implements VMPrimitive {
     private final PrimitiveTypes type;
-    private final BigDecimal rawValue;
+    private final Number rawValue;
 
-    protected AbstractVMPrimitive(@NotNull PrimitiveTypes type, @NotNull BigDecimal rawValue) {
+    protected AbstractVMPrimitive(@NotNull PrimitiveTypes type, @NotNull Number rawValue) {
         this.type = type;
         this.rawValue = rawValue;
     }
@@ -21,7 +18,7 @@ public abstract class AbstractVMPrimitive implements VMPrimitive {
     }
 
     @Override
-    public BigDecimal asBigDecimal() {
+    public Number asNumber() {
         return this.rawValue;
     }
 }

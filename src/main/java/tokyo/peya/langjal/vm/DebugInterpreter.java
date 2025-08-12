@@ -2,26 +2,30 @@ package tokyo.peya.langjal.vm;
 
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.AbstractInsnNode;
-import tokyo.peya.langjal.vm.engine.VMEngine;
-import tokyo.peya.langjal.vm.engine.Frame;
+import tokyo.peya.langjal.vm.engine.VMFrame;
+import tokyo.peya.langjal.vm.engine.VMThread;
 
 import java.util.Scanner;
 
 public class DebugInterpreter implements VMInterpreter {
     private final JalVM vm;
-    private final VMEngine engine;
-    private final Frame frame;
+    private final VMThread engine;
+    private final VMFrame frame;
 
     private final Scanner scanner;
 
     private boolean isRunning = true;
 
-    public DebugInterpreter(@NotNull JalVM vm, @NotNull VMEngine engine, @NotNull Frame frame) {
+    public DebugInterpreter(@NotNull JalVM vm, @NotNull VMThread engine, @NotNull VMFrame frame) {
         this.vm = vm;
         this.engine = engine;
         this.frame = frame;
 
         this.scanner = new Scanner(System.in);
+    }
+
+    private static void out(String message, Object... args) {
+        System.out.printf(message, args);
     }
 
     @Override
@@ -43,12 +47,6 @@ public class DebugInterpreter implements VMInterpreter {
         }
 
         return null;
-    }
-
-
-
-    private static void out(String message, Object... args) {
-        System.out.printf(message, args);
     }
 
     private String okNext() {

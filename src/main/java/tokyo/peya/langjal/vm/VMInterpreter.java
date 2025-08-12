@@ -4,5 +4,6 @@ import org.objectweb.asm.tree.AbstractInsnNode;
 
 public interface VMInterpreter {
     boolean hasNextInstruction();
+
     AbstractInsnNode feedNextInstruction();
 }

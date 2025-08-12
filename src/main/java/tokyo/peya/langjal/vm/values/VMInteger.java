@@ -1,12 +1,12 @@
-package tokyo.peya.langjal.vm.engine.primitives;
+package tokyo.peya.langjal.vm.values;
 
 import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 
-import java.math.BigDecimal;
-
 public final class VMInteger extends AbstractVMPrimitive {
-    public VMInteger(@NotNull BigDecimal value) {
+    public static final VMInteger ZERO = new VMInteger(0);
+
+    private VMInteger(@NotNull int value) {
         super(PrimitiveTypes.INT, value);
     }
 }

@@ -53,16 +53,14 @@ public class VMType {
         };
     }
 
-    @NotNull
-    public VMClass linkClass(@NotNull VMClassLoader cl) {
+    public void linkClass(@NotNull VMClassLoader cl) {
         if (this.isPrimitive)
-            throw new UnsupportedOperationException("Cannot link a primitive type: " + this.type);
+            return;  // プリミティブ型はリンク不要
 
         if (this.linkedClass == null) {
             ClassReferenceType classRefType = (ClassReferenceType) this.type;
             this.linkedClass = cl.findClass(ClassReference.of(classRefType));
         }
 
-        return this.linkedClass;
     }
 }

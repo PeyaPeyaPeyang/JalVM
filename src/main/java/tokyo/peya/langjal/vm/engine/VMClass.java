@@ -1,5 +1,6 @@
 package tokyo.peya.langjal.vm.engine;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
@@ -9,6 +10,7 @@ import tokyo.peya.langjal.vm.VMClassLoader;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMType;
 
+@Getter
 public class VMClass {
     private final ClassNode clazz;
     private final VMMethod[] methods;

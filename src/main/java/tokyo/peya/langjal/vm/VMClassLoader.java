@@ -39,6 +39,7 @@ public class VMClassLoader {
 
         VMClass vmClass = new VMClass(classNode);
         this.heap.addClass(vmClass);
+        vmClass.linkMembers(this);
 
         return vmClass;
     }

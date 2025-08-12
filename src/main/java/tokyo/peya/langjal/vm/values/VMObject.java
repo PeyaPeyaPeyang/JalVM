@@ -6,6 +6,7 @@ import tokyo.peya.langjal.compiler.jvm.Type;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMField;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class VMObject implements VMValue {
@@ -14,6 +15,16 @@ public class VMObject implements VMValue {
 
     public VMObject(@NotNull VMClass objectType) {
         this.objectType = objectType;
+        this.fields = initialiseFields();
+    }
+
+    private Map<VMField, VMValue> initialiseFields()
+    {
+        Map<VMField, VMValue> fields = new HashMap<>();
+        for (VMField field : this.objectType.getFields())
+            fields.put(field, field.defaultValue());
+
+        return fields;
     }
 
 

@@ -29,7 +29,7 @@ public class DebugInterpreter implements VMInterpreter {
     }
 
     private static void out(String message, Object... args) {
-        System.out.printf(message, args);
+        System.out.printf((message) + "%n", args);
     }
 
     @Override
@@ -56,11 +56,11 @@ public class DebugInterpreter implements VMInterpreter {
                 return null;
             }
             case "show" -> {
-                out("Current frame: %s%n", this.frame);
-                out("Current thread: %s%n", this.engine.getName());
-                out("Current method: %s%n", this.frame.getMethod().getMethodNode().name);
-                out("Stack: %s%n", this.frame.getStack());
-                out("Locals: %s%n", this.frame.getLocals());
+                out("Current frame: %s", this.frame);
+                out("Current thread: %s", this.engine.getName());
+                out("Current method: %s", this.frame.getMethod().getMethodNode().name);
+                out("Stack: %s", this.frame.getStack());
+                out("Locals: %s", this.frame.getLocals());
                 return null;
             }
             case "sipush" -> {
@@ -229,11 +229,11 @@ public class DebugInterpreter implements VMInterpreter {
 
     private boolean checkArgs(String[] parts, int expected, int minExpected) {
         if (parts.length < minExpected) {
-            out("Usage: %s%n", parts[0]);
+            out("Usage: %s", parts[0]);
             return false;
         }
         if (parts.length > expected) {
-            out("Too many arguments for %s%n", parts[0]);
+            out("Too many arguments for %s", parts[0]);
             return false;
         }
         return true;
@@ -247,7 +247,7 @@ public class DebugInterpreter implements VMInterpreter {
         try {
             return Integer.parseInt(value);
         } catch (NumberFormatException e) {
-            out("Invalid integer: %s%n", value);
+            out("Invalid integer: %s", value);
             return 0; // or throw an exception
         }
     }

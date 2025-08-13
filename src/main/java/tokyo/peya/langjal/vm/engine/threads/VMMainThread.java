@@ -28,7 +28,7 @@ public class VMMainThread extends VMThread {
     }
 
     private VMArray createArgsArray(@NotNull String[] args) {
-        VMArray argsArray = new VMArray(VMType.STRING, 1);
+        VMArray argsArray = new VMArray(VMType.STRING, args.length);
         for (int i = 0; i < args.length; i++)
             argsArray.set(i, VMStringCreator.createString(args[i]));
 

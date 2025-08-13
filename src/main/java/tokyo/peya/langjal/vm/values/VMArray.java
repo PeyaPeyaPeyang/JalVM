@@ -13,8 +13,8 @@ public class VMArray implements VMValue {
     private final VMType arrayType;
 
     public VMArray(@NotNull VMType objectType, int size) {
-        if (size <= 0)
-            throw new VMPanic("Size cannot be zero or negative: " + size);
+        if (size < 0)
+            throw new VMPanic("Size cannot be negative: " + size);
         else if (objectType.getArrayDimensions() > 0)
             throw new VMPanic("Cannot create an array of arrays: " + objectType.getTypeDescriptor());
 

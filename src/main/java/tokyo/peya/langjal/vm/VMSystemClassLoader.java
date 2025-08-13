@@ -49,7 +49,9 @@ public class VMSystemClassLoader {
         if (this.heap.getLoadedClass(name) != null)
             throw new IllegalStateException("Class " + name + " is already defined!");
 
-        System.out.println("Defining class: " + name);
+        if (this.vm.isDebugging())
+            System.out.println("Defining class: " + name);
+
         VMClass vmClass = new VMClass(classNode);
         this.heap.addClass(vmClass);
 

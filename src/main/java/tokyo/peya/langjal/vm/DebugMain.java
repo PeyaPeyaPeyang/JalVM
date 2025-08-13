@@ -1,10 +1,8 @@
 package tokyo.peya.langjal.vm;
 
-import com.ibm.icu.text.RbnfLenientScanner;
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.util.Printer;
 import org.objectweb.asm.util.Textifier;
@@ -12,7 +10,7 @@ import org.objectweb.asm.util.TraceMethodVisitor;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.api.VMEventHandler;
 import tokyo.peya.langjal.vm.api.VMListener;
-import tokyo.peya.langjal.vm.api.events.StepInEvent;
+import tokyo.peya.langjal.vm.api.events.VMStepInEvent;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMEngine;
 import tokyo.peya.langjal.vm.engine.VMFrame;
@@ -92,7 +90,7 @@ public class DebugMain {
             System.out.printf("Locals: %s%n", frame.getLocals());
         }
 
-        private void debugOptions(StepInEvent event) {
+        private void debugOptions(VMStepInEvent event) {
             Printer printer = new Textifier();
             TraceMethodVisitor tmv = new TraceMethodVisitor(printer);
             event.getInstruction().accept(tmv);
@@ -133,7 +131,7 @@ public class DebugMain {
         }
 
         @VMEventHandler
-        public void onStepIn(@NotNull StepInEvent event) {
+        public void onStepIn(@NotNull VMStepInEvent event) {
             if (!this.stepIn) {
                 return; // Debugging is disabled
             }

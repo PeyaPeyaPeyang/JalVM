@@ -3,6 +3,8 @@ package tokyo.peya.langjal.vm.engine.threads;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.vm.JalVM;
+import tokyo.peya.langjal.vm.api.events.VMFrameInEvent;
+import tokyo.peya.langjal.vm.api.events.VMFrameOutEvent;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
 import tokyo.peya.langjal.vm.exceptions.IllegalOperationPanic;
@@ -61,6 +63,7 @@ public class VMThread {
         else if (this.currentFrame != null)
             this.currentFrame.setNextFrame(newFrame);
 
+        vm.getEventManager().dispatchEvent(new VMFrameInEvent(this.vm, newFrame));
         this.currentFrame = newFrame;
 
         return newFrame;
@@ -78,6 +81,7 @@ public class VMThread {
                 prevFrame.getStack().push(returnValue);
         }
 
+        vm.getEventManager().dispatchEvent(new VMFrameOutEvent(this.vm, this.currentFrame, prevFrame));
         return this.currentFrame = prevFrame;
     }
 

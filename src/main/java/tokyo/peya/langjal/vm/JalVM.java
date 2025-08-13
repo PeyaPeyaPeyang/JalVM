@@ -3,6 +3,7 @@ package tokyo.peya.langjal.vm;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.vm.api.VMEventManager;
+import tokyo.peya.langjal.vm.api.VMPluginLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMEngine;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
@@ -16,6 +17,7 @@ public class JalVM {
     private final VMSystemClassLoader classLoader;
     private final VMEngine engine;
     private final VMEventManager eventManager;
+    private final VMPluginLoader pluginLoader;
     private final boolean debugging = true;
 
 
@@ -27,7 +29,9 @@ public class JalVM {
         this.classLoader = new VMSystemClassLoader(this, this.heap);
         this.engine = new VMEngine(this);
         this.eventManager = new VMEventManager();
+        this.pluginLoader = new VMPluginLoader();
 
+        this.pluginLoader.loadPlugins();
         initialiseWellKnownClasses(this.classLoader);
     }
 

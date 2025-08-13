@@ -1,6 +1,5 @@
 package tokyo.peya.langjal.vm;
 
-import com.ibm.icu.impl.ICULocaleService;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import tokyo.peya.langjal.vm.references.ClassReference;

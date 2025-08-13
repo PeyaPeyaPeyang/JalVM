@@ -8,7 +8,7 @@ import org.objectweb.asm.tree.AbstractInsnNode;
 import tokyo.peya.langjal.compiler.jvm.AccessAttribute;
 import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.VMInterpreter;
-import tokyo.peya.langjal.vm.api.events.StepInEvent;
+import tokyo.peya.langjal.vm.api.events.VMStepInEvent;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
 import tokyo.peya.langjal.vm.engine.stacking.VMStack;
 import tokyo.peya.langjal.vm.engine.stacking.VMStackMachine;
@@ -98,9 +98,8 @@ public class VMFrame {
     }
 
     public void heartbeat() {
-        if (!this.isRunning) {
+        if (!this.isRunning)
             throw new VMPanic("Frame is not running.");
-        }
 
         if (this.interpreter.hasNextInstruction()) {
             try {
@@ -108,7 +107,7 @@ public class VMFrame {
                 if (next == null)
                     return;  // そういうこともある。
 
-                this.vm.getEventManager().dispatchEvent(new StepInEvent(
+                this.vm.getEventManager().dispatchEvent(new VMStepInEvent(
                         this,
                         next
                 ));

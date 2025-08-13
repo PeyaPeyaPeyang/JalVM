@@ -4,7 +4,6 @@ import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.vm.exceptions.IllegalOperandPanic;
 import tokyo.peya.langjal.vm.exceptions.StackOverflowPanic;
 import tokyo.peya.langjal.vm.exceptions.StackUnderflowPanic;
-import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
 
 import java.util.Stack;

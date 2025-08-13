@@ -1,6 +1,6 @@
 package tokyo.peya.langjal.vm.exceptions;
 
-public class IllegalOperandPanic extends VMPanic{
+public class IllegalOperandPanic extends VMPanic {
     public IllegalOperandPanic(final String message) {
         super(message);
     }

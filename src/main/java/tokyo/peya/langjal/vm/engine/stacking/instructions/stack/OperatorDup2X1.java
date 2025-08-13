@@ -26,8 +26,7 @@ public class OperatorDup2X1 extends AbstractInstructionOperator<InsnNode> {
             stack.push(value1);
             stack.push(value2);
             stack.push(value1);
-        }
-        else {
+        } else {
             if (value2.isCategory2())
                 throw new IllegalOperationPanic("Cannot duplicate category 2 value with DUP_X2");
             VMValue value3 = stack.pop();

@@ -1,16 +1,17 @@
 package tokyo.peya.langjal.vm.values;
 
 import org.jetbrains.annotations.NotNull;
-import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
-
-import java.math.BigDecimal;
 
 public final class VMBoolean extends AbstractVMPrimitive {
     public static final VMBoolean TRUE = new VMBoolean(true);
     public static final VMBoolean FALSE = new VMBoolean(false);
 
     private VMBoolean(final boolean value) {
-        super(VMType.BOOLEAN, value ? 0: 1);
+        super(VMType.BOOLEAN, value ? 0 : 1);
+    }
+
+    public static VMBoolean of(final boolean value) {
+        return value ? TRUE : FALSE;
     }
 
     @Override

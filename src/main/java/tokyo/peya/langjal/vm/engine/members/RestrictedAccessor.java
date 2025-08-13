@@ -8,7 +8,9 @@ import tokyo.peya.langjal.vm.engine.VMClass;
 public interface RestrictedAccessor {
 
     VMClass getOwningClass();  // これがクラスなら自分自身
+
     AccessLevel getAccessLevel();
+
     AccessAttributeSet getAccessAttributes();
 
     default boolean canAccessFrom(@Nullable VMClass callerClass) {
@@ -20,7 +22,8 @@ public interface RestrictedAccessor {
 
         return switch (targetAccessLevel) {
             case PUBLIC -> true; // publicはどこからでもアクセス可能
-            case PROTECTED -> callerClass.isSubclassOf(target) || callerClass.getReference().isEqualPackage(target.getReference());
+            case PROTECTED ->
+                    callerClass.isSubclassOf(target) || callerClass.getReference().isEqualPackage(target.getReference());
             case PACKAGE_PRIVATE -> callerClass.getReference().isEqualPackage(target.getReference()) ||
                     callerClass.getReference().isEqualPackage(target.getSuperLink().getReference()); // 同じパッケージ内，またはスーパークラスが同じパッケージ内ならアクセス可能
             case PRIVATE -> false; // privateは同じクラス内のみアクセス可能

@@ -1,12 +1,11 @@
 package tokyo.peya.langjal.vm.values;
 
 import org.jetbrains.annotations.NotNull;
-import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 
 public final class VMByte extends VMInteger {
     public static final VMByte ZERO = new VMByte((byte) 0x00);
 
-    private VMByte(final byte value) {
+    public VMByte(final byte value) {
         super(VMType.BYTE, value);
     }
 

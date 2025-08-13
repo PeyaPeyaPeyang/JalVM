@@ -1,7 +1,6 @@
 package tokyo.peya.langjal.vm.values;
 
 import org.jetbrains.annotations.NotNull;
-import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 
 public final class VMLong extends AbstractVMPrimitive {
     public static final VMLong ZERO = new VMLong(0);

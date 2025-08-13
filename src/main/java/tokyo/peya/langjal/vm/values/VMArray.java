@@ -2,7 +2,6 @@ package tokyo.peya.langjal.vm.values;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import tokyo.peya.langjal.vm.exceptions.VMPanic;
 
 @Getter
@@ -25,7 +24,23 @@ public class VMArray implements VMValue {
         this.arrayType = VMType.ofTypeDescriptor("[" + objectType.getTypeDescriptor());
     }
 
-    @Nullable
+    public VMArray(@NotNull VMType objectType, @NotNull VMValue[] values) {
+        if (values.length == 0)
+            throw new VMPanic("Array cannot be empty");
+
+        // 値チェック
+        for (VMValue value : values)
+            if (!objectType.isAssignableFrom(value.getType()))
+                throw new VMPanic("VM BUG!!! Incompatible type in array: " + value.getType().getTypeDescriptor() + " for " + objectType.getTypeDescriptor());
+
+        this.objectType = objectType;
+        this.elements = values;
+
+        this.arrayType = VMType.ofTypeDescriptor("[" + objectType.getTypeDescriptor());
+    }
+
+
+    @NotNull
     public VMValue get(int index) {
         if (index < 0 || index >= this.elements.length)
             throw new VMPanic("Index: " + index + ", Size: " + this.elements.length);

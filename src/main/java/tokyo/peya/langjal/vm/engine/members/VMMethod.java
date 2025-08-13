@@ -8,10 +8,10 @@ import tokyo.peya.langjal.compiler.jvm.AccessAttribute;
 import tokyo.peya.langjal.compiler.jvm.AccessAttributeSet;
 import tokyo.peya.langjal.compiler.jvm.AccessLevel;
 import tokyo.peya.langjal.compiler.jvm.MethodDescriptor;
-import tokyo.peya.langjal.vm.DebugInterpreter;
 import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.VMInterpreter;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
+import tokyo.peya.langjal.vm.engine.BytecodeInterpreter;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.threads.VMThread;
@@ -53,32 +53,34 @@ public class VMMethod implements RestrictedAccessor {
             @NotNull JalVM vm,
             @NotNull VMThread engine,
             @NotNull VMFrame frame) {
-        // return new BytecodeInterpreter(this.methodNode);
-        return new DebugInterpreter(
-                vm,
-                engine,
-                frame
-        );
+        return new BytecodeInterpreter(this.methodNode);
+        // return new DebugInterpreter(vm, engine, frame);
     }
 
     public void linkTypes(@NotNull VMSystemClassLoader cl) {
         this.returnType.linkClass(cl);
-        for (VMType type : this.parameterTypes) {
+        for (VMType type : this.parameterTypes)
             type.linkClass(cl);
-        }
     }
 
-    public void invokeStatic(@NotNull VMThread thread, @Nullable VMClass caller, @NotNull VMValue... args) {
+    public void invokeStatic(@NotNull VMThread thread, @Nullable VMClass caller, boolean isVMDecree, @NotNull VMValue... args) {
         if (!this.accessAttributes.has(AccessAttribute.STATIC))
             throw new NonStaticInvocationPanic(thread, this);
         else if (!this.canAccessFrom(caller))
             throw new AccessRestrictedPanic(caller, this);
 
-         thread.invokeMethod(this, args);
+        thread.invokeMethod(this, isVMDecree, args);
+    }
+
+    public void invokeBypassAccess(@NotNull VMThread thread, @Nullable VMClass caller, @NotNull VMValue... args) {
+        if (!this.accessAttributes.has(AccessAttribute.STATIC))
+            throw new NonStaticInvocationPanic(thread, this);
+
+        thread.invokeMethod(this, true, args);
     }
 
     public void invokeVirtual(@NotNull VMThread thread, @Nullable VMClass caller,
-                              @NotNull VMObject instance, @NotNull VMValue... args) {
+                              @NotNull VMObject instance, boolean isVMDecree, @NotNull VMValue... args) {
         if (this.accessAttributes.has(AccessAttribute.STATIC))
             throw new NonStaticInvocationPanic(thread, this);
         else if (!this.canAccessFrom(caller))
@@ -88,7 +90,7 @@ public class VMMethod implements RestrictedAccessor {
         newArgs[0] = instance; // インスタンスを最初の引数に
         System.arraycopy(args, 0, newArgs, 1, args.length);
 
-        thread.invokeMethod(this, newArgs);
+        thread.invokeMethod(this, isVMDecree, newArgs);
     }
 
     @NotNull
@@ -107,5 +109,11 @@ public class VMMethod implements RestrictedAccessor {
     @Override
     public VMClass getOwningClass() {
         return this.clazz;
+    }
+
+    @Override
+    public String toString() {
+        return this.clazz.getReference() + "." + this.methodNode.name + this.methodNode.desc +
+                " (access: " + this.accessLevel + ", attributes: " + this.accessAttributes + ")";
     }
 }

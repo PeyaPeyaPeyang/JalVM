@@ -17,7 +17,7 @@ public class OperatorSwap extends AbstractInstructionOperator<InsnNode> {
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand) {
         VMStack stack = frame.getStack();
-        
+
         VMValue value = stack.pop();
         VMValue value2 = stack.pop();
         if (value.isCategory2() || value2.isCategory2())

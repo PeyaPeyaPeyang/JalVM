@@ -1,7 +1,6 @@
 package tokyo.peya.langjal.vm.values;
 
 import org.jetbrains.annotations.NotNull;
-import tokyo.peya.langjal.compiler.jvm.Type;
 
 public class VMNull implements VMValue {
     private final VMType type;

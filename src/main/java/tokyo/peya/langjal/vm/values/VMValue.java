@@ -8,8 +8,7 @@ public interface VMValue {
 
     boolean isCompatibleTo(@NotNull VMValue other);
 
-    default boolean isCategory2()
-    {
+    default boolean isCategory2() {
         return this.getType().getType().getCategory() == 2;
     }
 }

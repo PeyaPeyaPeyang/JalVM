@@ -1,12 +1,11 @@
 package tokyo.peya.langjal.vm.values;
 
 import org.jetbrains.annotations.NotNull;
-import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 
 public final class VMFloat extends AbstractVMPrimitive {
     public static final VMFloat ZERO = new VMFloat(0f);
 
-    private VMFloat(final float value) {
+    public VMFloat(final float value) {
         super(VMType.FLOAT, value);
     }
 

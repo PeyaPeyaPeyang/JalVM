@@ -7,18 +7,27 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
-import tokyo.peya.langjal.compiler.jvm.*;
+import tokyo.peya.langjal.compiler.jvm.AccessAttribute;
+import tokyo.peya.langjal.compiler.jvm.AccessAttributeSet;
+import tokyo.peya.langjal.compiler.jvm.AccessLevel;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
+import tokyo.peya.langjal.vm.engine.injections.InjectedField;
+import tokyo.peya.langjal.vm.engine.injections.InjectedMethod;
 import tokyo.peya.langjal.vm.engine.members.RestrictedAccessor;
 import tokyo.peya.langjal.vm.engine.members.VMField;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
 import tokyo.peya.langjal.vm.engine.threads.VMThread;
+import tokyo.peya.langjal.vm.exceptions.VMPanic;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Getter
 public class VMClass implements RestrictedAccessor {
@@ -28,8 +37,11 @@ public class VMClass implements RestrictedAccessor {
     private final AccessAttributeSet accessAttributes;
     private final AccessLevel accessLevel;
 
-    private final VMMethod[] methods;
-    private final VMField[] fields;
+    private final List<VMMethod> methods;
+    private final List<VMField> fields;
+
+    @Getter(lombok.AccessLevel.NONE)
+    private final Map<VMField, VMValue> staticFields;
 
     private VMClass superLink;
 
@@ -43,6 +55,7 @@ public class VMClass implements RestrictedAccessor {
         this.methods = extractMethods(clazz);
         this.fields = extractFields(clazz);
 
+        this.staticFields = this.initialiseStaticFields();
     }
 
     public VMObject createInstance() {
@@ -52,6 +65,52 @@ public class VMClass implements RestrictedAccessor {
         return new VMObject(this);
     }
 
+
+    public void injectMethod(@NotNull VMSystemClassLoader cl, @NotNull InjectedMethod method) {
+        if (!this.reference.equals(method.getOwningClass().getReference())) {
+            throw new IllegalArgumentException("Injected method does not belong to this class: " + method.getOwningClass().getReference());
+        }
+
+        String injectingMethodName = method.getName();
+        for (VMMethod existingMethod : this.methods) {
+            if (!existingMethod.getName().equals(injectingMethodName))
+                continue; // メソッド名が一致しない場合はスキップ
+
+            MethodNode existingNode = existingMethod.getMethodNode();
+            MethodNode injectingNode = method.getMethodNode();
+            if (existingNode.desc.equals(injectingNode.desc)) {
+                // 既存のメソッドと同じシグネチャのメソッドが存在する場合は上書き
+                this.methods.remove(existingMethod); // 既存のメソッドを削除
+                break;
+            }
+        }
+
+        method.linkTypes(cl);
+
+        // 新しいメソッドを追加
+        this.methods.add(method);
+    }
+
+    public void injectField(@NotNull VMSystemClassLoader cl, @NotNull VMField field) {
+        if (!this.reference.equals(field.getOwningClass().getReference())) {
+            throw new VMPanic("Injected field does not belong to this class: " + field.getOwningClass().getReference());
+        }
+
+        String injectingFieldName = field.getName();
+        for (VMField existingField : this.fields) {
+            if (existingField.getName().equals(injectingFieldName)) {
+                this.fields.remove(existingField); // 既存のフィールドを削除
+                break;
+            }
+        }
+
+        field.linkType(cl); // フィールドの型をリンク
+
+        // 既存のフィールドを削除
+        this.fields.removeIf(existingField -> existingField.getName().equals(field.getName()));
+        // 新しいフィールドを追加
+        this.fields.add(field);
+    }
 
     public boolean isSubclassOf(@NotNull VMClass maySuper) {
         if (this == maySuper)
@@ -77,21 +136,16 @@ public class VMClass implements RestrictedAccessor {
         this.linkMembers(cl);
         // 静的初期化メソッドを呼び出す
         VMThread currentThread = cl.getVm().getEngine().getCurrentThread();
-        this.invokeStaticInitaliser(currentThread);
+        // this.invokeStaticInitaliser(currentThread);
     }
 
-    private void invokeStaticInitaliser(@NotNull VMThread callerThread)
-    {
-        VMMethod staticInitMethod = this.findSuitableMethod(
-                null,
-                "<clinit>",
-                VMType.VOID
-        );
+    private void invokeStaticInitaliser(@NotNull VMThread callerThread) {
+        VMMethod staticInitMethod = this.findStaticInitialiser();
         if (staticInitMethod == null)
             return;  // 静的初期化メソッドがない場合は何もしない
 
         // 静的初期化メソッドを呼び出す
-        staticInitMethod.invokeStatic(callerThread, null);
+        staticInitMethod.invokeBypassAccess(callerThread, null);
     }
 
 
@@ -110,26 +164,35 @@ public class VMClass implements RestrictedAccessor {
             field.linkType(cl);
     }
 
-    private VMField[] extractFields(@NotNull ClassNode classNode) {
+    private List<VMField> extractFields(@NotNull ClassNode classNode) {
         FieldNode[] fields = classNode.fields.toArray(new FieldNode[0]);
-        VMField[] vmFields = new VMField[fields.length];
+        List<VMField> vmFields = new ArrayList<>();
         for (int i = 0; i < fields.length; i++) {
             FieldNode fieldNode = fields[i];
             String descString = fieldNode.desc;
-            vmFields[i] = new VMField(
+            vmFields.add(new VMField(
                     this,
                     VMType.ofTypeDescriptor(descString),
                     fieldNode
-            );
+            ));
         }
 
         return vmFields;
     }
 
-    private VMMethod[] extractMethods(@NotNull ClassNode classNode) {
+    private Map<VMField, VMValue> initialiseStaticFields() {
+        Map<VMField, VMValue> staticFields = new HashMap<>();
+        for (VMField field : fields)
+            if (field.getAccessAttributes().has(AccessAttribute.STATIC))
+                staticFields.put(field, field.getType().defaultValue());
+
+        return staticFields;
+    }
+
+    private List<VMMethod> extractMethods(@NotNull ClassNode classNode) {
         return classNode.methods.stream()
                 .map(methodNode -> new VMMethod(this, methodNode))
-                .toArray(VMMethod[]::new);
+                .collect(Collectors.toList());
     }
 
     @Nullable
@@ -155,14 +218,25 @@ public class VMClass implements RestrictedAccessor {
         return ClassReference.of(clazz);
     }
 
+    public VMMethod findStaticInitialiser() {
+        for (VMMethod method : methods) {
+            if (method.getName().equals("<clinit>")
+                    && method.getAccessAttributes().has(AccessAttribute.STATIC)
+                    && method.getReturnType().equals(VMType.VOID)
+                    && method.getParameterTypes().length == 0)
+                return method; // 静的初期化メソッドを見つけたら返す
+        }
+        return null; // 見つからなかった場合はnullを返す
+    }
+
     @Nullable
     public VMMethod findSuitableMethod(@Nullable VMClass caller, @NotNull String methodName, @Nullable VMType returnType, @NotNull VMType... args) {
-        for (VMMethod method : this.getMethods()) {
+        for (VMMethod method : this.methods) {
             // メソッド名が一致しない場合はスキップ
             if (!method.getName().equals(methodName))
                 continue;
             // 戻り値の型が一致しない場合はスキップ
-            if (returnType != null && !returnType.isAssignableFrom(method.getReturnType()))
+            if (!(returnType == null || returnType.isAssignableFrom(method.getReturnType())))
                 continue;
 
             // アクセスレベルが一致しない場合はスキップ
@@ -186,6 +260,39 @@ public class VMClass implements RestrictedAccessor {
                 return method; // 一致するメソッドを返す
         }
         return null; // 一致するメソッドが見つからなかった場合はnullを返す
+    }
+
+    public void setStaticField(@NotNull String fieldName, @NotNull VMValue value) {
+        VMField field = this.findStaticField(fieldName);
+        if (!field.getType().isAssignableFrom(value.getType()))
+            throw new VMPanic("Cannot assign value of type " + value.getType() + " to field " + fieldName + " of type " + field.getType());
+
+        if (field instanceof InjectedField)
+            ((InjectedField) field).set(this, null, value); // InjectedFieldの場合は特別な処理を行う
+
+        this.staticFields.put(field, value); // 静的フィールドに値を設定
+    }
+
+    @NotNull
+    public VMValue getStaticField(@NotNull String fieldName) {
+        VMField field = this.findStaticField(fieldName);
+        if (field instanceof InjectedField)
+            return ((InjectedField) field).get(this, null);
+
+        VMValue value = this.staticFields.get(field);
+        if (value == null)
+            throw new VMPanic("Static field " + fieldName + " is not initialized in class " + this.reference.getFullQualifiedName());
+
+        return value; // 静的フィールドの値を返す
+    }
+
+    @NotNull
+    private VMField findStaticField(@NotNull String fieldName) {
+        for (VMField field : this.fields)
+            if (field.getName().equals(fieldName))
+                return field; // 一致するフィールドを返す
+
+        throw new VMPanic("Field not found: " + fieldName + " in class " + this.reference.getFullQualifiedName());
     }
 
     @NotNull

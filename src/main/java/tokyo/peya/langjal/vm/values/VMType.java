@@ -49,14 +49,6 @@ public class VMType {
         this.isPrimitive = true;
     }
 
-    public static VMType ofTypeDescriptor(@NotNull String typeDescriptor) {
-        return new VMType(TypeDescriptor.parse(typeDescriptor));
-    }
-
-    public static VMType ofClassName(@NotNull String className) {
-        return new VMType(TypeDescriptor.className(className));
-    }
-
     public VMType(@NotNull ClassReference reference) {
         this(TypeDescriptor.className(reference.getFullQualifiedName()));
     }
@@ -67,9 +59,17 @@ public class VMType {
         this.isPrimitive = type.isPrimitive();
     }
 
+    public static VMType ofTypeDescriptor(@NotNull String typeDescriptor) {
+        return new VMType(TypeDescriptor.parse(typeDescriptor));
+    }
+
+    public static VMType ofClassName(@NotNull String className) {
+        return new VMType(TypeDescriptor.className(className));
+    }
+
     public VMValue defaultValue() {
         // 非プリミティブまたは配列は「参照型」であるから， null
-        if (!(this.isPrimitive || this.arrayDimensions > 1))
+        if (this.type instanceof ClassReferenceType || this.arrayDimensions > 0)
             return new VMNull(this);
 
         // プリミティブ型のデフォルト値を返す
@@ -105,7 +105,7 @@ public class VMType {
 
         // 型と配列次元数が同じなら等価
         return Objects.equals(this.type, that.type) &&
-               this.arrayDimensions == that.arrayDimensions;
+                this.arrayDimensions == that.arrayDimensions;
     }
 
     @Override
@@ -133,18 +133,17 @@ public class VMType {
 
         // 参照型同士の互換性チェック
         if (this.linkedClass == null || other.linkedClass == null)
-            throw new IllegalStateException("Classes must be linked before checking assignability.");
+            return false;
 
         // 参照型の互換性チェック
         return this.linkedClass.isSubclassOf(other.linkedClass);
     }
-    private boolean isAssignableFromPrimitive(@NotNull PrimitiveTypes other)
-    {
+
+    private boolean isAssignableFromPrimitive(@NotNull PrimitiveTypes other) {
         if (this.type == other)
             return true;
 
-        return switch ((PrimitiveTypes) this.type)
-        {
+        return switch ((PrimitiveTypes) this.type) {
             case SHORT -> other == PrimitiveTypes.BYTE;
             case INT -> other == PrimitiveTypes.BYTE
                     || other == PrimitiveTypes.SHORT

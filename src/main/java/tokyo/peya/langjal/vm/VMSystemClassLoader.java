@@ -6,16 +6,19 @@ import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
 import tokyo.peya.langjal.vm.engine.VMClass;
+import tokyo.peya.langjal.vm.engine.injections.InjectorManager;
 import tokyo.peya.langjal.vm.references.ClassReference;
 
 public class VMSystemClassLoader {
     @Getter
     private final JalVM vm;
     private final VMHeap heap;
+    private final InjectorManager injector;
 
     public VMSystemClassLoader(@NotNull JalVM vm, @NotNull VMHeap heap) {
         this.vm = vm;
         this.heap = heap;
+        this.injector = new InjectorManager();
     }
 
     @Nullable
@@ -49,7 +52,11 @@ public class VMSystemClassLoader {
         System.out.println("Defining class: " + name);
         VMClass vmClass = new VMClass(classNode);
         this.heap.addClass(vmClass);
+
         vmClass.initialiseClass(this);
+
+        // クラスにネイティブ等を注入
+        this.injector.injectClass(this, vmClass);
 
         return vmClass;
     }

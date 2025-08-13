@@ -1,6 +1,5 @@
 package tokyo.peya.langjal.vm;
 
-import com.sun.jdi.VoidType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import tokyo.peya.langjal.vm.references.ClassReference;
@@ -14,8 +13,7 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-public class ClassPaths
-{
+public class ClassPaths {
     private final List<Path> classPaths;
     private final Map<Path, ZipFile> zipFileHandles;
 
@@ -110,7 +108,7 @@ public class ClassPaths
             } catch (Exception e) {
                 e.printStackTrace();
                 System.out.println("Failed to collect zip files from class path: " + path
-                         + ", ignoring.");
+                        + ", ignoring.");
             }
         }
     }

@@ -5,6 +5,8 @@ import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
+import tokyo.peya.langjal.vm.exceptions.IllegalOperationPanic;
+import tokyo.peya.langjal.vm.exceptions.LinkagePanic;
 import tokyo.peya.langjal.vm.values.VMValue;
 
 @Getter
@@ -29,7 +31,7 @@ public class VMThread {
     public void runThread() {
         System.out.println("Thread[" + this.name + "] is running...");
         if (this.firstFrame == null)
-            throw new IllegalStateException("No entry point method set. Cannot run the instructions!!!");
+            throw new LinkagePanic("No entry point method set. Cannot run the instructions!!!");
 
         this.firstFrame.activate();
     }
@@ -38,20 +40,18 @@ public class VMThread {
         this.currentFrame.heartbeat();
     }
 
-    public VMFrame invokeMethod(@NotNull VMMethod method, @NotNull VMValue... args) {
-        if (this.currentFrame != null)
-            throw new IllegalStateException("Current frame is already set. Cannot create a new one!");
-
-        VMFrame newFrame = this.createFrame(method, args);
+    public VMFrame invokeMethod(@NotNull VMMethod method, boolean isVMDecree, @NotNull VMValue... args) {
+        VMFrame newFrame = this.createFrame(method, isVMDecree, args);
         this.currentFrame = newFrame;
         newFrame.activate();
         return newFrame;
     }
 
-    public VMFrame createFrame(@NotNull VMMethod method, @NotNull VMValue... args) {
+    public VMFrame createFrame(@NotNull VMMethod method, boolean isVMDecree, @NotNull VMValue... args) {
         VMFrame newFrame = new VMFrame(
                 vm,
                 this,
+                isVMDecree,
                 method,
                 args,
                 this.currentFrame
@@ -68,13 +68,15 @@ public class VMThread {
 
     public VMFrame restoreFrame() {
         if (this.currentFrame == null)
-            throw new IllegalStateException("Frame underflow.");
+            throw new IllegalOperationPanic("Frame underflow.");
 
         // 親フレームと戻り値を，スタックに積んでおく
         VMFrame prevFrame = this.currentFrame.getPrevFrame();
-        VMValue returnValue = this.currentFrame.getReturnValue();
-        if (!(returnValue == null || prevFrame == null))
-            prevFrame.getStack().push(returnValue);
+        if (this.currentFrame.isVMDecree()) {
+            VMValue returnValue = this.currentFrame.getReturnValue();
+            if (!(returnValue == null || prevFrame == null))
+                prevFrame.getStack().push(returnValue);
+        }
 
         return this.currentFrame = prevFrame;
     }

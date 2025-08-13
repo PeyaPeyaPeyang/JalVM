@@ -48,7 +48,6 @@ public class VMLocals {
     }
 
 
-
     @Override
     public String toString() {
         return "[" + locals.entrySet().stream()

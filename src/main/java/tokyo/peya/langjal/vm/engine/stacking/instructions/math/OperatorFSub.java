@@ -1,4 +1,4 @@
- package tokyo.peya.langjal.vm.engine.stacking.instructions.math;
+package tokyo.peya.langjal.vm.engine.stacking.instructions.math;
 
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.InsnNode;

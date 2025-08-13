@@ -117,6 +117,7 @@ public class ClassReference {
     public boolean isEqualPackage(@Nullable String packageName) {
         return Objects.equals(this.getPackage(), packageName);
     }
+
     public boolean isEqualPackage(@NotNull ClassReference otherClass) {
         return Objects.equals(this.getPackage(), otherClass.getPackage());
     }

@@ -1,7 +1,6 @@
 package tokyo.peya.langjal.vm.values;
 
 import org.jetbrains.annotations.NotNull;
-import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 
 public abstract class AbstractVMPrimitive implements VMPrimitive {
     private final VMType type;

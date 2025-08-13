@@ -13,7 +13,7 @@ public class AccessRestrictedPanic extends VMPanic {
     private final RestrictedAccessor target;
 
     public AccessRestrictedPanic(@Nullable RestrictedAccessor caller, @NotNull RestrictedAccessor target) {
-        super("Access restricted!:" + (caller == null ? "J(al)VM": caller.getOwningClass()) + " -> " + target.getOwningClass());
+        super("Access restricted!:" + (caller == null ? "J(al)VM" : caller.getOwningClass()) + " -> " + target.getOwningClass());
         this.caller = caller;
         this.target = target;
     }

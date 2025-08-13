@@ -3,16 +3,22 @@ package tokyo.peya.langjal.vm.engine.stacking;
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import tokyo.peya.langjal.vm.engine.VMFrame;
+import tokyo.peya.langjal.vm.engine.stacking.constants.OperatorLDC;
+import tokyo.peya.langjal.vm.engine.stacking.constants.OperatorSIPush;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.math.*;
-import tokyo.peya.langjal.vm.engine.stacking.instructions.OperatorSIPush;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorGetStatic;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorInvokeStatic;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorInvokeVirtual;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.stack.*;
 import tokyo.peya.langjal.vm.exceptions.UnknownInstructionPanic;
 
 public class VMStackMachine {
-    private static final AbstractInstructionOperator <?>[] OPERATORS = new AbstractInstructionOperator<?>[]{
+    private static final AbstractInstructionOperator<?>[] OPERATORS = new AbstractInstructionOperator<?>[]{
             // <editor-fold desc="Stack Manipulation">
             new OperatorSIPush(), // 0x11 - 17
+
+            new OperatorLDC(), // 0x12 - 18
 
             // <editor-fold desc="Stack">
             new OperatorPop(), // 0x57 - 87
@@ -66,6 +72,11 @@ public class VMStackMachine {
             new OperatorIInc(), // 0x85 - 133
             // </editor-fold>
 
+            // <editor-fold desc="References">
+            new OperatorGetStatic(), // 0xB2 - 178
+            new OperatorInvokeVirtual(), // 0xB6 - 182
+            new OperatorInvokeStatic(), // 0xB8 - 184
+            // </editor-fold>
 
             // </editor-fold>
     };
@@ -79,7 +90,7 @@ public class VMStackMachine {
     }
 
     @SuppressWarnings("unchecked")
-    public static void executeInstruction(@NotNull VMFrame frame,@NotNull AbstractInsnNode insn) {
+    public static void executeInstruction(@NotNull VMFrame frame, @NotNull AbstractInsnNode insn) {
         AbstractInstructionOperator<AbstractInsnNode> operator = (AbstractInstructionOperator<AbstractInsnNode>) getOperator(insn.getOpcode());
 
         operator.execute(frame, insn);

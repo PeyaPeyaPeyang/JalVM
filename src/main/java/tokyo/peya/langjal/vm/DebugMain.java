@@ -29,6 +29,18 @@ public class DebugMain {
                 null // Exceptions
         );
         methodNode.visitCode();
+        // System.out.println("Hello, World!");
+        methodNode.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
+        methodNode.visitLdcInsn("Hello, World!");
+        methodNode.visitMethodInsn(
+                Opcodes.INVOKEVIRTUAL,
+                "java/io/PrintStream",
+                "println",
+                "(Ljava/lang/String;)V",
+                false // Is interface
+        );
+        // Return from main method
+
         methodNode.visitInsn(Opcodes.RETURN); // Return instruction
         methodNode.visitMaxs(-1, -1); // Max stack and local variables
         methodNode.visitEnd();

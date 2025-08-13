@@ -1,8 +1,6 @@
 package tokyo.peya.langjal.vm.values;
 
 import org.jetbrains.annotations.NotNull;
-import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
-import tokyo.peya.langjal.compiler.jvm.Type;
 
 public class VMVoid implements VMValue {
     public static final VMVoid INSTANCE = new VMVoid();

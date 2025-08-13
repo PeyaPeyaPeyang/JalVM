@@ -34,7 +34,7 @@ public class VMEngine {
     }
 
     public void startEngine() {
-        while(this.isRunning())
+        while (this.isRunning())
             this.heartbeatThreads();
     }
 

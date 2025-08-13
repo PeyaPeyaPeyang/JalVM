@@ -20,6 +20,7 @@ import tokyo.peya.langjal.vm.values.VMValue;
 public class VMFrame {
     private final JalVM vm;
     private final VMThread thread;
+    private final boolean isVMDecree;
     private final VMMethod method;
     private final VMValue[] args;
 
@@ -35,15 +36,16 @@ public class VMFrame {
     @Setter
     private VMValue returnValue;
 
-
     public VMFrame(
             @NotNull JalVM vm,
             @NotNull VMThread thread,
+            boolean isVMDecree,
             @NotNull VMMethod method,
             @NotNull VMValue[] args,
             @Nullable VMFrame prevFrame) {
         this.vm = vm;
         this.thread = thread;
+        this.isVMDecree = isVMDecree;  // VMが決めたフレームかどうか
         this.method = method;
         this.args = args;
         this.prevFrame = prevFrame;

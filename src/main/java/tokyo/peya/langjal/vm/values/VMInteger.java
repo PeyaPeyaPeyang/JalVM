@@ -1,8 +1,6 @@
 package tokyo.peya.langjal.vm.values;
 
 import org.jetbrains.annotations.NotNull;
-import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
-import tokyo.peya.langjal.vm.exceptions.VMPanic;
 
 public sealed class VMInteger extends AbstractVMPrimitive permits VMByte, VMChar, VMShort {
     public static final VMInteger ZERO = new VMInteger(0);

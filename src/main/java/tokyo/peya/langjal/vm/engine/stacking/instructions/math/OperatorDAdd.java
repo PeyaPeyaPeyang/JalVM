@@ -6,7 +6,6 @@ import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
 import tokyo.peya.langjal.vm.values.VMDouble;
-import tokyo.peya.langjal.vm.values.VMLong;
 
 public class OperatorDAdd extends AbstractInstructionOperator<InsnNode> {
     public OperatorDAdd() {

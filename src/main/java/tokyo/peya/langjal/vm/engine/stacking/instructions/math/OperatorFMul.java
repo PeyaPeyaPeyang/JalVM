@@ -1,4 +1,4 @@
- package tokyo.peya.langjal.vm.engine.stacking.instructions.math;
+package tokyo.peya.langjal.vm.engine.stacking.instructions.math;
 
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.InsnNode;
@@ -7,16 +7,16 @@ import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
 import tokyo.peya.langjal.vm.values.VMFloat;
 
- public class OperatorFMul extends AbstractInstructionOperator<InsnNode> {
-     public OperatorFMul() {
-         super(EOpcodes.FMUL, "fmul");
-     }
+public class OperatorFMul extends AbstractInstructionOperator<InsnNode> {
+    public OperatorFMul() {
+        super(EOpcodes.FMUL, "fmul");
+    }
 
-     @Override
-     public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand) {
-         VMFloat val1 = frame.getStack().popType(VMFloat.class);
-         VMFloat val2 = frame.getStack().popType(VMFloat.class);
+    @Override
+    public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand) {
+        VMFloat val1 = frame.getStack().popType(VMFloat.class);
+        VMFloat val2 = frame.getStack().popType(VMFloat.class);
 
-         frame.getStack().push(val2.mul(val1));
-     }
- }
+        frame.getStack().push(val2.mul(val1));
+    }
+}

@@ -1,7 +1,6 @@
 package tokyo.peya.langjal.vm.values;
 
 import org.jetbrains.annotations.NotNull;
-import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 
 public final class VMShort extends VMInteger {
     public static final VMShort ZERO = new VMShort((short) 0);

@@ -1,6 +1,6 @@
 package tokyo.peya.langjal.vm.exceptions;
 
-public class UnknownInstructionPanic extends VMPanic{
+public class UnknownInstructionPanic extends VMPanic {
     public UnknownInstructionPanic(final String message) {
         super(message);
     }

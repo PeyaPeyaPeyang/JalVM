@@ -6,8 +6,7 @@ import org.objectweb.asm.tree.MethodNode;
 import tokyo.peya.langjal.vm.VMInterpreter;
 import tokyo.peya.langjal.vm.exceptions.VMPanic;
 
-public class BytecodeInterpreter implements VMInterpreter
-{
+public class BytecodeInterpreter implements VMInterpreter {
     private final MethodNode method;
     private AbstractInsnNode current;
 
@@ -15,12 +14,13 @@ public class BytecodeInterpreter implements VMInterpreter
         this.method = method;
 
         if (method.instructions != null)
-            this.current = method.instructions.getFirst();;
+            this.current = method.instructions.getFirst();
+        ;
     }
 
     @Override
     public boolean hasNextInstruction() {
-        return  !(current == null || current.getNext() == null);
+        return !(current == null || current.getNext() == null);
     }
 
     @Override
@@ -28,15 +28,15 @@ public class BytecodeInterpreter implements VMInterpreter
         if (!this.hasNextInstruction()) {
             throw new VMPanic("No next instruction available.");
         }
-        AbstractInsnNode next;
-        while ((next = current.getNext()) != null) {
-            if (next.getOpcode() != -1) { // ラベルやフレームではない場合
-                break;
-            }
 
-            current = next; // ラベルやフレームをスキップする
-        }
+        if (this.current == null)
+            return null;
 
-        return next;
+        while (current != null && current.getOpcode() == -1)
+            current = current.getNext();
+
+        AbstractInsnNode instruction = this.current;
+        this.current = this.current.getNext();
+        return instruction;
     }
 }

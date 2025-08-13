@@ -26,6 +26,10 @@ public class JalVM {
         initialiseWellKnownClasses(this.classLoader);
     }
 
+    private static void initialiseWellKnownClasses(@NotNull VMSystemClassLoader cl) {
+        VMType.STRING.linkClass(cl);
+    }
+
     public void startJVM() {
         System.out.println("Starting J(al)VM...");
         this.engine.startEngine();
@@ -50,9 +54,5 @@ public class JalVM {
         this.engine.getMainThread().startMainThread(mainMethod, args);
 
         this.startJVM();
-    }
-
-    private static void initialiseWellKnownClasses(@NotNull VMSystemClassLoader cl) {
-        VMType.STRING.linkClass(cl);
     }
 }

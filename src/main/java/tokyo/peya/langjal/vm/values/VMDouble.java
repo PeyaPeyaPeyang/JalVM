@@ -1,7 +1,6 @@
 package tokyo.peya.langjal.vm.values;
 
 import org.jetbrains.annotations.NotNull;
-import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 
 public final class VMDouble extends AbstractVMPrimitive {
     public static final VMDouble ZERO = new VMDouble(0d);

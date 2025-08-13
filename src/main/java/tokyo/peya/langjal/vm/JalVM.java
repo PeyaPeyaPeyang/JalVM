@@ -6,12 +6,13 @@ import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMEngine;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
 import tokyo.peya.langjal.vm.references.ClassReference;
+import tokyo.peya.langjal.vm.values.VMType;
 
 @Getter
 public class JalVM {
     private final VMHeap heap;
     private final ClassPaths classPaths;
-    private final VMClassLoader classLoader;
+    private final VMSystemClassLoader classLoader;
     private final VMEngine engine;
 
     public JalVM() {
@@ -19,8 +20,10 @@ public class JalVM {
 
         this.heap = new VMHeap();
         this.classPaths = new ClassPaths();
-        this.classLoader = new VMClassLoader(this, this.heap);
+        this.classLoader = new VMSystemClassLoader(this, this.heap);
         this.engine = new VMEngine(this);
+
+        initialiseWellKnownClasses(this.classLoader);
     }
 
     public void startJVM() {
@@ -39,13 +42,17 @@ public class JalVM {
     }
 
     public void executeMain(@NotNull VMClass clazz, @NotNull String[] args) {
-        VMMethod mainMethod = clazz.findMainMethod();
+        VMMethod mainMethod = clazz.findEntryPoint();
         if (mainMethod == null)
             throw new IllegalStateException("There is no main method in class:  "
                     + clazz.getReference().getFullQualifiedName());
 
-        this.engine.getMainThread().executeEntryPointMethod(mainMethod);
+        this.engine.getMainThread().startMainThread(mainMethod, args);
 
         this.startJVM();
+    }
+
+    private static void initialiseWellKnownClasses(@NotNull VMSystemClassLoader cl) {
+        VMType.STRING.linkClass(cl);
     }
 }

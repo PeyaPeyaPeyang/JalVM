@@ -7,7 +7,7 @@ public final class VMShort extends VMInteger {
     public static final VMShort ZERO = new VMShort((short) 0);
 
     public VMShort(final short value) {
-        super(PrimitiveTypes.SHORT, value);
+        super(VMType.SHORT, value);
     }
 
     @Override

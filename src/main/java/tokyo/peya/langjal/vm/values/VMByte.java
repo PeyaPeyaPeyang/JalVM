@@ -7,7 +7,7 @@ public final class VMByte extends VMInteger {
     public static final VMByte ZERO = new VMByte((byte) 0x00);
 
     private VMByte(final byte value) {
-        super(PrimitiveTypes.BYTE, value);
+        super(VMType.BYTE, value);
     }
 
     @Override

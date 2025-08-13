@@ -12,20 +12,31 @@ public class VMLocals {
     private final int maxSize;
     private final Map<Integer, VMValue> locals;
 
-    public VMLocals(int maxSize) {
+    public VMLocals(int maxSize, @NotNull VMValue[] args) {
         this.maxSize = maxSize;
         this.locals = new HashMap<>();
+
+        this.initialiseArgs(args);
+    }
+
+    public void initialiseArgs(@NotNull VMValue[] args) {
+        int slot = 0;
+        for (VMValue arg : args) {
+            this.setSlot(slot++, arg);
+            if (arg.isCategory2())
+                slot++; // 次のスロットは TOP になるのでスキップ
+        }
     }
 
     public void setSlot(int index, @NotNull VMValue value) {
-        if (index < 0 || index >= this.maxSize)
+        if (index < 0 || (this.maxSize > 0 && index >= this.maxSize))
             throw new NoReferencePanic("Local variable index " + index + " is out of bounds. Max size: " + this.maxSize);
 
         this.locals.put(index, value);
     }
 
     public @NotNull VMValue getLocal(int index) {
-        if (index < 0 || index >= this.maxSize)
+        if (index < 0 || (this.maxSize > 0 && index >= this.maxSize))
             throw new NoReferencePanic("Local variable index " + index + " is out of bounds. Max size: " + this.maxSize);
 
         VMValue value = this.locals.get(index);

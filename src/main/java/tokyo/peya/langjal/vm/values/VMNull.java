@@ -11,8 +11,8 @@ public class VMNull implements VMValue {
     }
 
     @Override
-    public @NotNull Type getType() {
-        return this.type.getType();
+    public @NotNull VMType getType() {
+        return this.type;
     }
 
     @Override

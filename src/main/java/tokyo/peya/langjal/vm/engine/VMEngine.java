@@ -1,5 +1,6 @@
 package tokyo.peya.langjal.vm.engine;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.vm.JalVM;
@@ -9,13 +10,15 @@ import tokyo.peya.langjal.vm.engine.threads.VMThread;
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
 public class VMEngine {
-    @Getter
     private final JalVM vm;
 
-    @Getter
     private final VMMainThread mainThread;
-    private final List<VMThread> threads;  // TODO: マルチスレッディング
+    @Getter(AccessLevel.NONE)
+    private final List<VMThread> threads;
+
+    private VMThread currentThread;
 
     public VMEngine(@NotNull JalVM vm) {
         this.vm = vm;
@@ -23,6 +26,7 @@ public class VMEngine {
         this.threads = new ArrayList<>();
 
         this.threads.add(this.mainThread);
+        this.currentThread = this.mainThread;
     }
 
     public boolean isRunning() {
@@ -37,6 +41,7 @@ public class VMEngine {
     public void heartbeatThreads() {
         List<VMThread> deadThreads = new ArrayList<>();
         for (VMThread thread : this.threads) {
+            this.currentThread = thread;
             if (thread.isAlive())
                 thread.heartbeat();
             else {
@@ -44,6 +49,8 @@ public class VMEngine {
                 deadThreads.add(thread);
             }
         }
+
+        this.currentThread = null;
 
         for (VMThread deadThread : deadThreads) {
             System.out.println("Dead thread wiped out: " + deadThread.getName());

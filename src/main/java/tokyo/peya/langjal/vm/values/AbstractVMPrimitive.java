@@ -4,16 +4,16 @@ import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 
 public abstract class AbstractVMPrimitive implements VMPrimitive {
-    private final PrimitiveTypes type;
+    private final VMType type;
     private final Number rawValue;
 
-    protected AbstractVMPrimitive(@NotNull PrimitiveTypes type, @NotNull Number rawValue) {
+    protected AbstractVMPrimitive(@NotNull VMType type, @NotNull Number rawValue) {
         this.type = type;
         this.rawValue = rawValue;
     }
 
     @Override
-    public @NotNull PrimitiveTypes getType() {
+    public @NotNull VMType getType() {
         return this.type;
     }
 

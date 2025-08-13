@@ -11,8 +11,8 @@ public class VMVoid implements VMValue {
     }
 
     @Override
-    public @NotNull Type getType() {
-        return PrimitiveTypes.VOID;
+    public @NotNull VMType getType() {
+        return VMType.VOID;
     }
 
     @Override

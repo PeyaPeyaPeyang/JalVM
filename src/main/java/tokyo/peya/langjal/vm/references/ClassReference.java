@@ -1,6 +1,7 @@
 package tokyo.peya.langjal.vm.references;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.tree.ClassNode;
 import tokyo.peya.langjal.compiler.jvm.ClassReferenceType;
 
@@ -109,15 +110,18 @@ public class ClassReference {
                 && Objects.equals(this.className, that.className);
     }
 
-    public boolean isEqualClassName(String className) {
+    public boolean isEqualClassName(@NotNull String className) {
         return Objects.equals(this.className, className);
     }
 
-    public boolean isEqualPackage(String packageName) {
+    public boolean isEqualPackage(@Nullable String packageName) {
         return Objects.equals(this.getPackage(), packageName);
     }
+    public boolean isEqualPackage(@NotNull ClassReference otherClass) {
+        return Objects.equals(this.getPackage(), otherClass.getPackage());
+    }
 
-    public boolean isEqualClass(String fullQualifiedName) {
+    public boolean isEqualClass(@NotNull String fullQualifiedName) {
         return Objects.equals(this.getFullQualifiedName(), fullQualifiedName.replace('.', '/'));
     }
 

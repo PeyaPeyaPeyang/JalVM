@@ -6,13 +6,23 @@ import org.jetbrains.annotations.Nullable;
 import tokyo.peya.langjal.vm.exceptions.VMPanic;
 
 @Getter
-public class VMArray {
+public class VMArray implements VMValue {
+
     private final VMType objectType;
     private final VMValue[] elements;
 
+    private final VMType arrayType;
+
     public VMArray(@NotNull VMType objectType, int size) {
+        if (size <= 0)
+            throw new VMPanic("Size cannot be zero or negative: " + size);
+        else if (objectType.getArrayDimensions() > 0)
+            throw new VMPanic("Cannot create an array of arrays: " + objectType.getTypeDescriptor());
+
         this.objectType = objectType;
         this.elements = new VMValue[size];
+
+        this.arrayType = VMType.ofTypeDescriptor("[" + objectType.getTypeDescriptor());
     }
 
     @Nullable
@@ -35,5 +45,17 @@ public class VMArray {
 
     public int length() {
         return this.elements.length;
+    }
+
+    @Override
+    public @NotNull VMType getType() {
+        return this.arrayType;
+    }
+
+    @Override
+    public boolean isCompatibleTo(@NotNull VMValue other) {
+        if (other instanceof VMArray otherArray)
+            return this.objectType.isAssignableFrom(otherArray.getObjectType());
+        return other instanceof VMNull;
     }
 }

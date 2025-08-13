@@ -1,5 +1,6 @@
 package tokyo.peya.langjal.vm;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.ClassReader;
@@ -7,13 +8,12 @@ import org.objectweb.asm.tree.ClassNode;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.references.ClassReference;
 
-import java.nio.file.Path;
-
-public class VMClassLoader {
+public class VMSystemClassLoader {
+    @Getter
     private final JalVM vm;
     private final VMHeap heap;
 
-    public VMClassLoader(@NotNull JalVM vm, @NotNull VMHeap heap) {
+    public VMSystemClassLoader(@NotNull JalVM vm, @NotNull VMHeap heap) {
         this.vm = vm;
         this.heap = heap;
     }
@@ -49,7 +49,7 @@ public class VMClassLoader {
         System.out.println("Defining class: " + name);
         VMClass vmClass = new VMClass(classNode);
         this.heap.addClass(vmClass);
-        vmClass.linkMembers(this);
+        vmClass.initialiseClass(this);
 
         return vmClass;
     }

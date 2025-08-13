@@ -7,7 +7,7 @@ public final class VMDouble extends AbstractVMPrimitive {
     public static final VMDouble ZERO = new VMDouble(0d);
 
     public VMDouble(final double value) {
-        super(PrimitiveTypes.DOUBLE, value);
+        super(VMType.DOUBLE, value);
     }
 
     @Override

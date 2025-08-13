@@ -1,16 +1,15 @@
 package tokyo.peya.langjal.vm.values;
 
 import org.jetbrains.annotations.NotNull;
-import tokyo.peya.langjal.compiler.jvm.Type;
 
 public interface VMValue {
     @NotNull
-    Type getType();
+    VMType getType();
 
     boolean isCompatibleTo(@NotNull VMValue other);
 
     default boolean isCategory2()
     {
-        return this.getType().getCategory() == 2;
+        return this.getType().getType().getCategory() == 2;
     }
 }

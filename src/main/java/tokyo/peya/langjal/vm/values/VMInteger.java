@@ -7,12 +7,12 @@ import tokyo.peya.langjal.vm.exceptions.VMPanic;
 public sealed class VMInteger extends AbstractVMPrimitive permits VMByte, VMChar, VMShort {
     public static final VMInteger ZERO = new VMInteger(0);
 
-    protected VMInteger(PrimitiveTypes type, final int value) {
+    protected VMInteger(VMType type, final int value) {
         super(type, value);
     }
 
     public VMInteger(final int value) {
-        super(PrimitiveTypes.INT, value);
+        super(VMType.INTEGER, value);
     }
 
     @NotNull

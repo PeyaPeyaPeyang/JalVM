@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
+import tokyo.peya.langjal.vm.values.VMValue;
 
 @Getter
 public class VMThread {
@@ -30,22 +31,36 @@ public class VMThread {
         if (this.firstFrame == null)
             throw new IllegalStateException("No entry point method set. Cannot run the instructions!!!");
 
-        this.firstFrame.startRunning();
+        this.firstFrame.activate();
     }
 
     public void heartbeat() {
         this.currentFrame.heartbeat();
     }
 
-    public VMFrame createFrame(@NotNull VMMethod method) {
+    public VMFrame invokeMethod(@NotNull VMMethod method, @NotNull VMValue... args) {
+        if (this.currentFrame != null)
+            throw new IllegalStateException("Current frame is already set. Cannot create a new one!");
+
+        VMFrame newFrame = this.createFrame(method, args);
+        this.currentFrame = newFrame;
+        newFrame.activate();
+        return newFrame;
+    }
+
+    public VMFrame createFrame(@NotNull VMMethod method, @NotNull VMValue... args) {
         VMFrame newFrame = new VMFrame(
                 vm,
                 this,
-                this.currentFrame,
-                method
+                method,
+                args,
+                this.currentFrame
         );
-        if (this.currentFrame != null)
+        if (this.firstFrame == null)
+            this.firstFrame = newFrame;
+        else if (this.currentFrame != null)
             this.currentFrame.setNextFrame(newFrame);
+
         this.currentFrame = newFrame;
 
         return newFrame;
@@ -54,7 +69,14 @@ public class VMThread {
     public VMFrame restoreFrame() {
         if (this.currentFrame == null)
             throw new IllegalStateException("Frame underflow.");
-        return this.currentFrame = this.currentFrame.getPrevFrame();
+
+        // 親フレームと戻り値を，スタックに積んでおく
+        VMFrame prevFrame = this.currentFrame.getPrevFrame();
+        VMValue returnValue = this.currentFrame.getReturnValue();
+        if (!(returnValue == null || prevFrame == null))
+            prevFrame.getStack().push(returnValue);
+
+        return this.currentFrame = prevFrame;
     }
 
     public boolean isAlive() {

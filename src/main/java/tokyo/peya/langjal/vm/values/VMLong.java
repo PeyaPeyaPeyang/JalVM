@@ -7,7 +7,7 @@ public final class VMLong extends AbstractVMPrimitive {
     public static final VMLong ZERO = new VMLong(0);
 
     public VMLong(final long value) {
-        super(PrimitiveTypes.LONG, value);
+        super(VMType.LONG, value);
     }
 
     @Override

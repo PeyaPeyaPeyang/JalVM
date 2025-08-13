@@ -53,7 +53,7 @@ public class VMMethod implements RestrictedAccessor {
             @NotNull JalVM vm,
             @NotNull VMThread engine,
             @NotNull VMFrame frame) {
-        return new BytecodeInterpreter(this.methodNode);
+        return new BytecodeInterpreter(vm, engine, frame, this.methodNode, vm.isDebugging());
         // return new DebugInterpreter(vm, engine, frame);
     }
 

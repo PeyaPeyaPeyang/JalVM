@@ -14,6 +14,8 @@ public class JalVM {
     private final ClassPaths classPaths;
     private final VMSystemClassLoader classLoader;
     private final VMEngine engine;
+    private final boolean debugging = true;
+
 
     public JalVM() {
         System.out.println("Initialising J(al)VM...");

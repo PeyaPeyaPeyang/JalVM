@@ -73,4 +73,19 @@ public class VMArray implements VMValue {
             return this.objectType.isAssignableFrom(otherArray.getObjectType());
         return other instanceof VMNull;
     }
+
+    @Override
+    public String toString() {
+       StringBuilder sb = new StringBuilder("{");
+        for (int i = 0; i < this.elements.length; i++) {
+            if (i > 0) sb.append(", ");
+            VMValue value = this.elements[i];
+            if (value == null)
+                sb.append("?");
+            else
+                sb.append(value);
+        }
+        sb.append("}");
+        return sb.toString();
+    }
 }

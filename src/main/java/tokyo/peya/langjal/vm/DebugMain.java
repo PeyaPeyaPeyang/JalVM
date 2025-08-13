@@ -2,7 +2,9 @@ package tokyo.peya.langjal.vm;
 
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
+import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.engine.VMClass;
 
 public class DebugMain {
@@ -30,17 +32,8 @@ public class DebugMain {
         );
         methodNode.visitCode();
         // System.out.println("Hello, World!");
-        methodNode.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
-        methodNode.visitLdcInsn("Hello, World!");
-        methodNode.visitMethodInsn(
-                Opcodes.INVOKEVIRTUAL,
-                "java/io/PrintStream",
-                "println",
-                "(Ljava/lang/String;)V",
-                false // Is interface
-        );
-        // Return from main method
-
+        // helloWorld(methodNode);
+        comparisons(methodNode);
         methodNode.visitInsn(Opcodes.RETURN); // Return instruction
         methodNode.visitMaxs(-1, -1); // Max stack and local variables
         methodNode.visitEnd();
@@ -50,5 +43,25 @@ public class DebugMain {
         System.out.println(jalVM.getHeap().getLoadedClasses().size());
 
         jalVM.executeMain(clazz, new String[]{});
+    }
+
+    private static void comparisons(MethodNode node) {
+        node.visitIntInsn(EOpcodes.SIPUSH, 20);
+        node.visitIntInsn(EOpcodes.SIPUSH, 30);
+        node.visitInsn(EOpcodes.IADD);
+        node.visitIntInsn(EOpcodes.SIPUSH, 50);
+        node.visitInsn(EOpcodes.ISUB);
+    }
+
+    private static void helloWorld(MethodNode node) {
+        node.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
+        node.visitLdcInsn("Hello, World!");
+        node.visitMethodInsn(
+                Opcodes.INVOKEVIRTUAL,
+                "java/io/PrintStream",
+                "println",
+                "(Ljava/lang/String;)V",
+                false // Is interface
+        );
     }
 }

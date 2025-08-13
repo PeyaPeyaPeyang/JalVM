@@ -11,4 +11,6 @@ public interface VMValue {
     default boolean isCategory2() {
         return this.getType().getType().getCategory() == 2;
     }
+
+    String toString();
 }

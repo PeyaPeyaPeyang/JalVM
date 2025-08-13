@@ -44,4 +44,11 @@ public class VMField implements RestrictedAccessor {
     public VMClass getOwningClass() {
         return this.clazz;
     }
+
+    @Override
+    public String toString() {
+        return this.name + "@" + this.clazz.getReference().getFullQualifiedName() +
+                " (" + this.type.getType().getDescriptor() + ")" +
+                " [" + this.accessLevel + "]";
+    }
 }

@@ -123,7 +123,7 @@ public class VMObject implements VMValue {
             sb.append("\n  ")
                     .append(entry.getKey().getName())
                     .append(": ")
-                    .append(entry.getValue().toString());
+                    .append(entry.getValue() == null ? "?" : entry.getValue().toString());
         sb.append("\n}");
         return sb.toString();
     }

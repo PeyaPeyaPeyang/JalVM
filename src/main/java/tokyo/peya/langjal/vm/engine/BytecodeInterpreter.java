@@ -39,63 +39,9 @@ public class BytecodeInterpreter implements VMInterpreter {
         this.stepIn = isDebugging;
     }
 
-    private void printFrame() {
-        out("Current frame: %s", this.frame);
-        out("Current thread: %s", this.engine.getName());
-        out("Current method: %s", this.frame.getMethod().getMethodNode().name);
-        out("Stack: %s", this.frame.getStack());
-        out("Locals: %s", this.frame.getLocals());
-    }
-
-    private void debugOptions() {
-        Printer printer = new Textifier();
-        TraceMethodVisitor tmv = new TraceMethodVisitor(printer);
-        this.current.accept(tmv);
-        String instructionText = printer.getText().toString();
-        // 末尾の \n を削除
-        instructionText = instructionText.endsWith("\n]") ? instructionText.substring(1, instructionText.length() - 2) : instructionText;
-
-        System.out.println("STEP: " + instructionText);
-        while(true) {
-            String input = this.scanner.nextLine();
-            String[] parts = input.split(" ");
-            if (parts.length == 0) {
-                System.out.println("No command entered. Please try again.");
-                continue;
-            }
-            String command = parts[0].toLowerCase();
-            switch (command) {
-                case "show", "z" -> {
-                    this.printFrame();
-                }
-                case "next", "x" -> {
-                    return;
-                }
-                case "quit", "q" -> {
-                    System.out.println("Exiting debugger.");
-                    this.stepIn = false;
-                    return; // Exit the debugger
-                }
-                default -> {
-                    System.out.println("Unknown command: " + command);
-                    System.out.println("Commands: ");
-                    System.out.println("  show (z) - Show current frame information");
-                    System.out.println("  next (x) - Continue to the next instruction");
-                    System.out.println("  quit (q) - Exit the debugger");
-                }
-            }
-        }
-    }
-
     @Override
     public boolean hasNextInstruction() {
-        boolean hasNext = !(current == null || current.getNext() == null);
-        if (!hasNext) {
-            System.out.println("No more instructions to execute! J(al)VM will return to the previous frame, printing current frame information...");
-            this.printFrame();
-        }
-
-        return hasNext;
+        return !(current == null || current.getNext() == null);
     }
 
     @Override
@@ -108,9 +54,6 @@ public class BytecodeInterpreter implements VMInterpreter {
 
         while (current != null && current.getOpcode() == -1)
             current = current.getNext();
-
-        if (this.stepIn)
-            this.debugOptions();
 
         AbstractInsnNode instruction = this.current;
         this.current = this.current.getNext();

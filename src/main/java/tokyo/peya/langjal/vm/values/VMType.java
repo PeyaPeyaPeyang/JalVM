@@ -36,7 +36,7 @@ public class VMType {
 
     public VMType(@NotNull Type type, int arrayDimensions) {
         if (type instanceof PrimitiveTypes)
-            throw new IllegalArgumentException("type can not be a PrimitiveTypes instance directly. Use VMType.PRIMITIVE_NAME instead.");
+            throw new VMPanic("type can not be a PrimitiveTypes instance directly. Use VMType.PRIMITIVE_NAME instead.");
 
         this.type = type;
         this.arrayDimensions = arrayDimensions;

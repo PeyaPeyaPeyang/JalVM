@@ -2,6 +2,7 @@ package tokyo.peya.langjal.vm;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import tokyo.peya.langjal.vm.exceptions.VMPanic;
 import tokyo.peya.langjal.vm.references.ClassReference;
 
 import java.io.InputStream;
@@ -67,7 +68,7 @@ public class ClassPaths {
                 }
 
             } catch (Exception e) {
-                throw new IllegalStateException("Unable to read class from zip file: " + reference, e);
+                throw new VMPanic("Unable to read class from zip file: " + reference, e);
             }
         }
 
@@ -81,7 +82,7 @@ public class ClassPaths {
                 try {
                     return Files.readAllBytes(classFile);
                 } catch (Exception e) {
-                    throw new IllegalStateException("Unable to read class file: " + classFile, e);
+                    throw new VMPanic("Unable to read class file: " + classFile, e);
                 }
             }
         }

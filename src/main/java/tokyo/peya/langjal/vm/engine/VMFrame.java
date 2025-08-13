@@ -8,6 +8,7 @@ import org.objectweb.asm.tree.AbstractInsnNode;
 import tokyo.peya.langjal.compiler.jvm.AccessAttribute;
 import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.VMInterpreter;
+import tokyo.peya.langjal.vm.api.events.StepInEvent;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
 import tokyo.peya.langjal.vm.engine.stacking.VMStack;
 import tokyo.peya.langjal.vm.engine.stacking.VMStackMachine;
@@ -106,6 +107,11 @@ public class VMFrame {
                 AbstractInsnNode next = this.interpreter.feedNextInstruction();
                 if (next == null)
                     return;  // そういうこともある。
+
+                this.vm.getEventManager().dispatchEvent(new StepInEvent(
+                        this,
+                        next
+                ));
 
                 VMStackMachine.executeInstruction(this, next);
             } catch (Throwable e) {

@@ -39,7 +39,7 @@ public final class VMFloat extends AbstractVMPrimitive {
         return new VMFloat(this.asNumber().floatValue() % val1.asNumber().floatValue());
     }
 
-    public @NotNull VMFloat neg(VMFloat val1) {
-        return new VMFloat(-val1.asNumber().floatValue());
+    public @NotNull VMFloat neg() {
+        return new VMFloat(-this.asNumber().floatValue());
     }
 }

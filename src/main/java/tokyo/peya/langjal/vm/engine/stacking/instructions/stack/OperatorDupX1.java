@@ -7,6 +7,7 @@ import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.VMStack;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
 import tokyo.peya.langjal.vm.exceptions.IllegalOperationPanic;
+import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
 import tokyo.peya.langjal.vm.values.VMValue;
 
 public class OperatorDupX1 extends AbstractInstructionOperator<InsnNode> {
@@ -22,6 +23,8 @@ public class OperatorDupX1 extends AbstractInstructionOperator<InsnNode> {
         VMValue value2 = stack.pop();
         if (value1.isCategory2() || value2.isCategory2())
             throw new IllegalOperationPanic("Cannot duplicate category 2 value with DUP_X1");
+
+        frame.getTracer().pushHistory(ValueTracingEntry.generation(value1, frame.getMethod(), operand));
 
         stack.push(value1);
         stack.push(value2);

@@ -6,6 +6,7 @@ import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
 import tokyo.peya.langjal.vm.exceptions.IllegalOperandPanic;
+import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
 import tokyo.peya.langjal.vm.values.VMShort;
 
 public class OperatorSIPush extends AbstractInstructionOperator<IntInsnNode> {
@@ -19,6 +20,11 @@ public class OperatorSIPush extends AbstractInstructionOperator<IntInsnNode> {
         if (value < Short.MIN_VALUE || value > Short.MAX_VALUE) {
             throw new IllegalOperandPanic("Value out of range for short: " + value);
         }
-        frame.getStack().push(new VMShort((short) value));
+        VMShort vmShort = new VMShort((short) value);
+        frame.getTracer().pushHistory(
+                ValueTracingEntry.generation(vmShort, frame.getMethod(), operand)
+        );
+
+        frame.getStack().push(vmShort);
     }
 }

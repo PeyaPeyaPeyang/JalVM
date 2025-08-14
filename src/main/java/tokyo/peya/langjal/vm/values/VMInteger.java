@@ -44,8 +44,8 @@ public sealed class VMInteger extends AbstractVMPrimitive permits VMByte, VMChar
         return new VMInteger(this.asNumber().intValue() % val1.asNumber().intValue());
     }
 
-    public @NotNull VMInteger neg(VMInteger val1) {
-        return new VMInteger(-val1.asNumber().intValue());
+    public @NotNull VMInteger neg() {
+        return new VMInteger(-this.asNumber().intValue());
     }
 
     public @NotNull VMInteger shl(VMInteger val1) {
@@ -68,7 +68,7 @@ public sealed class VMInteger extends AbstractVMPrimitive permits VMByte, VMChar
         return new VMInteger(this.asNumber().intValue() | val1.asNumber().intValue());
     }
 
-    public @NotNull VMValue xor(VMInteger val1) {
+    public @NotNull VMInteger xor(VMInteger val1) {
         return new VMInteger(this.asNumber().intValue() ^ val1.asNumber().intValue());
     }
 }

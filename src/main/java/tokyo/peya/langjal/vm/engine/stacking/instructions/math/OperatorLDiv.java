@@ -5,6 +5,7 @@ import org.objectweb.asm.tree.InsnNode;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
+import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
 import tokyo.peya.langjal.vm.values.VMLong;
 
 public class OperatorLDiv extends AbstractInstructionOperator<InsnNode> {
@@ -16,7 +17,9 @@ public class OperatorLDiv extends AbstractInstructionOperator<InsnNode> {
     public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand) {
         VMLong val1 = frame.getStack().popType(VMLong.class);
         VMLong val2 = frame.getStack().popType(VMLong.class);
-
-        frame.getStack().push(val2.div(val1));
+        VMLong result = val2.div(val1);
+        frame.getTracer().pushHistory(
+                ValueTracingEntry.combination(result, frame.getMethod(), operand, val2, val1)
+        );
     }
 }

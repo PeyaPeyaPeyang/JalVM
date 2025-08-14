@@ -9,6 +9,7 @@ import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
 import tokyo.peya.langjal.vm.exceptions.IllegalOperationPanic;
 import tokyo.peya.langjal.vm.exceptions.LinkagePanic;
+import tokyo.peya.langjal.vm.tracing.*;
 import tokyo.peya.langjal.vm.values.VMValue;
 
 @Getter
@@ -16,6 +17,7 @@ public class VMThread {
     protected final String name;
     protected final int currentFrameIndex;
     private final JalVM vm;
+    private final VMFrameTracer tracer;
     @Getter
     protected VMFrame firstFrame;
     @Getter
@@ -23,6 +25,7 @@ public class VMThread {
 
     public VMThread(@NotNull JalVM vm, @NotNull String name) {
         this.vm = vm;
+        this.tracer = new VMFrameTracer();
         this.name = name;
 
         this.firstFrame = null;
@@ -66,6 +69,13 @@ public class VMThread {
         vm.getEventManager().dispatchEvent(new VMFrameInEvent(this.vm, newFrame));
         this.currentFrame = newFrame;
 
+        this.tracer.pushHistory(
+                new FrameTracingEntry(
+                        FrameManipulationType.FRAME_IN,
+                        newFrame
+                )
+        );
+
         return newFrame;
     }
 
@@ -81,8 +91,19 @@ public class VMThread {
                 prevFrame.getStack().push(returnValue);
         }
 
+        this.tracer.pushHistory(
+                new FrameTracingEntry(
+                        FrameManipulationType.FRAME_OUT,
+                        this.currentFrame
+                )
+        );
         vm.getEventManager().dispatchEvent(new VMFrameOutEvent(this.vm, this.currentFrame, prevFrame));
         return this.currentFrame = prevFrame;
+    }
+
+    public void onDestruction() {
+        this.firstFrame = null;
+        this.currentFrame = null;
     }
 
     public boolean isAlive() {

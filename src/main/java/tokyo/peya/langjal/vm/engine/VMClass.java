@@ -274,20 +274,19 @@ public class VMClass implements RestrictedAccessor {
     }
 
     @NotNull
-    public VMValue getStaticField(@NotNull String fieldName) {
-        VMField field = this.findStaticField(fieldName);
+    public VMValue getStaticFieldValue(@NotNull VMField field) {
         if (field instanceof InjectedField)
             return ((InjectedField) field).get(this, null);
 
         VMValue value = this.staticFields.get(field);
         if (value == null)
-            throw new VMPanic("Static field " + fieldName + " is not initialized in class " + this.reference.getFullQualifiedName());
+            throw new VMPanic("Static field " + field.getName() + " is not initialized in class " + this.reference.getFullQualifiedName());
 
         return value; // 静的フィールドの値を返す
     }
 
     @NotNull
-    private VMField findStaticField(@NotNull String fieldName) {
+    public VMField findStaticField(@NotNull String fieldName) {
         for (VMField field : this.fields)
             if (field.getName().equals(fieldName))
                 return field; // 一致するフィールドを返す

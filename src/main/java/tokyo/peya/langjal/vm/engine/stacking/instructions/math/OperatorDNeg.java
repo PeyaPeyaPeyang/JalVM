@@ -5,6 +5,7 @@ import org.objectweb.asm.tree.InsnNode;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
+import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
 import tokyo.peya.langjal.vm.values.VMDouble;
 
 public class OperatorDNeg extends AbstractInstructionOperator<InsnNode> {
@@ -15,8 +16,10 @@ public class OperatorDNeg extends AbstractInstructionOperator<InsnNode> {
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand) {
         VMDouble val1 = frame.getStack().popType(VMDouble.class);
-        VMDouble val2 = frame.getStack().popType(VMDouble.class);
-
-        frame.getStack().push(val2.neg(val1));
+        VMDouble result = val1.neg();
+        frame.getTracer().pushHistory(
+                ValueTracingEntry.manipulation(result, val1, frame.getMethod(), operand)
+        );
+        frame.getStack().push(result);
     }
 }

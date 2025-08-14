@@ -2,6 +2,7 @@ package tokyo.peya.langjal.vm;
 
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.util.Printer;
@@ -11,10 +12,15 @@ import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.api.VMEventHandler;
 import tokyo.peya.langjal.vm.api.VMListener;
 import tokyo.peya.langjal.vm.api.events.VMStepInEvent;
+import tokyo.peya.langjal.vm.api.events.VMThreadDeathEvent;
+import tokyo.peya.langjal.vm.api.events.VMThreadEvent;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMEngine;
 import tokyo.peya.langjal.vm.engine.VMFrame;
+import tokyo.peya.langjal.vm.engine.threads.VMThread;
+import tokyo.peya.langjal.vm.tracing.*;
 
+import java.util.List;
 import java.util.Scanner;
 
 public class DebugMain {
@@ -44,8 +50,8 @@ public class DebugMain {
         );
         methodNode.visitCode();
         // System.out.println("Hello, World!");
-        helloWorld(methodNode);
-        // comparisons(methodNode);
+        //helloWorld(methodNode);
+         comparisons(methodNode);
         methodNode.visitInsn(Opcodes.RETURN); // Return instruction
         methodNode.visitMaxs(-1, -1); // Max stack and local variables
         methodNode.visitEnd();
@@ -90,14 +96,17 @@ public class DebugMain {
             System.out.printf("Locals: %s%n", frame.getLocals());
         }
 
-        private void debugOptions(VMStepInEvent event) {
+        private String getInstructionText(AbstractInsnNode insn) {
             Printer printer = new Textifier();
             TraceMethodVisitor tmv = new TraceMethodVisitor(printer);
-            event.getInstruction().accept(tmv);
+            insn.accept(tmv);
             String instructionText = printer.getText().toString();
             // 末尾の \n を削除
-            instructionText = instructionText.endsWith("\n]") ? instructionText.substring(1, instructionText.length() - 2) : instructionText;
+            return instructionText.endsWith("\n]") ? instructionText.substring(1, instructionText.length() - 2) : instructionText;
+        }
 
+        private void debugOptions(VMStepInEvent event) {
+            String instructionText = this.getInstructionText(event.getInstruction());
             System.out.println("STEP: " + instructionText);
             while(true) {
                 String input = scanner.nextLine();
@@ -137,6 +146,104 @@ public class DebugMain {
             }
 
             this.debugOptions(event);
+        }
+
+        @VMEventHandler
+        public void onThreadDestroy(@NotNull VMThreadDeathEvent event) {
+            VMEngine engine = event.getVm().getEngine();
+            System.out.printf("Thread %s has terminated.%n", event.getThread().getName());
+            VMThreadTracer threadTracer = engine.getTracer();
+            List<ThreadTracingEntry> history = threadTracer.getHistory(event.getThread());
+
+            System.out.printf("TRACED THREAD MANIPULATIONS: %d%n",history.size());
+            System.out.printf("--- BEGIN OF THREAD MANIPULATION HISTORIES ---%n");
+            for (int i = 0; i < history.size(); i++) {
+                ThreadTracingEntry entry = history.get(i);
+                VMThread thread = entry.thread();
+                System.out.printf("[t%d] %s: %s%n", i, thread.getName(), entry.type().name());
+                if (entry.type() == ThreadManipulationType.CREATION)
+                    this.dumpThreadHistory(thread);
+            }
+
+            System.out.println("--- END OF THREAD MANIPULATION HISTORIES ---");
+        }
+
+        private void dumpThreadHistory(@NotNull VMThread thread) {
+            VMFrameTracer frameTracer = thread.getTracer();
+            List<FrameTracingEntry> frames = frameTracer.getHistory();
+            System.out.printf("  TRACED FRAMES: %d%n", frames.size());
+            for (int i = 0; i < frames.size(); i++) {
+                FrameTracingEntry entry = frames.get(i);
+                VMFrame frame = entry.frame();
+                System.out.printf("  [f%d] %s: %s%n", i, frame.getMethod(), entry.type().name());
+                if (entry.type() == FrameManipulationType.FRAME_OUT)
+                    this.dumpValueHistory(frame);
+            }
+        }
+
+        private void dumpValueHistory(@NotNull VMFrame frame) {
+            VMValueTracer frameTracer = frame.getTracer();
+            List<ValueTracingEntry> frames = frameTracer.getHistory();
+            System.out.printf("    TRACED MANIPULATIONS: %d%n", frames.size());
+            for (int i = 0; i < frames.size(); i++) {
+                ValueTracingEntry entry = frames.get(i);
+                switch (entry.type()) {
+                    case GENERATION:
+                        assert entry.manipulatingInstruction() != null;
+                        System.out.printf("    [v%d] GENERATION: %s, by %s%n",
+                                i, entry.value(), this.getInstructionText(entry.manipulatingInstruction())
+                        );
+                        break;
+                    case MANIPULATION:
+                        assert entry.manipulatingInstruction() != null;
+                        System.out.printf("    [v%d] MANIPULATION: %s -> %s, by %s%n",
+                                i, entry.value(), entry.combinationValue(), this.getInstructionText(entry.manipulatingInstruction())
+                        );
+                        break;
+                    case DESTRUCTION:
+                        assert entry.manipulatingInstruction() != null;
+                        System.out.printf("    [v%d] DESTRUCTION: %s, by %s%n",
+                                i, entry.value(), this.getInstructionText(entry.manipulatingInstruction())
+                        );
+                        break;
+                    case FIELD_GET:
+                        if (entry.manipulatingInstruction() == null)
+                            System.out.printf("    [v%d] FIELD_GET: %s, by unknown instruction%n", i, entry.value());
+                        else
+                            System.out.printf("    [v%d] FIELD_GET: %s, by %s%n",
+                                    i, entry.value(), this.getInstructionText(entry.manipulatingInstruction())
+                            );
+                        break;
+                    case FIELD_SET:
+                        if (entry.manipulatingInstruction() == null)
+                            System.out.printf("    [v%d] FIELD_SET: %s, by unknown instruction%n", i, entry.value());
+                        else
+                            System.out.printf("    [v%d] FIELD_SET: %s, by %s%n",
+                                    i, entry.value(), this.getInstructionText(entry.manipulatingInstruction())
+                            );
+                        break;
+                    case PASSING_AS_ARGUMENT:
+                        if (entry.manipulatingInstruction() == null)
+                            System.out.printf("    [v%d] PASSING_AS_ARGUMENT: %s, by unknown instruction%n", i, entry.value());
+                        else
+                            System.out.printf("    [v%d] PASSING_AS_ARGUMENT: %s, by %s%n",
+                                    i, entry.value(), this.getInstructionText(entry.manipulatingInstruction())
+                            );
+                        break;
+                    case RETURNING_FROM:
+                        assert entry.manipulatingInstruction() != null;
+                        System.out.printf("    [v%d] RETURNING_FROM: %s, by %s%n",
+                                i, entry.value(), this.getInstructionText(entry.manipulatingInstruction())
+                        );
+                        break;
+                    case COMBINATION:
+                        assert entry.manipulatingInstruction() != null;
+                        System.out.printf("    [v%d] COMBINATION: %s + %s -> %s, by %s%n",
+                                i, entry.combinationValue(), entry.combinationValue2(), entry.value(), this.getInstructionText(entry.manipulatingInstruction())
+                        );
+                        break;
+                }
+            }
         }
     }
 }

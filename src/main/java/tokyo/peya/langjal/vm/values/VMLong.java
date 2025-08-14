@@ -39,11 +39,11 @@ public final class VMLong extends AbstractVMPrimitive {
         return new VMLong(this.asNumber().longValue() % val1.asNumber().longValue());
     }
 
-    public @NotNull VMLong neg(VMLong val1) {
-        return new VMLong(-val1.asNumber().longValue());
+    public @NotNull VMLong neg() {
+        return new VMLong(-this.asNumber().longValue());
     }
 
-    public @NotNull VMValue shl(VMLong val1) {
+    public @NotNull VMLong shl(VMLong val1) {
         return new VMLong(this.asNumber().longValue() << val1.asNumber().longValue());
     }
 
@@ -63,7 +63,7 @@ public final class VMLong extends AbstractVMPrimitive {
         return new VMLong(this.asNumber().longValue() | val1.asNumber().longValue());
     }
 
-    public @NotNull VMValue xor(VMLong val1) {
+    public @NotNull VMLong xor(VMLong val1) {
         return new VMLong(this.asNumber().longValue() ^ val1.asNumber().longValue());
     }
 }

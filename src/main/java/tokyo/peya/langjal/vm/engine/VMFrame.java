@@ -14,6 +14,8 @@ import tokyo.peya.langjal.vm.engine.stacking.VMStack;
 import tokyo.peya.langjal.vm.engine.stacking.VMStackMachine;
 import tokyo.peya.langjal.vm.engine.threads.VMThread;
 import tokyo.peya.langjal.vm.exceptions.VMPanic;
+import tokyo.peya.langjal.vm.tracing.VMValueTracer;
+import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
 import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
 
@@ -24,6 +26,7 @@ public class VMFrame {
     private final boolean isVMDecree;
     private final VMMethod method;
     private final VMValue[] args;
+    private final VMValueTracer tracer;
 
     private final VMStack stack;
     private final VMLocals locals;
@@ -34,7 +37,6 @@ public class VMFrame {
     private VMInterpreter interpreter;
     private boolean isRunning;
 
-    @Setter
     private VMValue returnValue;
 
     public VMFrame(
@@ -49,11 +51,25 @@ public class VMFrame {
         this.isVMDecree = isVMDecree;  // VMが決めたフレームかどうか
         this.method = method;
         this.args = args;
+        this.tracer = new VMValueTracer();
+
         this.prevFrame = prevFrame;
 
         checkArgumentTypes(method, args);
         this.stack = new VMStack(method.getMaxStackSize());
-        this.locals = new VMLocals(method.getMaxLocals(), args);
+        this.locals = new VMLocals(this, method.getMaxLocals(), args);
+
+        this.bookArgumentsHistory(args);
+    }
+
+    private void bookArgumentsHistory(@NotNull VMValue[] args) {
+        for (VMValue arg : args)
+            this.tracer.pushHistory(
+                    ValueTracingEntry.passing(
+                            arg,
+                            this.method
+                    )
+            );
     }
 
     private static void checkArgumentTypes(@NotNull VMMethod method, @NotNull VMValue[] args) {
@@ -122,6 +138,16 @@ public class VMFrame {
             this.isRunning = false;
             this.thread.restoreFrame();
         }
+    }
+
+    public void propagateReturningValue(@NotNull VMValue value, @NotNull AbstractInsnNode returnInsn) {
+        if (this.returnValue != null)
+            throw new VMPanic("Frame already has a return value: " + this.returnValue);
+
+        this.returnValue = value;
+        this.tracer.pushHistory(
+                ValueTracingEntry.returning(value, this.method, returnInsn)
+        );
     }
 
     @Override

@@ -7,6 +7,7 @@ import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.VMStack;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
 import tokyo.peya.langjal.vm.exceptions.VMPanic;
+import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
 import tokyo.peya.langjal.vm.values.*;
 
 public class OperatorLDC extends AbstractInstructionOperator<LdcInsnNode> {
@@ -16,22 +17,25 @@ public class OperatorLDC extends AbstractInstructionOperator<LdcInsnNode> {
 
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull LdcInsnNode operand) {
-        Object value = operand.cst;
         VMStack stack = frame.getStack();
-        switch (value) {
-            case Integer intValue -> stack.push(new VMInteger(intValue));
-            case Long longValue -> stack.push(new VMLong(longValue));
-            case Float floatValue -> stack.push(new VMFloat(floatValue));
-            case String strValue -> stack.push(VMStringCreator.createString(strValue));
-            case Double doubleValue -> stack.push(new VMDouble(doubleValue));
-            case Character charValue -> stack.push(new VMChar(charValue));
-            case Byte byteValue -> stack.push(new VMByte(byteValue));
-            case Short shortValue -> stack.push(new VMShort(shortValue));
-            case Boolean boolValue -> stack.push(VMBoolean.of(boolValue));
+        Object value = operand.cst;
+        VMValue toValue = switch (value) {
+            case Integer intValue -> new VMInteger(intValue);
+            case Long longValue -> new VMLong(longValue);
+            case Float floatValue -> new VMFloat(floatValue);
+            case String strValue -> VMStringCreator.createString(strValue);
+            case Double doubleValue -> new VMDouble(doubleValue);
+            case Character charValue -> new VMChar(charValue);
+            case Byte byteValue -> new VMByte(byteValue);
+            case Short shortValue -> new VMShort(shortValue);
+            case Boolean boolValue -> VMBoolean.of(boolValue);
 
-            default -> {
-                throw new VMPanic("Unsupported constant type: " + value.getClass().getName());
-            }
-        }
+            default -> throw new VMPanic("Unsupported constant type: " + value.getClass().getName());
+        };
+
+        frame.getTracer().pushHistory(
+                ValueTracingEntry.generation(toValue, frame.getMethod(), operand)
+        );
+        stack.push(toValue);
     }
 }

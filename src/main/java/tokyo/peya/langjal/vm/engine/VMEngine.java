@@ -4,8 +4,12 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.vm.JalVM;
+import tokyo.peya.langjal.vm.api.events.VMThreadDeathEvent;
 import tokyo.peya.langjal.vm.engine.threads.VMMainThread;
 import tokyo.peya.langjal.vm.engine.threads.VMThread;
+import tokyo.peya.langjal.vm.tracing.ThreadManipulationType;
+import tokyo.peya.langjal.vm.tracing.ThreadTracingEntry;
+import tokyo.peya.langjal.vm.tracing.VMThreadTracer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +18,7 @@ import java.util.List;
 public class VMEngine {
     private final JalVM vm;
 
+    private final VMThreadTracer tracer;
     private final VMMainThread mainThread;
     @Getter(AccessLevel.NONE)
     private final List<VMThread> threads;
@@ -23,9 +28,10 @@ public class VMEngine {
     public VMEngine(@NotNull JalVM vm) {
         this.vm = vm;
         this.mainThread = new VMMainThread(vm);
+        this.tracer = new VMThreadTracer();
         this.threads = new ArrayList<>();
 
-        this.threads.add(this.mainThread);
+        this.addThread(this.mainThread);
         this.currentThread = this.mainThread;
     }
 
@@ -54,8 +60,35 @@ public class VMEngine {
 
         for (VMThread deadThread : deadThreads) {
             System.out.println("Dead thread wiped out: " + deadThread.getName());
-            this.threads.remove(deadThread);
+            this.killThread(deadThread);
         }
     }
 
+    public void addThread(@NotNull VMThread thread) {
+        if (this.threads.contains(thread)) {
+            throw new IllegalStateException("Thread already exists in the engine.");
+        }
+        this.threads.add(thread);
+        this.tracer.pushHistory(
+                new ThreadTracingEntry(
+                        ThreadManipulationType.CREATION,
+                        thread
+                )
+        );
+    }
+
+    public void killThread(@NotNull VMThread thread) {
+        if (!this.threads.contains(thread))
+            throw new IllegalStateException("Thread does not exist in the engine.");
+        this.threads.remove(thread);
+        thread.onDestruction();
+        this.tracer.pushHistory(
+                new ThreadTracingEntry(
+                        ThreadManipulationType.DESTRUCTION,
+                        thread
+                )
+        );
+
+        this.getVm().getEventManager().dispatchEvent(new VMThreadDeathEvent(this.getVm(), thread));
+    }
 }

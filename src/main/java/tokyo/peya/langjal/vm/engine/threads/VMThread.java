@@ -9,7 +9,9 @@ import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
 import tokyo.peya.langjal.vm.exceptions.IllegalOperationPanic;
 import tokyo.peya.langjal.vm.exceptions.LinkagePanic;
-import tokyo.peya.langjal.vm.tracing.*;
+import tokyo.peya.langjal.vm.tracing.FrameManipulationType;
+import tokyo.peya.langjal.vm.tracing.FrameTracingEntry;
+import tokyo.peya.langjal.vm.tracing.VMFrameTracer;
 import tokyo.peya.langjal.vm.values.VMValue;
 
 @Getter

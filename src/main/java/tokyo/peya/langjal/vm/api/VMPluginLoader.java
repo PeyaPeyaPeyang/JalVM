@@ -34,8 +34,8 @@ public class VMPluginLoader {
 
         try (Stream<Path> paths = Files.walk(pluginsDir)) {
             paths.filter(Files::isRegularFile)
-                 .filter(path -> path.toString().endsWith(".jar"))
-                 .forEach(this::loadPlugin);
+                    .filter(path -> path.toString().endsWith(".jar"))
+                    .forEach(this::loadPlugin);
         } catch (Exception e) {
             System.err.println("Error loading plugins: " + e.getMessage());
             e.printStackTrace();

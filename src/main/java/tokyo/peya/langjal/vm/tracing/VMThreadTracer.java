@@ -13,6 +13,7 @@ public class VMThreadTracer {
     public VMThreadTracer() {
         this.history = new ArrayList<>();
     }
+
     public void pushHistory(@NotNull ThreadTracingEntry entry) {
         this.history.add(entry);
     }

@@ -37,6 +37,7 @@ public class VMLocals {
     public void setSlot(int index, @NotNull VMValue value) {
         this.setSlot(index, value, null);
     }
+
     public void setSlot(int index, @NotNull VMValue value, @Nullable AbstractInsnNode performer) {
         if (index < 0 || (this.maxSize > 0 && index >= this.maxSize))
             throw new NoReferencePanic("Local variable index " + index + " is out of bounds. Max size: " + this.maxSize);
@@ -56,6 +57,7 @@ public class VMLocals {
     public @NotNull VMValue getLocal(int index) {
         return this.getLocal(index, null);
     }
+
     public @NotNull VMValue getLocal(int index, @Nullable AbstractInsnNode performer) {
         if (index < 0 || (this.maxSize > 0 && index >= this.maxSize))
             throw new NoReferencePanic("Local variable index " + index + " is out of bounds. Max size: " + this.maxSize);

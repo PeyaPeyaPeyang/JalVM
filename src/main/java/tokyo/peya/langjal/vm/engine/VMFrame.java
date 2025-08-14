@@ -1,7 +1,6 @@
 package tokyo.peya.langjal.vm.engine;
 
 import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.tree.AbstractInsnNode;
@@ -62,16 +61,6 @@ public class VMFrame {
         this.bookArgumentsHistory(args);
     }
 
-    private void bookArgumentsHistory(@NotNull VMValue[] args) {
-        for (VMValue arg : args)
-            this.tracer.pushHistory(
-                    ValueTracingEntry.passing(
-                            arg,
-                            this.method
-                    )
-            );
-    }
-
     private static void checkArgumentTypes(@NotNull VMMethod method, @NotNull VMValue[] args) {
         VMType[] parameterTypes = method.getParameterTypes();
         int expectedArgs = parameterTypes.length;
@@ -97,6 +86,16 @@ public class VMFrame {
             if (!args[i].getType().isAssignableFrom(parameterTypes[i]))
                 throw new VMPanic("Argument " + i + " of method " + method.getMethodNode().name +
                         " is of type " + args[i].getType() + ", but expected " + parameterTypes[i] + ".");
+    }
+
+    private void bookArgumentsHistory(@NotNull VMValue[] args) {
+        for (VMValue arg : args)
+            this.tracer.pushHistory(
+                    ValueTracingEntry.passing(
+                            arg,
+                            this.method
+                    )
+            );
     }
 
     public void setNextFrame(@NotNull VMFrame nextFrame) {

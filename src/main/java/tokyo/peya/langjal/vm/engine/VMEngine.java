@@ -53,8 +53,7 @@ public class VMEngine {
             if (thread.isAlive()) {
                 this.getVm().getEventManager().dispatchEvent(new VMThreadHeartbeatEvent(this.vm, thread));
                 thread.heartbeat();
-            }
-            else {
+            } else {
                 System.out.println("Thread " + thread.getName() + " is dead, marking for removal.");
                 deadThreads.add(thread);
             }

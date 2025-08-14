@@ -13,6 +13,7 @@ public class VMValueTracer {
     public VMValueTracer() {
         this.history = new ArrayList<>();
     }
+
     public void pushHistory(@NotNull ValueTracingEntry entry) {
         this.history.add(entry);
     }

@@ -27,11 +27,9 @@ public class VMPluginClassLoader extends URLClassLoader {
 
     @Nullable
     public VMPlugin loadPlugin() {
-        try (JarFile jarFile = new JarFile(this.pluginPath.toFile()))
-        {
+        try (JarFile jarFile = new JarFile(this.pluginPath.toFile())) {
             Enumeration<JarEntry> entries = jarFile.entries();
-            while (entries.hasMoreElements())
-            {
+            while (entries.hasMoreElements()) {
                 JarEntry entry = entries.nextElement();
                 if (entry.isDirectory() || !entry.getName().endsWith(".class"))
                     continue;

@@ -20,7 +20,7 @@ public class OperatorIShr extends AbstractInstructionOperator<InsnNode> {
         VMInteger result = val1.shr(val2);
         frame.getTracer().pushHistory(
                 ValueTracingEntry.combination(result, frame.getMethod(), operand, val1, val2)
-                );
+        );
         frame.getStack().push(result);
     }
 }

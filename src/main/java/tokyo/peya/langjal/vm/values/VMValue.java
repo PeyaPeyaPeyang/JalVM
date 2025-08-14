@@ -1,7 +1,6 @@
 package tokyo.peya.langjal.vm.values;
 
 import org.jetbrains.annotations.NotNull;
-import tokyo.peya.langjal.vm.tracing.VMValueTracer;
 
 public interface VMValue {
     @NotNull

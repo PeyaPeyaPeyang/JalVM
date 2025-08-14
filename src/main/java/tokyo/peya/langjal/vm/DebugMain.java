@@ -13,7 +13,6 @@ import tokyo.peya.langjal.vm.api.VMEventHandler;
 import tokyo.peya.langjal.vm.api.VMListener;
 import tokyo.peya.langjal.vm.api.events.VMStepInEvent;
 import tokyo.peya.langjal.vm.api.events.VMThreadDeathEvent;
-import tokyo.peya.langjal.vm.api.events.VMThreadEvent;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMEngine;
 import tokyo.peya.langjal.vm.engine.VMFrame;
@@ -51,7 +50,7 @@ public class DebugMain {
         methodNode.visitCode();
         // System.out.println("Hello, World!");
         //helloWorld(methodNode);
-         comparisons(methodNode);
+        comparisons(methodNode);
         methodNode.visitInsn(Opcodes.RETURN); // Return instruction
         methodNode.visitMaxs(-1, -1); // Max stack and local variables
         methodNode.visitEnd();
@@ -108,7 +107,7 @@ public class DebugMain {
         private void debugOptions(VMStepInEvent event) {
             String instructionText = this.getInstructionText(event.getInstruction());
             System.out.println("STEP: " + instructionText);
-            while(true) {
+            while (true) {
                 String input = scanner.nextLine();
                 String[] parts = input.split(" ");
                 if (parts.length == 0) {
@@ -155,7 +154,7 @@ public class DebugMain {
             VMThreadTracer threadTracer = engine.getTracer();
             List<ThreadTracingEntry> history = threadTracer.getHistory(event.getThread());
 
-            System.out.printf("TRACED THREAD MANIPULATIONS: %d%n",history.size());
+            System.out.printf("TRACED THREAD MANIPULATIONS: %d%n", history.size());
             System.out.printf("--- BEGIN OF THREAD MANIPULATION HISTORIES ---%n");
             for (int i = 0; i < history.size(); i++) {
                 ThreadTracingEntry entry = history.get(i);

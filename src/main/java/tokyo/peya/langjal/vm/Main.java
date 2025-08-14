@@ -8,9 +8,8 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 
-public class Main
-{
-    public static void main(String[] args)  {
+public class Main {
+    public static void main(String[] args) {
         // Main の位置を探す
         int mainIndex = -1;
         for (int i = 0; i < args.length; i++) {
@@ -20,8 +19,7 @@ public class Main
             }
         }
 
-        if (mainIndex == -1)
-        {
+        if (mainIndex == -1) {
             System.err.println("No main class specified");
             System.exit(1);
         }

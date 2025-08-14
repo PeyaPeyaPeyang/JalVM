@@ -1,7 +1,6 @@
 package tokyo.peya.langjal.vm.tracing;
 
 import org.jetbrains.annotations.NotNull;
-import tokyo.peya.langjal.vm.engine.VMFrame;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,6 +12,7 @@ public class VMFrameTracer {
     public VMFrameTracer() {
         this.history = new ArrayList<>();
     }
+
     public void pushHistory(@NotNull FrameTracingEntry entry) {
         this.history.add(entry);
     }

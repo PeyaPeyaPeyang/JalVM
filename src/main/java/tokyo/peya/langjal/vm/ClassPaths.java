@@ -46,9 +46,8 @@ public class ClassPaths {
 
     public byte @Nullable [] findClassBytes(@NotNull ClassReference reference) {
         byte[] classBytes = findClassBytesFromClassPaths(reference);
-        if (classBytes != null) {
+        if (classBytes != null)
             return classBytes;
-        }
 
         if (this.zipFileHandles.isEmpty())
             this.collectZipFiles();

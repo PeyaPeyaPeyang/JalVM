@@ -8,9 +8,8 @@ import tokyo.peya.langjal.vm.exceptions.VMPanic;
 @UtilityClass
 public class VMStringCreator {
     public static VMValue createString(@Nullable String value) {
-        if (value == null) {
+        if (value == null)
             return new VMNull(VMType.STRING);
-        }
         VMObject stringObject = VMType.STRING.createInstance();
 
         VMByte[] vmChars = new VMByte[value.length() * 2];

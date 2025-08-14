@@ -7,6 +7,7 @@ import tokyo.peya.langjal.vm.api.VMPluginLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMEngine;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
+import tokyo.peya.langjal.vm.ffi.NativeCaller;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMType;
 
@@ -16,6 +17,7 @@ public class JalVM {
     private final ClassPaths classPaths;
     private final VMSystemClassLoader classLoader;
     private final VMEngine engine;
+    private final NativeCaller nativeCaller;
     private final VMEventManager eventManager;
     private final VMPluginLoader pluginLoader;
     private final boolean debugging = true;
@@ -31,6 +33,7 @@ public class JalVM {
         this.classPaths = new ClassPaths();
         this.classLoader = new VMSystemClassLoader(this, this.heap);
         this.engine = new VMEngine(this);
+        this.nativeCaller = new NativeCaller();
 
         this.pluginLoader.loadPlugins();
         initialiseWellKnownClasses(this.classLoader);

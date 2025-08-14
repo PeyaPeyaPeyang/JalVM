@@ -43,6 +43,7 @@ public class VMType {
         this.isPrimitive = type.isPrimitive();
     }
 
+
     private VMType(@NotNull PrimitiveTypes type) {
         this.type = type;
         this.arrayDimensions = 0;

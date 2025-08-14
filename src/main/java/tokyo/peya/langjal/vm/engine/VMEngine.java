@@ -5,6 +5,8 @@ import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.api.events.VMThreadDeathEvent;
+import tokyo.peya.langjal.vm.api.events.VMThreadHeartbeatEvent;
+import tokyo.peya.langjal.vm.api.events.VMThreadStartEvent;
 import tokyo.peya.langjal.vm.engine.threads.VMMainThread;
 import tokyo.peya.langjal.vm.engine.threads.VMThread;
 import tokyo.peya.langjal.vm.tracing.ThreadManipulationType;
@@ -48,8 +50,10 @@ public class VMEngine {
         List<VMThread> deadThreads = new ArrayList<>();
         for (VMThread thread : this.threads) {
             this.currentThread = thread;
-            if (thread.isAlive())
+            if (thread.isAlive()) {
+                this.getVm().getEventManager().dispatchEvent(new VMThreadHeartbeatEvent(this.vm, thread));
                 thread.heartbeat();
+            }
             else {
                 System.out.println("Thread " + thread.getName() + " is dead, marking for removal.");
                 deadThreads.add(thread);
@@ -65,9 +69,11 @@ public class VMEngine {
     }
 
     public void addThread(@NotNull VMThread thread) {
-        if (this.threads.contains(thread)) {
+        if (this.threads.contains(thread))
             throw new IllegalStateException("Thread already exists in the engine.");
-        }
+
+        this.getVm().getEventManager().dispatchEvent(new VMThreadStartEvent(this.getVm(), thread));
+
         this.threads.add(thread);
         this.tracer.pushHistory(
                 new ThreadTracingEntry(

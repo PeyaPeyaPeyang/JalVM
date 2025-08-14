@@ -24,12 +24,13 @@ public class JalVM {
     public JalVM() {
         System.out.println("Initialising J(al)VM...");
 
+        this.eventManager = new VMEventManager();
+        this.pluginLoader = new VMPluginLoader();
+
         this.heap = new VMHeap();
         this.classPaths = new ClassPaths();
         this.classLoader = new VMSystemClassLoader(this, this.heap);
         this.engine = new VMEngine(this);
-        this.eventManager = new VMEventManager();
-        this.pluginLoader = new VMPluginLoader();
 
         this.pluginLoader.loadPlugins();
         initialiseWellKnownClasses(this.classLoader);

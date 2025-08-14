@@ -16,9 +16,7 @@ import tokyo.peya.langjal.vm.exceptions.UnknownInstructionPanic;
 
 public class VMStackMachine {
     private static final AbstractInstructionOperator<?>[] OPERATORS = new AbstractInstructionOperator<?>[]{
-            new OperatorNop(),
-
-            // <editor-fold desc="Stack Manipulation">
+            // <editor-fold desc="Constants">
             new OperatorNop(), // 0x00 - 0
             new OperatorAConstNull(), // 0x01 - 1
             new OperatorIConstM1(), // 0x02 - 2
@@ -70,6 +68,7 @@ public class VMStackMachine {
             new OperatorBAStore(), // 0x54 - 84
             new OperatorCAStore(), // 0x55 - 85
             new OperatorSAStore(), // 0x56 - 86
+            // </editor-fold>
 
             // <editor-fold desc="Stack">
             new OperatorPop(), // 0x57 - 87

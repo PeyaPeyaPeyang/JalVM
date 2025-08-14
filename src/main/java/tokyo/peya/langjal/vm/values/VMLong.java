@@ -1,6 +1,7 @@
 package tokyo.peya.langjal.vm.values;
 
 import org.jetbrains.annotations.NotNull;
+import tokyo.peya.langjal.vm.exceptions.IllegalOperandPanic;
 
 public final class VMLong extends AbstractVMPrimitive {
     public static final VMLong ZERO = new VMLong(0);
@@ -32,6 +33,8 @@ public final class VMLong extends AbstractVMPrimitive {
     }
 
     public @NotNull VMLong div(VMLong val1) {
+        if (val1.asNumber().longValue() == 0L)
+            throw new IllegalOperandPanic("Division by zero");
         return new VMLong(this.asNumber().longValue() / val1.asNumber().longValue());
     }
 

@@ -1,6 +1,7 @@
 package tokyo.peya.langjal.vm.values;
 
 import org.jetbrains.annotations.NotNull;
+import tokyo.peya.langjal.vm.exceptions.IllegalOperandPanic;
 
 public final class VMDouble extends AbstractVMPrimitive {
     public static final VMDouble ZERO = new VMDouble(0d);
@@ -32,6 +33,8 @@ public final class VMDouble extends AbstractVMPrimitive {
     }
 
     public @NotNull VMDouble div(VMDouble val1) {
+        if (val1.asNumber().doubleValue() == 0.0)
+            throw new IllegalOperandPanic("Division by zero");
         return new VMDouble(this.asNumber().doubleValue() / val1.asNumber().doubleValue());
     }
 

@@ -1,6 +1,7 @@
 package tokyo.peya.langjal.vm.values;
 
 import org.jetbrains.annotations.NotNull;
+import tokyo.peya.langjal.vm.exceptions.IllegalOperandPanic;
 
 public final class VMFloat extends AbstractVMPrimitive {
     public static final VMFloat ZERO = new VMFloat(0f);
@@ -32,6 +33,8 @@ public final class VMFloat extends AbstractVMPrimitive {
     }
 
     public @NotNull VMFloat div(VMFloat val1) {
+        if (val1.asNumber().floatValue() == 0.0f)
+            throw new IllegalOperandPanic("Division by zero");
         return new VMFloat(this.asNumber().floatValue() / val1.asNumber().floatValue());
     }
 

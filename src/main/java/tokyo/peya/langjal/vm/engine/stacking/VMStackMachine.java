@@ -3,9 +3,8 @@ package tokyo.peya.langjal.vm.engine.stacking;
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import tokyo.peya.langjal.vm.engine.VMFrame;
-import tokyo.peya.langjal.vm.engine.stacking.constants.OperatorLDC;
-import tokyo.peya.langjal.vm.engine.stacking.constants.OperatorSIPush;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.constants.*;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.math.*;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorGetStatic;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorInvokeStatic;
@@ -15,9 +14,27 @@ import tokyo.peya.langjal.vm.exceptions.UnknownInstructionPanic;
 
 public class VMStackMachine {
     private static final AbstractInstructionOperator<?>[] OPERATORS = new AbstractInstructionOperator<?>[]{
-            // <editor-fold desc="Stack Manipulation">
-            new OperatorSIPush(), // 0x11 - 17
+            new OperatorNop(),
 
+            // <editor-fold desc="Stack Manipulation">
+            new OperatorNop(), // 0x00 - 0
+            new OperatorAConstNull(), // 0x01 - 1
+            new OperatorIConstM1(), // 0x02 - 2
+            new OperatorIConst0(), // 0x03 - 3
+            new OperatorIConst1(), // 0x04 - 4
+            new OperatorIConst2(), // 0x05 - 5
+            new OperatorIConst3(), // 0x06 - 6
+            new OperatorIConst4(), // 0x07 - 7
+            new OperatorIConst5(), // 0x08 - 8
+            new OperatorLConst0(), // 0x09 - 9
+            new OperatorLConst1(), // 0x0A - 10
+            new OperatorFConst0(), // 0x0B - 11
+            new OperatorFConst1(), // 0x0C - 12
+            new OperatorFConst2(), // 0x0D - 13
+            new OperatorDConst0(), // 0x0E - 14
+            new OperatorDConst1(), // 0x0F - 15
+            new OperatorBIPush(), // 0x10 - 16
+            new OperatorSIPush(), // 0x11 - 17
             new OperatorLDC(), // 0x12 - 18
 
             // <editor-fold desc="Stack">

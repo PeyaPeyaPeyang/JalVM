@@ -1,4 +1,4 @@
-package tokyo.peya.langjal.vm.engine.stacking.constants;
+package tokyo.peya.langjal.vm.engine.stacking.instructions.constants;
 
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.LdcInsnNode;

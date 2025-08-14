@@ -1,6 +1,7 @@
 package tokyo.peya.langjal.vm.values;
 
 import org.jetbrains.annotations.NotNull;
+import tokyo.peya.langjal.vm.exceptions.IllegalOperandPanic;
 
 public sealed class VMInteger extends AbstractVMPrimitive permits VMByte, VMChar, VMShort {
     public static final VMInteger ZERO = new VMInteger(0);
@@ -37,6 +38,8 @@ public sealed class VMInteger extends AbstractVMPrimitive permits VMByte, VMChar
     }
 
     public @NotNull VMInteger div(VMInteger val1) {
+        if (val1.asNumber().intValue() == 0)
+            throw new IllegalOperandPanic("Division by zero");
         return new VMInteger(this.asNumber().intValue() / val1.asNumber().intValue());
     }
 

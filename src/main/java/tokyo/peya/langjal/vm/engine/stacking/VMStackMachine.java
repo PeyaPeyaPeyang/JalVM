@@ -5,11 +5,13 @@ import org.objectweb.asm.tree.AbstractInsnNode;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.constants.*;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.loads.*;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.math.*;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorGetStatic;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorInvokeStatic;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorInvokeVirtual;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.stack.*;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.stores.*;
 import tokyo.peya.langjal.vm.exceptions.UnknownInstructionPanic;
 
 public class VMStackMachine {
@@ -36,6 +38,38 @@ public class VMStackMachine {
             new OperatorBIPush(), // 0x10 - 16
             new OperatorSIPush(), // 0x11 - 17
             new OperatorLDC(), // 0x12 - 18
+            // </editor-fold>
+
+            // <editor-fold desc="Loads">
+            new OperatorILoad(), // 0x15 - 21
+            new OperatorLLoad(), // 0x16 - 22
+            new OperatorFLoad(), // 0x17 - 23
+            new OperatorDLoad(), // 0x18 - 24
+            new OperatorALoad(), // 0x19 - 25
+            new OperatorIALoad(), // 0x2E - 46
+            new OperatorLALoad(), // 0x2F - 47
+            new OperatorFALoad(), // 0x30 - 48
+            new OperatorDALoad(), // 0x31 - 49
+            new OperatorAALoad(), // 0x32 - 50
+            new OperatorBALoad(), // 0x33 - 51
+            new OperatorCALoad(), // 0x34 - 52
+            new OperatorSALoad(), // 0x35 - 53
+            // </editor-fold>
+
+            // <editor-fold desc="Stores">
+            new OperatorIStore(), // 0x36 - 54
+            new OperatorLStore(), // 0x37 - 55
+            new OperatorFStore(), // 0x38 - 56
+            new OperatorDStore(), // 0x39 - 57
+            new OperatorAStore(), // 0x3A - 58
+            new OperatorIAStore(), // 0x4F - 79
+            new OperatorLAStore(), // 0x50 - 80
+            new OperatorFAStore(), // 0x51 - 81
+            new OperatorDAStore(), // 0x52 - 82
+            new OperatorAAStore(), // 0x53 - 83
+            new OperatorBAStore(), // 0x54 - 84
+            new OperatorCAStore(), // 0x55 - 85
+            new OperatorSAStore(), // 0x56 - 86
 
             // <editor-fold desc="Stack">
             new OperatorPop(), // 0x57 - 87

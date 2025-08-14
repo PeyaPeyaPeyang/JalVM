@@ -88,13 +88,13 @@ public class VMLocals {
                 .orElse("") + "]";
     }
 
+    @NotNull
     public <T extends VMValue> T getType(int i, @NotNull Class<T> vmIntegerClass, @Nullable AbstractInsnNode performer) {
         VMValue value = this.getLocal(i, performer);
-        if (vmIntegerClass.isInstance(value)) {
+        if (vmIntegerClass.isInstance(value))
             return vmIntegerClass.cast(value);
-        } else {
+        else
             throw new VMPanic("Local variable at index " + i + " is not of type " + vmIntegerClass.getSimpleName());
-        }
     }
 
     public <T extends VMValue> T getType(int i, @NotNull Class<T> vmIntegerClass) {

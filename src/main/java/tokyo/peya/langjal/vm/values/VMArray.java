@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.vm.exceptions.VMPanic;
 
 @Getter
-public class VMArray implements VMValue {
+public class VMArray implements VMValue, VMReferenceValue {
 
     private final VMType objectType;
     private final VMValue[] elements;

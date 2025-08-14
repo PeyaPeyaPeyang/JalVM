@@ -2,7 +2,7 @@ package tokyo.peya.langjal.vm.values;
 
 import org.jetbrains.annotations.NotNull;
 
-public class VMNull implements VMValue {
+public class VMNull implements VMValue, VMReferenceValue {
     private final VMType type;
 
     public VMNull(@NotNull VMType type) {

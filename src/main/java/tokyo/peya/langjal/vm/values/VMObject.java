@@ -14,7 +14,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-public class VMObject implements VMValue {
+public class VMObject implements VMValue, VMReferenceValue {
     private final VMClass objectType;
     private final Map<VMField, VMValue> fields;
 

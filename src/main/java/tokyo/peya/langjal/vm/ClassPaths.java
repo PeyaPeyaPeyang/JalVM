@@ -72,8 +72,10 @@ public class ClassPaths
                 if (isJMod)
                     entryPath = Path.of("classes", entryPath.toString());
 
+                // Zip は スラッシュで区切られているので、Windows のパス区切り文字をスラッシュに変換
+                String insidePath = entryPath.toString().replace('\\', '/');
                 ZipEntry entry;
-                if ((entry = zipFile.getEntry(entryPath.toString())) != null)
+                if ((entry = zipFile.getEntry(insidePath)) != null)
                 {
                     try (InputStream inputStream = zipFile.getInputStream(entry))
                     {

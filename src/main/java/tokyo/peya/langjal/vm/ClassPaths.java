@@ -75,14 +75,13 @@ public class ClassPaths
                 // Zip は スラッシュで区切られているので、Windows のパス区切り文字をスラッシュに変換
                 String insidePath = entryPath.toString().replace('\\', '/');
                 ZipEntry entry;
-                if ((entry = zipFile.getEntry(insidePath)) != null)
-                {
-                    try (InputStream inputStream = zipFile.getInputStream(entry))
-                    {
-                        return inputStream.readAllBytes();
-                    }
-                }
+                if ((entry = zipFile.getEntry(insidePath)) == null)
+                    continue;
 
+                try (InputStream inputStream = zipFile.getInputStream(entry))
+                {
+                    return inputStream.readAllBytes();
+                }
             }
             catch (Exception e)
             {
@@ -98,16 +97,15 @@ public class ClassPaths
         for (Path path : this.classPaths)
         {
             Path classFile = path.resolve(reference.getFilePath());
-            if (Files.exists(classFile))
+            if (!Files.exists(classFile))
+                continue;
+            try
             {
-                try
-                {
-                    return Files.readAllBytes(classFile);
-                }
-                catch (Exception e)
-                {
-                    throw new VMPanic("Unable to read class file: " + classFile, e);
-                }
+                return Files.readAllBytes(classFile);
+            }
+            catch (Exception e)
+            {
+                throw new VMPanic("Unable to read class file: " + classFile, e);
             }
         }
 
@@ -119,7 +117,6 @@ public class ClassPaths
         this.zipFileHandles.clear();
 
         for (Path path : this.classPaths)
-        {
             try (Stream<Path> files = Files.walk(path))
             {
                 files.filter(file -> {
@@ -140,15 +137,12 @@ public class ClassPaths
                 System.out.println("Failed to collect zip files from class path: " + path
                                            + ", ignoring.");
             }
-        }
     }
 
     private @Nullable ZipFile getZipFileHandle(@NotNull Path path)
     {
         if (this.zipFileHandles.containsKey(path))
-        {
             return this.zipFileHandles.get(path);
-        }
 
         try
         {

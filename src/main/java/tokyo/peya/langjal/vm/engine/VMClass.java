@@ -30,7 +30,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Getter
-public class VMClass implements RestrictedAccessor {
+public class VMClass implements RestrictedAccessor
+{
     private final ClassReference reference;
     private final ClassNode clazz;
 
@@ -45,7 +46,8 @@ public class VMClass implements RestrictedAccessor {
 
     private VMClass superLink;
 
-    public VMClass(@NotNull ClassNode clazz) {
+    public VMClass(@NotNull ClassNode clazz)
+    {
         this.reference = ClassReference.of(clazz);
         this.clazz = clazz;
 
@@ -58,27 +60,32 @@ public class VMClass implements RestrictedAccessor {
         this.staticFields = this.initialiseStaticFields();
     }
 
-    public VMObject createInstance() {
+    public VMObject createInstance()
+    {
         if (this.superLink == null)
             throw new IllegalStateException("Cannot create instance of class without super class link: " + this.reference.getFullQualifiedName());
 
         return new VMObject(this);
     }
 
-
-    public void injectMethod(@NotNull VMSystemClassLoader cl, @NotNull InjectedMethod method) {
-        if (!this.reference.equals(method.getOwningClass().getReference())) {
-            throw new IllegalArgumentException("Injected method does not belong to this class: " + method.getOwningClass().getReference());
+    public void injectMethod(@NotNull VMSystemClassLoader cl, @NotNull InjectedMethod method)
+    {
+        if (!this.reference.equals(method.getOwningClass().getReference()))
+        {
+            throw new IllegalArgumentException("Injected method does not belong to this class: " + method.getOwningClass()
+                                                                                                         .getReference());
         }
 
         String injectingMethodName = method.getName();
-        for (VMMethod existingMethod : this.methods) {
+        for (VMMethod existingMethod : this.methods)
+        {
             if (!existingMethod.getName().equals(injectingMethodName))
                 continue; // メソッド名が一致しない場合はスキップ
 
             MethodNode existingNode = existingMethod.getMethodNode();
             MethodNode injectingNode = method.getMethodNode();
-            if (existingNode.desc.equals(injectingNode.desc)) {
+            if (existingNode.desc.equals(injectingNode.desc))
+            {
                 // 既存のメソッドと同じシグネチャのメソッドが存在する場合は上書き
                 this.methods.remove(existingMethod); // 既存のメソッドを削除
                 break;
@@ -91,14 +98,18 @@ public class VMClass implements RestrictedAccessor {
         this.methods.add(method);
     }
 
-    public void injectField(@NotNull VMSystemClassLoader cl, @NotNull VMField field) {
-        if (!this.reference.equals(field.getOwningClass().getReference())) {
+    public void injectField(@NotNull VMSystemClassLoader cl, @NotNull VMField field)
+    {
+        if (!this.reference.equals(field.getOwningClass().getReference()))
+        {
             throw new VMPanic("Injected field does not belong to this class: " + field.getOwningClass().getReference());
         }
 
         String injectingFieldName = field.getName();
-        for (VMField existingField : this.fields) {
-            if (existingField.getName().equals(injectingFieldName)) {
+        for (VMField existingField : this.fields)
+        {
+            if (existingField.getName().equals(injectingFieldName))
+            {
                 this.fields.remove(existingField); // 既存のフィールドを削除
                 break;
             }
@@ -112,7 +123,8 @@ public class VMClass implements RestrictedAccessor {
         this.fields.add(field);
     }
 
-    public boolean isSubclassOf(@NotNull VMClass maySuper) {
+    public boolean isSubclassOf(@NotNull VMClass maySuper)
+    {
         if (this == maySuper)
             return true; // 同じクラスならtrue
         if (this.superLink == null)
@@ -120,7 +132,8 @@ public class VMClass implements RestrictedAccessor {
 
         // 親をたどりながら探索
         VMClass current = this.superLink;
-        while (current != null) {
+        while (current != null)
+        {
             if (current == maySuper)
                 return true;
             current = current.superLink;
@@ -130,7 +143,8 @@ public class VMClass implements RestrictedAccessor {
         return false;
     }
 
-    public void initialiseClass(@NotNull VMSystemClassLoader cl) {
+    public void initialiseClass(@NotNull VMSystemClassLoader cl)
+    {
         // リンク処理 -> クラスのスーパクラスやメンバの参照を解決
         this.linkSuper(cl);
         this.linkMembers(cl);
@@ -139,7 +153,8 @@ public class VMClass implements RestrictedAccessor {
         // this.invokeStaticInitaliser(currentThread);
     }
 
-    private void invokeStaticInitaliser(@NotNull VMThread callerThread) {
+    private void invokeStaticInitaliser(@NotNull VMThread callerThread)
+    {
         VMMethod staticInitMethod = this.findStaticInitialiser();
         if (staticInitMethod == null)
             return;  // 静的初期化メソッドがない場合は何もしない
@@ -148,26 +163,29 @@ public class VMClass implements RestrictedAccessor {
         staticInitMethod.invokeBypassAccess(callerThread, null);
     }
 
-
-    private void linkSuper(@NotNull VMSystemClassLoader cl) {
-        String superName = clazz.superName;
+    private void linkSuper(@NotNull VMSystemClassLoader cl)
+    {
+        String superName = this.clazz.superName;
         if (superName == null || superName.isEmpty())
             superName = "java/lang/Object"; // デフォルトは java.lang.Object
 
         this.superLink = cl.findClass(ClassReference.of(superName));
     }
 
-    private void linkMembers(@NotNull VMSystemClassLoader cl) {
-        for (VMMethod method : methods)
+    private void linkMembers(@NotNull VMSystemClassLoader cl)
+    {
+        for (VMMethod method : this.methods)
             method.linkTypes(cl);
-        for (VMField field : fields)
+        for (VMField field : this.fields)
             field.linkType(cl);
     }
 
-    private List<VMField> extractFields(@NotNull ClassNode classNode) {
+    private List<VMField> extractFields(@NotNull ClassNode classNode)
+    {
         FieldNode[] fields = classNode.fields.toArray(new FieldNode[0]);
         List<VMField> vmFields = new ArrayList<>();
-        for (int i = 0; i < fields.length; i++) {
+        for (int i = 0; i < fields.length; i++)
+        {
             FieldNode fieldNode = fields[i];
             String descString = fieldNode.desc;
             vmFields.add(new VMField(
@@ -180,28 +198,33 @@ public class VMClass implements RestrictedAccessor {
         return vmFields;
     }
 
-    private Map<VMField, VMValue> initialiseStaticFields() {
+    private Map<VMField, VMValue> initialiseStaticFields()
+    {
         Map<VMField, VMValue> staticFields = new HashMap<>();
-        for (VMField field : fields)
+        for (VMField field : this.fields)
             if (field.getAccessAttributes().has(AccessAttribute.STATIC))
                 staticFields.put(field, field.getType().defaultValue());
 
         return staticFields;
     }
 
-    private List<VMMethod> extractMethods(@NotNull ClassNode classNode) {
+    private List<VMMethod> extractMethods(@NotNull ClassNode classNode)
+    {
         return classNode.methods.stream()
-                .map(methodNode -> new VMMethod(this, methodNode))
-                .collect(Collectors.toList());
+                                .map(methodNode -> new VMMethod(this, methodNode))
+                                .collect(Collectors.toList());
     }
 
     @Nullable
-    public VMMethod findConstructor(@Nullable VMClass caller, @NotNull VMType... args) {
+    public VMMethod findConstructor(@Nullable VMClass caller, @NotNull VMType... args)
+    {
         return this.findSuitableMethod(caller, "<init>", VMType.VOID, args);
     }
 
-    public VMMethod findEntryPoint() {
-        for (VMMethod method : methods) {
+    public VMMethod findEntryPoint()
+    {
+        for (VMMethod method : this.methods)
+        {
             MethodNode node = method.getMethodNode();
             if (node.name.equals("main")
                     && node.desc.equals("([Ljava/lang/String;)V")
@@ -214,12 +237,15 @@ public class VMClass implements RestrictedAccessor {
         return null;
     }
 
-    public ClassReference getReference() {
-        return ClassReference.of(clazz);
+    public ClassReference getReference()
+    {
+        return ClassReference.of(this.clazz);
     }
 
-    public VMMethod findStaticInitialiser() {
-        for (VMMethod method : methods) {
+    public VMMethod findStaticInitialiser()
+    {
+        for (VMMethod method : this.methods)
+        {
             if (method.getName().equals("<clinit>")
                     && method.getAccessAttributes().has(AccessAttribute.STATIC)
                     && method.getReturnType().equals(VMType.VOID)
@@ -230,8 +256,11 @@ public class VMClass implements RestrictedAccessor {
     }
 
     @Nullable
-    public VMMethod findSuitableMethod(@Nullable VMClass caller, @NotNull String methodName, @Nullable VMType returnType, @NotNull VMType... args) {
-        for (VMMethod method : this.methods) {
+    public VMMethod findSuitableMethod(@Nullable VMClass caller, @NotNull String methodName,
+                                       @Nullable VMType returnType, @NotNull VMType... args)
+    {
+        for (VMMethod method : this.methods)
+        {
             // メソッド名が一致しない場合はスキップ
             if (!method.getName().equals(methodName))
                 continue;
@@ -249,8 +278,10 @@ public class VMClass implements RestrictedAccessor {
                 continue; // 引数の数が違う場合はスキップ
 
             boolean allMatch = true;
-            for (int i = 0; i < parameterTypes.length; i++) {
-                if (!parameterTypes[i].isAssignableFrom(args[i])) {
+            for (int i = 0; i < parameterTypes.length; i++)
+            {
+                if (!parameterTypes[i].isAssignableFrom(args[i]))
+                {
                     allMatch = false; // 引数の型が一致しない場合はスキップ
                     break;
                 }
@@ -262,10 +293,11 @@ public class VMClass implements RestrictedAccessor {
         return null; // 一致するメソッドが見つからなかった場合はnullを返す
     }
 
-    public void setStaticField(@NotNull String fieldName, @NotNull VMValue value) {
+    public void setStaticField(@NotNull String fieldName, @NotNull VMValue value)
+    {
         VMField field = this.findStaticField(fieldName);
-        if (!field.getType().isAssignableFrom(value.getType()))
-            throw new VMPanic("Cannot assign value of type " + value.getType() + " to field " + fieldName + " of type " + field.getType());
+        if (!field.getType().isAssignableFrom(value.type()))
+            throw new VMPanic("Cannot assign value of type " + value.type() + " to field " + fieldName + " of type " + field.getType());
 
         if (field instanceof InjectedField)
             ((InjectedField) field).set(this, null, value); // InjectedFieldの場合は特別な処理を行う
@@ -274,7 +306,8 @@ public class VMClass implements RestrictedAccessor {
     }
 
     @NotNull
-    public VMValue getStaticFieldValue(@NotNull VMField field) {
+    public VMValue getStaticFieldValue(@NotNull VMField field)
+    {
         if (field instanceof InjectedField)
             return ((InjectedField) field).get(this, null);
 
@@ -286,7 +319,8 @@ public class VMClass implements RestrictedAccessor {
     }
 
     @NotNull
-    public VMField findStaticField(@NotNull String fieldName) {
+    public VMField findStaticField(@NotNull String fieldName)
+    {
         for (VMField field : this.fields)
             if (field.getName().equals(fieldName))
                 return field; // 一致するフィールドを返す
@@ -295,17 +329,20 @@ public class VMClass implements RestrictedAccessor {
     }
 
     @NotNull
-    public VMType getType() {
+    public VMType getType()
+    {
         return new VMType(this.reference);
     }
 
     @Override
-    public int hashCode() {
+    public int hashCode()
+    {
         return this.reference.hashCode();
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj)
+    {
         if (this == obj)
             return true;
         if (!(obj instanceof VMClass other))
@@ -315,7 +352,8 @@ public class VMClass implements RestrictedAccessor {
     }
 
     @Override
-    public VMClass getOwningClass() {
+    public VMClass getOwningClass()
+    {
         return this; // VMClassは常に自身がオーナクラス
     }
 }

@@ -8,43 +8,54 @@ import tokyo.peya.langjal.vm.references.ClassReference;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.jar.JarFile;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-public class ClassPaths {
+public class ClassPaths
+{
     private final List<Path> classPaths;
     private final Map<Path, ZipFile> zipFileHandles;
 
-    public ClassPaths() {
+    public ClassPaths()
+    {
         this.classPaths = new ArrayList<>();
         this.zipFileHandles = new HashMap<>();
 
         this.addDefaultPackages();
     }
 
-    private void addDefaultPackages() {
+    private void addDefaultPackages()
+    {
         // 今の Java の標準ライブラリのパッケージを追加
         this.addClassPath(Path.of(System.getProperty("java.home"), "lib"));
         this.addClassPath(Path.of(System.getProperty("java.home"), "jmods"));
     }
 
-    public void addClassPath(Path classPath) {
+    public void addClassPath(Path classPath)
+    {
         if (!(classPath == null || classPath.toString().isEmpty()))
             this.classPaths.add(classPath);
     }
 
-    public void removeClassPath(Path classPath) {
+    public void removeClassPath(Path classPath)
+    {
         this.classPaths.remove(classPath);
     }
 
-    public List<Path> getClassPaths() {
+    public List<Path> getClassPaths()
+    {
         return Collections.unmodifiableList(this.classPaths);
     }
 
-    public byte @Nullable [] findClassBytes(@NotNull ClassReference reference) {
+    public byte @Nullable [] findClassBytes(@NotNull ClassReference reference)
+    {
         byte[] classBytes = findClassBytesFromClassPaths(reference);
         if (classBytes != null)
             return classBytes;
@@ -52,21 +63,27 @@ public class ClassPaths {
         if (this.zipFileHandles.isEmpty())
             this.collectZipFiles();
 
-        for (ZipFile zipFile : this.zipFileHandles.values()) {
-            try {
+        for (ZipFile zipFile : this.zipFileHandles.values())
+        {
+            try
+            {
                 Path entryPath = reference.getFilePath();
                 boolean isJMod = zipFile.getName().endsWith(".jmod");
                 if (isJMod)
                     entryPath = Path.of("classes", entryPath.toString());
 
                 ZipEntry entry;
-                if ((entry = zipFile.getEntry(entryPath.toString())) != null) {
-                    try (InputStream inputStream = zipFile.getInputStream(entry)) {
+                if ((entry = zipFile.getEntry(entryPath.toString())) != null)
+                {
+                    try (InputStream inputStream = zipFile.getInputStream(entry))
+                    {
                         return inputStream.readAllBytes();
                     }
                 }
 
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 throw new VMPanic("Unable to read class from zip file: " + reference, e);
             }
         }
@@ -74,13 +91,19 @@ public class ClassPaths {
         return null;
     }
 
-    private byte[] findClassBytesFromClassPaths(@NotNull ClassReference reference) {
-        for (Path path : this.classPaths) {
+    private byte[] findClassBytesFromClassPaths(@NotNull ClassReference reference)
+    {
+        for (Path path : this.classPaths)
+        {
             Path classFile = path.resolve(reference.getFilePath());
-            if (Files.exists(classFile)) {
-                try {
+            if (Files.exists(classFile))
+            {
+                try
+                {
                     return Files.readAllBytes(classFile);
-                } catch (Exception e) {
+                }
+                catch (Exception e)
+                {
                     throw new VMPanic("Unable to read class file: " + classFile, e);
                 }
             }
@@ -89,11 +112,14 @@ public class ClassPaths {
         return null;
     }
 
-    public void collectZipFiles() {
+    public void collectZipFiles()
+    {
         this.zipFileHandles.clear();
 
-        for (Path path : this.classPaths) {
-            try (Stream<Path> files = Files.walk(path)) {
+        for (Path path : this.classPaths)
+        {
+            try (Stream<Path> files = Files.walk(path))
+            {
                 files.filter(file -> {
                     if (!Files.isRegularFile(file))
                         return false;
@@ -105,24 +131,31 @@ public class ClassPaths {
                     ZipFile zipFile = getZipFileHandle(file);
                     this.zipFileHandles.put(file, zipFile);
                 });
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 e.printStackTrace();
                 System.out.println("Failed to collect zip files from class path: " + path
-                        + ", ignoring.");
+                                           + ", ignoring.");
             }
         }
     }
 
-    private @Nullable ZipFile getZipFileHandle(@NotNull Path path) {
-        if (this.zipFileHandles.containsKey(path)) {
+    private @Nullable ZipFile getZipFileHandle(@NotNull Path path)
+    {
+        if (this.zipFileHandles.containsKey(path))
+        {
             return this.zipFileHandles.get(path);
         }
 
-        try {
+        try
+        {
             ZipFile zipFile = new JarFile(path.toFile());
             this.zipFileHandles.put(path, zipFile);
             return zipFile;
-        } catch (Exception e) {
+        }
+        catch (Exception e)
+        {
             System.out.println("Failed to open zip file: " + path + ", ignoring.");
             e.printStackTrace();
             return null;

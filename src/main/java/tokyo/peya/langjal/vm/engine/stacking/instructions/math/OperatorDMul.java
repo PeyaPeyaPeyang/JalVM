@@ -8,13 +8,16 @@ import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOpe
 import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
 import tokyo.peya.langjal.vm.values.VMDouble;
 
-public class OperatorDMul extends AbstractInstructionOperator<InsnNode> {
-    public OperatorDMul() {
+public class OperatorDMul extends AbstractInstructionOperator<InsnNode>
+{
+    public OperatorDMul()
+    {
         super(EOpcodes.DMUL, "dmul");
     }
 
     @Override
-    public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand) {
+    public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand)
+    {
         VMDouble val1 = frame.getStack().popType(VMDouble.class);
         VMDouble val2 = frame.getStack().popType(VMDouble.class);
         VMDouble result = val1.mul(val2);

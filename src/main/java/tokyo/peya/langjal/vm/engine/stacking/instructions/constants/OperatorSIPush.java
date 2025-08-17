@@ -9,15 +9,19 @@ import tokyo.peya.langjal.vm.exceptions.IllegalOperandPanic;
 import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
 import tokyo.peya.langjal.vm.values.VMShort;
 
-public class OperatorSIPush extends AbstractInstructionOperator<IntInsnNode> {
-    public OperatorSIPush() {
+public class OperatorSIPush extends AbstractInstructionOperator<IntInsnNode>
+{
+    public OperatorSIPush()
+    {
         super(EOpcodes.SIPUSH, "sipush");
     }
 
     @Override
-    public void execute(@NotNull VMFrame frame, @NotNull IntInsnNode operand) {
+    public void execute(@NotNull VMFrame frame, @NotNull IntInsnNode operand)
+    {
         int value = operand.operand;
-        if (value < Short.MIN_VALUE || value > Short.MAX_VALUE) {
+        if (value < Short.MIN_VALUE || value > Short.MAX_VALUE)
+        {
             throw new IllegalOperandPanic("Value out of range for short: " + value);
         }
         VMShort vmShort = new VMShort((short) value);

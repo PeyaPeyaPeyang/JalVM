@@ -8,13 +8,16 @@ import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOpe
 import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
 import tokyo.peya.langjal.vm.values.VMLong;
 
-public class OperatorLDiv extends AbstractInstructionOperator<InsnNode> {
-    public OperatorLDiv() {
+public class OperatorLDiv extends AbstractInstructionOperator<InsnNode>
+{
+    public OperatorLDiv()
+    {
         super(EOpcodes.LDIV, "ldiv");
     }
 
     @Override
-    public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand) {
+    public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand)
+    {
         VMLong val1 = frame.getStack().popType(VMLong.class);
         VMLong val2 = frame.getStack().popType(VMLong.class);
         VMLong result = val2.div(val1);

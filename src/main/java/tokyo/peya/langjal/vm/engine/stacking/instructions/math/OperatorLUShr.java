@@ -8,13 +8,16 @@ import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOpe
 import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
 import tokyo.peya.langjal.vm.values.VMLong;
 
-public class OperatorLUShr extends AbstractInstructionOperator<InsnNode> {
-    public OperatorLUShr() {
+public class OperatorLUShr extends AbstractInstructionOperator<InsnNode>
+{
+    public OperatorLUShr()
+    {
         super(EOpcodes.LUSHR, "lushr");
     }
 
     @Override
-    public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand) {
+    public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand)
+    {
         VMLong val1 = frame.getStack().popType(VMLong.class);
         VMLong val2 = frame.getStack().popType(VMLong.class);
         VMLong result = val2.lushr(val1);

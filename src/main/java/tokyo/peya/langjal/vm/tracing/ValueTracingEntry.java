@@ -16,9 +16,11 @@ public record ValueTracingEntry(
         @Nullable VMValue combinationValue2,
 
         @Nullable VMField field
-) {
+)
+{
     public static ValueTracingEntry generation(@NotNull VMValue value,
-                                               @NotNull VMMethod method, @NotNull AbstractInsnNode instruction) {
+                                               @NotNull VMMethod method, @NotNull AbstractInsnNode instruction)
+    {
         return new ValueTracingEntry(
                 value,
                 ValueManipulationType.GENERATION,
@@ -33,7 +35,8 @@ public record ValueTracingEntry(
     public static ValueTracingEntry manipulation(@NotNull VMValue result,
                                                  @NotNull VMValue before,
                                                  @NotNull VMMethod method,
-                                                 @Nullable AbstractInsnNode instruction) {
+                                                 @Nullable AbstractInsnNode instruction)
+    {
         return new ValueTracingEntry(
                 result,
                 ValueManipulationType.MANIPULATION,
@@ -49,7 +52,8 @@ public record ValueTracingEntry(
                                                 @NotNull VMMethod method,
                                                 @NotNull AbstractInsnNode instruction,
                                                 @NotNull VMValue combinationValue,
-                                                @Nullable VMValue combinationValue2) {
+                                                @Nullable VMValue combinationValue2)
+    {
         return new ValueTracingEntry(
                 value,
                 ValueManipulationType.COMBINATION,
@@ -65,7 +69,8 @@ public record ValueTracingEntry(
                                                 @NotNull VMMethod method,
                                                 @Nullable VMValue object,
                                                 @NotNull AbstractInsnNode instruction,
-                                                @NotNull VMField field) {
+                                                @NotNull VMField field)
+    {
         return new ValueTracingEntry(
                 value,
                 ValueManipulationType.FIELD_GET,
@@ -80,7 +85,8 @@ public record ValueTracingEntry(
     public static ValueTracingEntry fieldSet(@NotNull VMValue value,
                                              @NotNull VMMethod method,
                                              @NotNull AbstractInsnNode instruction,
-                                             @NotNull VMField field) {
+                                             @NotNull VMField field)
+    {
         return new ValueTracingEntry(
                 value,
                 ValueManipulationType.MANIPULATION,
@@ -93,7 +99,8 @@ public record ValueTracingEntry(
     }
 
     public static ValueTracingEntry passing(@NotNull VMValue value,
-                                            @NotNull VMMethod method) {
+                                            @NotNull VMMethod method)
+    {
         return new ValueTracingEntry(
                 value,
                 ValueManipulationType.PASSING_AS_ARGUMENT,
@@ -107,7 +114,8 @@ public record ValueTracingEntry(
 
     public static ValueTracingEntry returning(@NotNull VMValue value,
                                               @NotNull VMMethod method,
-                                              @Nullable AbstractInsnNode instruction) {
+                                              @Nullable AbstractInsnNode instruction)
+    {
         return new ValueTracingEntry(
                 value,
                 ValueManipulationType.RETURNING_FROM,
@@ -121,7 +129,8 @@ public record ValueTracingEntry(
 
     public static ValueTracingEntry destruction(@NotNull VMValue value,
                                                 @NotNull VMMethod method,
-                                                @Nullable AbstractInsnNode instruction) {
+                                                @Nullable AbstractInsnNode instruction)
+    {
         return new ValueTracingEntry(
                 value,
                 ValueManipulationType.DESTRUCTION,
@@ -135,7 +144,8 @@ public record ValueTracingEntry(
 
     public static ValueTracingEntry localSet(@NotNull VMValue value,
                                              @NotNull VMMethod method,
-                                             @Nullable AbstractInsnNode instruction) {
+                                             @Nullable AbstractInsnNode instruction)
+    {
         return new ValueTracingEntry(
                 value,
                 ValueManipulationType.TO_LOCAL,
@@ -149,7 +159,8 @@ public record ValueTracingEntry(
 
     public static ValueTracingEntry localGet(@NotNull VMValue value,
                                              @NotNull VMMethod method,
-                                             @Nullable AbstractInsnNode instruction) {
+                                             @Nullable AbstractInsnNode instruction)
+    {
         return new ValueTracingEntry(
                 value,
                 ValueManipulationType.TO_LOCAL,

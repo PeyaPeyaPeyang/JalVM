@@ -8,18 +8,31 @@ import tokyo.peya.langjal.vm.engine.stacking.VMStack;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
 import tokyo.peya.langjal.vm.exceptions.VMPanic;
 import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
-import tokyo.peya.langjal.vm.values.*;
+import tokyo.peya.langjal.vm.values.VMBoolean;
+import tokyo.peya.langjal.vm.values.VMByte;
+import tokyo.peya.langjal.vm.values.VMChar;
+import tokyo.peya.langjal.vm.values.VMDouble;
+import tokyo.peya.langjal.vm.values.VMFloat;
+import tokyo.peya.langjal.vm.values.VMInteger;
+import tokyo.peya.langjal.vm.values.VMLong;
+import tokyo.peya.langjal.vm.values.VMShort;
+import tokyo.peya.langjal.vm.values.VMStringCreator;
+import tokyo.peya.langjal.vm.values.VMValue;
 
-public class OperatorLDC extends AbstractInstructionOperator<LdcInsnNode> {
-    public OperatorLDC() {
+public class OperatorLDC extends AbstractInstructionOperator<LdcInsnNode>
+{
+    public OperatorLDC()
+    {
         super(EOpcodes.LDC, "ldc");
     }
 
     @Override
-    public void execute(@NotNull VMFrame frame, @NotNull LdcInsnNode operand) {
+    public void execute(@NotNull VMFrame frame, @NotNull LdcInsnNode operand)
+    {
         VMStack stack = frame.getStack();
         Object value = operand.cst;
-        VMValue toValue = switch (value) {
+        VMValue toValue = switch (value)
+        {
             case Integer intValue -> new VMInteger(intValue);
             case Long longValue -> new VMLong(longValue);
             case Float floatValue -> new VMFloat(floatValue);

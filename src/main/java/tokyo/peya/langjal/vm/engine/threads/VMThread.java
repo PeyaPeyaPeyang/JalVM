@@ -15,7 +15,8 @@ import tokyo.peya.langjal.vm.tracing.VMFrameTracer;
 import tokyo.peya.langjal.vm.values.VMValue;
 
 @Getter
-public class VMThread {
+public class VMThread
+{
     protected final String name;
     protected final int currentFrameIndex;
     private final JalVM vm;
@@ -25,7 +26,8 @@ public class VMThread {
     @Getter
     protected VMFrame currentFrame;
 
-    public VMThread(@NotNull JalVM vm, @NotNull String name) {
+    public VMThread(@NotNull JalVM vm, @NotNull String name)
+    {
         this.vm = vm;
         this.tracer = new VMFrameTracer();
         this.name = name;
@@ -35,7 +37,8 @@ public class VMThread {
         this.currentFrame = null;
     }
 
-    public void runThread() {
+    public void runThread()
+    {
         System.out.println("Thread[" + this.name + "] is running...");
         if (this.firstFrame == null)
             throw new LinkagePanic("No entry point method set. Cannot run the instructions!!!");
@@ -43,20 +46,23 @@ public class VMThread {
         this.firstFrame.activate();
     }
 
-    public void heartbeat() {
+    public void heartbeat()
+    {
         this.currentFrame.heartbeat();
     }
 
-    public VMFrame invokeMethod(@NotNull VMMethod method, boolean isVMDecree, @NotNull VMValue... args) {
+    public VMFrame invokeMethod(@NotNull VMMethod method, boolean isVMDecree, @NotNull VMValue... args)
+    {
         VMFrame newFrame = this.createFrame(method, isVMDecree, args);
         this.currentFrame = newFrame;
         newFrame.activate();
         return newFrame;
     }
 
-    public VMFrame createFrame(@NotNull VMMethod method, boolean isVMDecree, @NotNull VMValue... args) {
+    public VMFrame createFrame(@NotNull VMMethod method, boolean isVMDecree, @NotNull VMValue... args)
+    {
         VMFrame newFrame = new VMFrame(
-                vm,
+                this.vm,
                 this,
                 isVMDecree,
                 method,
@@ -68,7 +74,7 @@ public class VMThread {
         else if (this.currentFrame != null)
             this.currentFrame.setNextFrame(newFrame);
 
-        vm.getEventManager().dispatchEvent(new VMFrameInEvent(this.vm, newFrame));
+        this.vm.getEventManager().dispatchEvent(new VMFrameInEvent(this.vm, newFrame));
         this.currentFrame = newFrame;
 
         this.tracer.pushHistory(
@@ -81,13 +87,15 @@ public class VMThread {
         return newFrame;
     }
 
-    public VMFrame restoreFrame() {
+    public VMFrame restoreFrame()
+    {
         if (this.currentFrame == null)
             throw new IllegalOperationPanic("Frame underflow.");
 
         // 親フレームと戻り値を，スタックに積んでおく
         VMFrame prevFrame = this.currentFrame.getPrevFrame();
-        if (this.currentFrame.isVMDecree()) {
+        if (this.currentFrame.isVMDecree())
+        {
             VMValue returnValue = this.currentFrame.getReturnValue();
             if (!(returnValue == null || prevFrame == null))
                 prevFrame.getStack().push(returnValue);
@@ -99,16 +107,18 @@ public class VMThread {
                         this.currentFrame
                 )
         );
-        vm.getEventManager().dispatchEvent(new VMFrameOutEvent(this.vm, this.currentFrame, prevFrame));
+        this.vm.getEventManager().dispatchEvent(new VMFrameOutEvent(this.vm, this.currentFrame, prevFrame));
         return this.currentFrame = prevFrame;
     }
 
-    public void onDestruction() {
+    public void onDestruction()
+    {
         this.firstFrame = null;
         this.currentFrame = null;
     }
 
-    public boolean isAlive() {
+    public boolean isAlive()
+    {
         return !(this.firstFrame == null || !this.firstFrame.isRunning());
     }
 }

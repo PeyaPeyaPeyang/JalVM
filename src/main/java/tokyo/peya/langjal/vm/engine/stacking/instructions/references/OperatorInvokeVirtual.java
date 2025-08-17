@@ -17,15 +17,17 @@ import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
 
+public class OperatorInvokeVirtual extends AbstractInstructionOperator<MethodInsnNode>
+{
 
-public class OperatorInvokeVirtual extends AbstractInstructionOperator<MethodInsnNode> {
-
-    public OperatorInvokeVirtual() {
+    public OperatorInvokeVirtual()
+    {
         super(EOpcodes.INVOKEVIRTUAL, "invokevirtual");
     }
 
     @Override
-    public void execute(@NotNull VMFrame frame, @NotNull MethodInsnNode operand) {
+    public void execute(@NotNull VMFrame frame, @NotNull MethodInsnNode operand)
+    {
         String owner = operand.owner;
         String name = operand.name;
         String desc = operand.desc;
@@ -38,9 +40,10 @@ public class OperatorInvokeVirtual extends AbstractInstructionOperator<MethodIns
         TypeDescriptor[] parameterTypes = methodDescriptor.getParameterTypes();
         VMValue[] arguments = new VMValue[parameterTypes.length];
         VMType[] vmTypes = new VMType[parameterTypes.length];
-        for (int i = 0; i < arguments.length; i++) {
+        for (int i = 0; i < arguments.length; i++)
+        {
             VMValue arg = arguments[i] = frame.getStack().pop();
-            vmTypes[i] = arg.getType();
+            vmTypes[i] = arg.type();
         }
 
         VMObject instance = frame.getStack().popType(VMObject.class);
@@ -55,8 +58,10 @@ public class OperatorInvokeVirtual extends AbstractInstructionOperator<MethodIns
             throw new LinkagePanic("No suitable static method found: " + owner + "." + name + desc);
 
         if (method.getAccessAttributes().has(AccessAttribute.STATIC))
-            throw new IllegalInvocationTypePanic(frame.getThread(), method,
-                    "Cannot invoke static method " + owner + "." + name + desc + " as a virtual method");
+            throw new IllegalInvocationTypePanic(
+                    frame.getThread(), method,
+                    "Cannot invoke static method " + owner + "." + name + desc + " as a virtual method"
+            );
 
         method.invokeVirtual(
                 frame.getThread(),

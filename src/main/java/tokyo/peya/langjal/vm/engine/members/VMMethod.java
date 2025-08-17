@@ -24,7 +24,8 @@ import tokyo.peya.langjal.vm.values.VMValue;
 import java.util.Arrays;
 
 @Getter
-public class VMMethod implements RestrictedAccessor {
+public class VMMethod implements RestrictedAccessor
+{
     private final VMClass clazz;
     private final MethodNode methodNode;
 
@@ -35,7 +36,8 @@ public class VMMethod implements RestrictedAccessor {
     private final VMType returnType;
     private final VMType[] parameterTypes;
 
-    public VMMethod(@NotNull VMClass clazz, @NotNull MethodNode methodNode) {
+    public VMMethod(@NotNull VMClass clazz, @NotNull MethodNode methodNode)
+    {
         this.clazz = clazz;
         this.methodNode = methodNode;
 
@@ -43,27 +45,31 @@ public class VMMethod implements RestrictedAccessor {
         this.accessAttributes = AccessAttributeSet.fromAccess(methodNode.access);
 
         this.descriptor = MethodDescriptor.parse(methodNode.desc);
-        this.returnType = new VMType(descriptor.getReturnType());
-        this.parameterTypes = Arrays.stream(descriptor.getParameterTypes())
-                .map(VMType::new)
-                .toArray(VMType[]::new);
+        this.returnType = new VMType(this.descriptor.getReturnType());
+        this.parameterTypes = Arrays.stream(this.descriptor.getParameterTypes())
+                                    .map(VMType::new)
+                                    .toArray(VMType[]::new);
     }
 
     public VMInterpreter createInterpreter(
             @NotNull JalVM vm,
             @NotNull VMThread engine,
-            @NotNull VMFrame frame) {
+            @NotNull VMFrame frame)
+    {
         return new BytecodeInterpreter(vm, engine, frame, this.methodNode, vm.isDebugging());
         // return new DebugInterpreter(vm, engine, frame);
     }
 
-    public void linkTypes(@NotNull VMSystemClassLoader cl) {
+    public void linkTypes(@NotNull VMSystemClassLoader cl)
+    {
         this.returnType.linkClass(cl);
         for (VMType type : this.parameterTypes)
             type.linkClass(cl);
     }
 
-    public void invokeStatic(@NotNull VMThread thread, @Nullable VMClass caller, boolean isVMDecree, @NotNull VMValue... args) {
+    public void invokeStatic(@NotNull VMThread thread, @Nullable VMClass caller, boolean isVMDecree,
+                             @NotNull VMValue... args)
+    {
         if (!this.accessAttributes.has(AccessAttribute.STATIC))
             throw new NonStaticInvocationPanic(thread, this);
         else if (!this.canAccessFrom(caller))
@@ -72,7 +78,8 @@ public class VMMethod implements RestrictedAccessor {
         thread.invokeMethod(this, isVMDecree, args);
     }
 
-    public void invokeBypassAccess(@NotNull VMThread thread, @Nullable VMClass caller, @NotNull VMValue... args) {
+    public void invokeBypassAccess(@NotNull VMThread thread, @Nullable VMClass caller, @NotNull VMValue... args)
+    {
         if (!this.accessAttributes.has(AccessAttribute.STATIC))
             throw new NonStaticInvocationPanic(thread, this);
 
@@ -80,7 +87,8 @@ public class VMMethod implements RestrictedAccessor {
     }
 
     public void invokeVirtual(@NotNull VMThread thread, @Nullable VMClass caller,
-                              @NotNull VMObject instance, boolean isVMDecree, @NotNull VMValue... args) {
+                              @NotNull VMObject instance, boolean isVMDecree, @NotNull VMValue... args)
+    {
         if (this.accessAttributes.has(AccessAttribute.STATIC))
             throw new NonStaticInvocationPanic(thread, this);
         else if (!this.canAccessFrom(caller))
@@ -94,25 +102,30 @@ public class VMMethod implements RestrictedAccessor {
     }
 
     @NotNull
-    public String getName() {
+    public String getName()
+    {
         return this.methodNode.name;
     }
 
-    public int getMaxStackSize() {
+    public int getMaxStackSize()
+    {
         return this.methodNode.maxStack;
     }
 
-    public int getMaxLocals() {
+    public int getMaxLocals()
+    {
         return this.methodNode.maxLocals;
     }
 
     @Override
-    public VMClass getOwningClass() {
+    public VMClass getOwningClass()
+    {
         return this.clazz;
     }
 
     @Override
-    public String toString() {
+    public String toString()
+    {
         return this.clazz.getReference() + "." + this.methodNode.name + this.methodNode.desc +
                 " (access: " + this.accessLevel + ", attributes: " + this.accessAttributes + ")";
     }

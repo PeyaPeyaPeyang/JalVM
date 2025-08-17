@@ -11,7 +11,8 @@ import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
 
 @Getter
-public class VMField implements RestrictedAccessor {
+public class VMField implements RestrictedAccessor
+{
     private final VMClass clazz;
     private final FieldNode fieldNode;
 
@@ -21,7 +22,8 @@ public class VMField implements RestrictedAccessor {
     private final VMType type;
     private final String name;
 
-    public VMField(@NotNull VMClass clazz, @NotNull VMType fieldType, @NotNull FieldNode fieldNode) {
+    public VMField(@NotNull VMClass clazz, @NotNull VMType fieldType, @NotNull FieldNode fieldNode)
+    {
         this.clazz = clazz;
         this.fieldNode = fieldNode;
 
@@ -32,21 +34,25 @@ public class VMField implements RestrictedAccessor {
         this.name = fieldNode.name;
     }
 
-    public VMValue defaultValue() {
+    public VMValue defaultValue()
+    {
         return this.type.defaultValue();
     }
 
-    public void linkType(@NotNull VMSystemClassLoader cl) {
+    public void linkType(@NotNull VMSystemClassLoader cl)
+    {
         this.type.linkClass(cl);
     }
 
     @Override
-    public VMClass getOwningClass() {
+    public VMClass getOwningClass()
+    {
         return this.clazz;
     }
 
     @Override
-    public String toString() {
+    public String toString()
+    {
         return this.name + "@" + this.clazz.getReference().getFullQualifiedName() +
                 " (" + this.type.getType().getDescriptor() + ")" +
                 " [" + this.accessLevel + "]";

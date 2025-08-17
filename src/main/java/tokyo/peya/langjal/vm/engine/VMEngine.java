@@ -17,7 +17,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Getter
-public class VMEngine {
+public class VMEngine
+{
     private final JalVM vm;
 
     private final VMThreadTracer tracer;
@@ -27,7 +28,8 @@ public class VMEngine {
 
     private VMThread currentThread;
 
-    public VMEngine(@NotNull JalVM vm) {
+    public VMEngine(@NotNull JalVM vm)
+    {
         this.vm = vm;
         this.mainThread = new VMMainThread(vm);
         this.tracer = new VMThreadTracer();
@@ -37,23 +39,30 @@ public class VMEngine {
         this.currentThread = this.mainThread;
     }
 
-    public boolean isRunning() {
+    public boolean isRunning()
+    {
         return !this.threads.isEmpty();
     }
 
-    public void startEngine() {
+    public void startEngine()
+    {
         while (this.isRunning())
             this.heartbeatThreads();
     }
 
-    public void heartbeatThreads() {
+    public void heartbeatThreads()
+    {
         List<VMThread> deadThreads = new ArrayList<>();
-        for (VMThread thread : this.threads) {
+        for (VMThread thread : this.threads)
+        {
             this.currentThread = thread;
-            if (thread.isAlive()) {
+            if (thread.isAlive())
+            {
                 this.getVm().getEventManager().dispatchEvent(new VMThreadHeartbeatEvent(this.vm, thread));
                 thread.heartbeat();
-            } else {
+            }
+            else
+            {
                 System.out.println("Thread " + thread.getName() + " is dead, marking for removal.");
                 deadThreads.add(thread);
             }
@@ -61,13 +70,15 @@ public class VMEngine {
 
         this.currentThread = null;
 
-        for (VMThread deadThread : deadThreads) {
+        for (VMThread deadThread : deadThreads)
+        {
             System.out.println("Dead thread wiped out: " + deadThread.getName());
             this.killThread(deadThread);
         }
     }
 
-    public void addThread(@NotNull VMThread thread) {
+    public void addThread(@NotNull VMThread thread)
+    {
         if (this.threads.contains(thread))
             throw new IllegalStateException("Thread already exists in the engine.");
 
@@ -82,7 +93,8 @@ public class VMEngine {
         );
     }
 
-    public void killThread(@NotNull VMThread thread) {
+    public void killThread(@NotNull VMThread thread)
+    {
         if (!this.threads.contains(thread))
             throw new IllegalStateException("Thread does not exist in the engine.");
         this.threads.remove(thread);

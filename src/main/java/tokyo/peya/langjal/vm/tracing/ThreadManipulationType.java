@@ -1,6 +1,7 @@
 package tokyo.peya.langjal.vm.tracing;
 
-public enum ThreadManipulationType {
+public enum ThreadManipulationType
+{
     CREATION,
     DESTRUCTION,
 }

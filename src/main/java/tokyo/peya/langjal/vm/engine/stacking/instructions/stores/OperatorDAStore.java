@@ -7,13 +7,16 @@ import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
 import tokyo.peya.langjal.vm.values.VMDouble;
 
-public class OperatorDAStore extends AbstractInstructionOperator<InsnNode> {
-    public OperatorDAStore() {
+public class OperatorDAStore extends AbstractInstructionOperator<InsnNode>
+{
+    public OperatorDAStore()
+    {
         super(EOpcodes.DASTORE, "dastore");
     }
 
     @Override
-    public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand) {
+    public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand)
+    {
         OperatorXAStoreSupporter.execute(frame, operand, VMDouble.class);
     }
 }

@@ -14,15 +14,17 @@ import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
 
+public class OperatorInvokeStatic extends AbstractInstructionOperator<MethodInsnNode>
+{
 
-public class OperatorInvokeStatic extends AbstractInstructionOperator<MethodInsnNode> {
-
-    public OperatorInvokeStatic() {
+    public OperatorInvokeStatic()
+    {
         super(EOpcodes.INVOKESTATIC, "invokestatic");
     }
 
     @Override
-    public void execute(@NotNull VMFrame frame, @NotNull MethodInsnNode operand) {
+    public void execute(@NotNull VMFrame frame, @NotNull MethodInsnNode operand)
+    {
         String owner = operand.owner;
         String name = operand.name;
         String desc = operand.desc;
@@ -35,9 +37,10 @@ public class OperatorInvokeStatic extends AbstractInstructionOperator<MethodInsn
         TypeDescriptor[] parameterTypes = methodDescriptor.getParameterTypes();
         VMValue[] arguments = new VMValue[parameterTypes.length];
         VMType[] vmTypes = new VMType[parameterTypes.length];
-        for (int i = 0; i < arguments.length; i++) {
+        for (int i = 0; i < arguments.length; i++)
+        {
             VMValue arg = arguments[i] = frame.getStack().pop();
-            vmTypes[i] = arg.getType();
+            vmTypes[i] = arg.type();
         }
 
         VMMethod method = clazz.findSuitableMethod(
@@ -52,7 +55,8 @@ public class OperatorInvokeStatic extends AbstractInstructionOperator<MethodInsn
         if (!method.getAccessAttributes().has(AccessAttribute.STATIC))
             throw new IllegalStateException("Method is not static: " + owner + "." + name + desc);
 
-        if (method.getAccessAttributes().has(AccessAttribute.NATIVE)) {
+        if (method.getAccessAttributes().has(AccessAttribute.NATIVE))
+        {
             VMType returningType = new VMType(method.getDescriptor().getReturnType());
 
             frame.getVm().getNativeCaller().callFFI(

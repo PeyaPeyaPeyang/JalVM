@@ -9,13 +9,16 @@ import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOpe
 import tokyo.peya.langjal.vm.exceptions.IllegalOperationPanic;
 import tokyo.peya.langjal.vm.values.VMValue;
 
-public class OperatorSwap extends AbstractInstructionOperator<InsnNode> {
-    public OperatorSwap() {
+public class OperatorSwap extends AbstractInstructionOperator<InsnNode>
+{
+    public OperatorSwap()
+    {
         super(EOpcodes.SWAP, "swap");
     }
 
     @Override
-    public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand) {
+    public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand)
+    {
         VMStack stack = frame.getStack();
 
         VMValue value = stack.pop();

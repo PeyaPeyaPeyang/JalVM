@@ -9,25 +9,30 @@ import tokyo.peya.langjal.vm.values.VMStringCreator;
 import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
 
-public class VMMainThread extends VMThread {
+public class VMMainThread extends VMThread
+{
 
-    public VMMainThread(@NotNull JalVM vm) {
+    public VMMainThread(@NotNull JalVM vm)
+    {
         super(vm, "main");
     }
 
-    private void sendFrame(@NotNull VMMethod entryPointMethod, @NotNull VMArray args) {
-        this.firstFrame = this.createFrame(entryPointMethod, true, new VMValue[]{args});
+    private void sendFrame(@NotNull VMMethod entryPointMethod, @NotNull VMArray args)
+    {
+        this.firstFrame = this.createFrame(entryPointMethod, true, args);
         this.currentFrame = this.firstFrame;
 
         this.runThread();
     }
 
-    public VMFrame startMainThread(@NotNull VMMethod entryPointMethod, @NotNull String[] args) {
+    public VMFrame startMainThread(@NotNull VMMethod entryPointMethod, @NotNull String[] args)
+    {
         this.sendFrame(entryPointMethod, createArgsArray(args));
         return this.firstFrame;
     }
 
-    private VMArray createArgsArray(@NotNull String[] args) {
+    private VMArray createArgsArray(@NotNull String[] args)
+    {
         VMArray argsArray = new VMArray(VMType.STRING, args.length);
         for (int i = 0; i < args.length; i++)
             argsArray.set(i, VMStringCreator.createString(args[i]));

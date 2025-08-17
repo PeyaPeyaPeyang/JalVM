@@ -12,24 +12,29 @@ import java.util.Enumeration;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-public class VMPluginClassLoader extends URLClassLoader {
+public class VMPluginClassLoader extends URLClassLoader
+{
 
     private final Path pluginPath;
     private final URL pluginURL;
 
     private VMPlugin plugin;
 
-    public VMPluginClassLoader(@NotNull Path pluginPath, @NotNull URL pluginUrl) {
+    public VMPluginClassLoader(@NotNull Path pluginPath, @NotNull URL pluginUrl)
+    {
         super(new URL[]{pluginUrl}, VMPluginClassLoader.class.getClassLoader());
         this.pluginPath = pluginPath;
         this.pluginURL = pluginUrl;
     }
 
     @Nullable
-    public VMPlugin loadPlugin() {
-        try (JarFile jarFile = new JarFile(this.pluginPath.toFile())) {
+    public VMPlugin loadPlugin()
+    {
+        try (JarFile jarFile = new JarFile(this.pluginPath.toFile()))
+        {
             Enumeration<JarEntry> entries = jarFile.entries();
-            while (entries.hasMoreElements()) {
+            while (entries.hasMoreElements())
+            {
                 JarEntry entry = entries.nextElement();
                 if (entry.isDirectory() || !entry.getName().endsWith(".class"))
                     continue;
@@ -38,8 +43,10 @@ public class VMPluginClassLoader extends URLClassLoader {
                 if (VMPlugin.class.isAssignableFrom(clazz))
                     return this.plugin = (VMPlugin) clazz.getDeclaredConstructor().newInstance();
             }
-        } catch (ClassNotFoundException | IOException | InvocationTargetException | InstantiationException |
-                 IllegalAccessException | NoSuchMethodException e) {
+        }
+        catch (ClassNotFoundException | IOException | InvocationTargetException | InstantiationException |
+               IllegalAccessException | NoSuchMethodException e)
+        {
             System.err.println("Failed to load plugin class from " + this.pluginPath + ": " + e.getMessage());
             e.printStackTrace();
         }
@@ -48,9 +55,9 @@ public class VMPluginClassLoader extends URLClassLoader {
         return null;
     }
 
-
     @Override
-    public Class<?> findClass(String name) throws ClassNotFoundException {
+    public Class<?> findClass(String name) throws ClassNotFoundException
+    {
         return super.findClass(name);
     }
 }

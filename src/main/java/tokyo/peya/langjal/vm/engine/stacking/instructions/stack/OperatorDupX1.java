@@ -10,13 +10,16 @@ import tokyo.peya.langjal.vm.exceptions.IllegalOperationPanic;
 import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
 import tokyo.peya.langjal.vm.values.VMValue;
 
-public class OperatorDupX1 extends AbstractInstructionOperator<InsnNode> {
-    public OperatorDupX1() {
+public class OperatorDupX1 extends AbstractInstructionOperator<InsnNode>
+{
+    public OperatorDupX1()
+    {
         super(EOpcodes.DUP_X1, "dup_x1");
     }
 
     @Override
-    public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand) {
+    public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand)
+    {
         VMStack stack = frame.getStack();
 
         VMValue value1 = stack.pop();

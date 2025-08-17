@@ -7,13 +7,16 @@ import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
 import tokyo.peya.langjal.vm.values.VMByte;
 
-public class OperatorBAStore extends AbstractInstructionOperator<InsnNode> {
-    public OperatorBAStore() {
+public class OperatorBAStore extends AbstractInstructionOperator<InsnNode>
+{
+    public OperatorBAStore()
+    {
         super(EOpcodes.BASTORE, "bastore");
     }
 
     @Override
-    public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand) {
+    public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand)
+    {
         OperatorXAStoreSupporter.execute(frame, operand, VMByte.class);
     }
 }

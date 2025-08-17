@@ -7,15 +7,17 @@ import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
 import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
 import tokyo.peya.langjal.vm.values.VMFloat;
-import tokyo.peya.langjal.vm.values.VMInteger;
 
-public class OperatorFConst0 extends AbstractInstructionOperator<InsnNode> {
-    public OperatorFConst0() {
+public class OperatorFConst0 extends AbstractInstructionOperator<InsnNode>
+{
+    public OperatorFConst0()
+    {
         super(EOpcodes.FCONST_0, "fconst_0");
     }
 
     @Override
-    public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand) {
+    public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand)
+    {
         VMFloat value = new VMFloat(0.0f);
         frame.getTracer().pushHistory(
                 ValueTracingEntry.generation(value, frame.getMethod(), operand)

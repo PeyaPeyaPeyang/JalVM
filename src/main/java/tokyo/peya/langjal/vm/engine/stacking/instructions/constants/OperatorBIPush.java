@@ -8,15 +8,17 @@ import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOpe
 import tokyo.peya.langjal.vm.exceptions.IllegalOperandPanic;
 import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
 import tokyo.peya.langjal.vm.values.VMByte;
-import tokyo.peya.langjal.vm.values.VMShort;
 
-public class OperatorBIPush extends AbstractInstructionOperator<IntInsnNode> {
-    public OperatorBIPush() {
+public class OperatorBIPush extends AbstractInstructionOperator<IntInsnNode>
+{
+    public OperatorBIPush()
+    {
         super(EOpcodes.BIPUSH, "bipush");
     }
 
     @Override
-    public void execute(@NotNull VMFrame frame, @NotNull IntInsnNode operand) {
+    public void execute(@NotNull VMFrame frame, @NotNull IntInsnNode operand)
+    {
         int value = operand.operand;
         if (value < Byte.MIN_VALUE || value > Byte.MAX_VALUE)
             throw new IllegalOperandPanic("Value out of range for byte: " + value);

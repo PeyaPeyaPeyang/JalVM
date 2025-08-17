@@ -8,13 +8,16 @@ import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOpe
 import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
 import tokyo.peya.langjal.vm.values.VMFloat;
 
-public class OperatorFConst1 extends AbstractInstructionOperator<InsnNode> {
-    public OperatorFConst1() {
+public class OperatorFConst1 extends AbstractInstructionOperator<InsnNode>
+{
+    public OperatorFConst1()
+    {
         super(EOpcodes.FCONST_1, "fconst_1");
     }
 
     @Override
-    public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand) {
+    public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand)
+    {
         VMFloat value = new VMFloat(1.0f);
         frame.getTracer().pushHistory(
                 ValueTracingEntry.generation(value, frame.getMethod(), operand)

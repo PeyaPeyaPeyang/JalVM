@@ -8,18 +8,23 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 
-public class Main {
-    public static void main(String[] args) {
+public class Main
+{
+    public static void main(String[] args)
+    {
         // Main の位置を探す
         int mainIndex = -1;
-        for (int i = 0; i < args.length; i++) {
-            if (!args[i].startsWith("-")) { // 単純に最初の非オプションを Main 扱い
+        for (int i = 0; i < args.length; i++)
+        {
+            if (!args[i].startsWith("-"))
+            { // 単純に最初の非オプションを Main 扱い
                 mainIndex = i;
                 break;
             }
         }
 
-        if (mainIndex == -1) {
+        if (mainIndex == -1)
+        {
             System.err.println("No main class specified");
             System.exit(1);
         }
@@ -36,10 +41,11 @@ public class Main {
 
         OptionSet opts = parser.parse(launcherArgs);
 
-        String classPath = opts.valueOf("cp") == null ? System.getProperty("java.class.path") : opts.valueOf("cp").toString();
+        String classPath = opts.valueOf("cp") == null ? System.getProperty("java.class.path"): opts.valueOf("cp")
+                                                                                                   .toString();
         List<Path> classPaths = Arrays.stream(classPath.split(":"))
-                .map(Path::of)
-                .toList();
+                                      .map(Path::of)
+                                      .toList();
 
         JalVM vm = new JalVM();
         classPaths.forEach(vm.getClassPaths()::addClassPath);

@@ -7,13 +7,16 @@ import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
 import tokyo.peya.langjal.vm.values.VMShort;
 
-public class OperatorSAStore extends AbstractInstructionOperator<InsnNode> {
-    public OperatorSAStore() {
+public class OperatorSAStore extends AbstractInstructionOperator<InsnNode>
+{
+    public OperatorSAStore()
+    {
         super(EOpcodes.SASTORE, "sastore");
     }
 
     @Override
-    public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand) {
+    public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand)
+    {
         OperatorXAStoreSupporter.execute(frame, operand, VMShort.class);
     }
 }

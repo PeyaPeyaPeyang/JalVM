@@ -17,13 +17,22 @@ import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMEngine;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.threads.VMThread;
-import tokyo.peya.langjal.vm.tracing.*;
+import tokyo.peya.langjal.vm.tracing.FrameManipulationType;
+import tokyo.peya.langjal.vm.tracing.FrameTracingEntry;
+import tokyo.peya.langjal.vm.tracing.ThreadManipulationType;
+import tokyo.peya.langjal.vm.tracing.ThreadTracingEntry;
+import tokyo.peya.langjal.vm.tracing.VMFrameTracer;
+import tokyo.peya.langjal.vm.tracing.VMThreadTracer;
+import tokyo.peya.langjal.vm.tracing.VMValueTracer;
+import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
 
 import java.util.List;
 import java.util.Scanner;
 
-public class DebugMain {
-    public static void main(String[] args) {
+public class DebugMain
+{
+    public static void main(String[] args)
+    {
         JalVM jalVM = new JalVM();
 
         jalVM.getEventManager().registerListener(new EventListeners());
@@ -62,7 +71,8 @@ public class DebugMain {
         jalVM.executeMain(clazz, new String[]{});
     }
 
-    private static void comparisons(MethodNode node) {
+    private static void comparisons(MethodNode node)
+    {
         node.visitIntInsn(EOpcodes.SIPUSH, 20);
         node.visitIntInsn(EOpcodes.SIPUSH, 30);
         node.visitInsn(EOpcodes.IADD);
@@ -70,7 +80,8 @@ public class DebugMain {
         node.visitInsn(EOpcodes.ISUB);
     }
 
-    private static void helloWorld(MethodNode node) {
+    private static void helloWorld(MethodNode node)
+    {
         node.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
         node.visitLdcInsn("Hello, World!");
         node.visitMethodInsn(
@@ -82,12 +93,14 @@ public class DebugMain {
         );
     }
 
-    private static class EventListeners implements VMListener {
+    private static class EventListeners implements VMListener
+    {
         private static final Scanner scanner = new Scanner(System.in);
 
         private boolean stepIn = true;
 
-        private void printFrame(VMFrame frame, VMEngine engine) {
+        private void printFrame(VMFrame frame, VMEngine engine)
+        {
             System.out.printf("Current frame: %s%n", frame.toString());
             System.out.printf("Current thread: %s%n", engine.getCurrentThread().getName());
             System.out.printf("Current method: %s%n", frame.getMethod().getMethodNode().name);
@@ -95,39 +108,51 @@ public class DebugMain {
             System.out.printf("Locals: %s%n", frame.getLocals());
         }
 
-        private String getInstructionText(AbstractInsnNode insn) {
+        private String getInstructionText(AbstractInsnNode insn)
+        {
             Printer printer = new Textifier();
             TraceMethodVisitor tmv = new TraceMethodVisitor(printer);
             insn.accept(tmv);
             String instructionText = printer.getText().toString();
             // 末尾の \n を削除
-            return instructionText.endsWith("\n]") ? instructionText.substring(1, instructionText.length() - 2) : instructionText;
+            return instructionText.endsWith("\n]") ? instructionText.substring(
+                    1,
+                    instructionText.length() - 2
+            ): instructionText;
         }
 
-        private void debugOptions(VMStepInEvent event) {
+        private void debugOptions(VMStepInEvent event)
+        {
             String instructionText = this.getInstructionText(event.getInstruction());
             System.out.println("STEP: " + instructionText);
-            while (true) {
+            while (true)
+            {
                 String input = scanner.nextLine();
                 String[] parts = input.split(" ");
-                if (parts.length == 0) {
+                if (parts.length == 0)
+                {
                     System.out.println("No command entered. Please try again.");
                     continue;
                 }
                 String command = parts[0].toLowerCase();
-                switch (command) {
-                    case "show", "z" -> {
+                switch (command)
+                {
+                    case "show", "z" ->
+                    {
                         this.printFrame(event.getFrame(), event.getFrame().getVm().getEngine());
                     }
-                    case "next", "x" -> {
+                    case "next", "x" ->
+                    {
                         return;
                     }
-                    case "quit", "q" -> {
+                    case "quit", "q" ->
+                    {
                         System.out.println("Exiting debugger.");
                         this.stepIn = false;
                         return; // Exit the debugger
                     }
-                    default -> {
+                    default ->
+                    {
                         System.out.println("Unknown command: " + command);
                         System.out.println("Commands: ");
                         System.out.println("  show (z) - Show current frame information");
@@ -139,8 +164,10 @@ public class DebugMain {
         }
 
         @VMEventHandler
-        public void onStepIn(@NotNull VMStepInEvent event) {
-            if (!this.stepIn) {
+        public void onStepIn(@NotNull VMStepInEvent event)
+        {
+            if (!this.stepIn)
+            {
                 return; // Debugging is disabled
             }
 
@@ -148,7 +175,8 @@ public class DebugMain {
         }
 
         @VMEventHandler
-        public void onThreadDestroy(@NotNull VMThreadDeathEvent event) {
+        public void onThreadDestroy(@NotNull VMThreadDeathEvent event)
+        {
             VMEngine engine = event.getVm().getEngine();
             System.out.printf("Thread %s has terminated.%n", event.getThread().getName());
             VMThreadTracer threadTracer = engine.getTracer();
@@ -156,7 +184,8 @@ public class DebugMain {
 
             System.out.printf("TRACED THREAD MANIPULATIONS: %d%n", history.size());
             System.out.printf("--- BEGIN OF THREAD MANIPULATION HISTORIES ---%n");
-            for (int i = 0; i < history.size(); i++) {
+            for (int i = 0; i < history.size(); i++)
+            {
                 ThreadTracingEntry entry = history.get(i);
                 VMThread thread = entry.thread();
                 System.out.printf("[t%d] %s: %s%n", i, thread.getName(), entry.type().name());
@@ -167,11 +196,13 @@ public class DebugMain {
             System.out.println("--- END OF THREAD MANIPULATION HISTORIES ---");
         }
 
-        private void dumpThreadHistory(@NotNull VMThread thread) {
+        private void dumpThreadHistory(@NotNull VMThread thread)
+        {
             VMFrameTracer frameTracer = thread.getTracer();
             List<FrameTracingEntry> frames = frameTracer.getHistory();
             System.out.printf("  TRACED FRAMES: %d%n", frames.size());
-            for (int i = 0; i < frames.size(); i++) {
+            for (int i = 0; i < frames.size(); i++)
+            {
                 FrameTracingEntry entry = frames.get(i);
                 VMFrame frame = entry.frame();
                 System.out.printf("  [f%d] %s: %s%n", i, frame.getMethod(), entry.type().name());
@@ -180,28 +211,37 @@ public class DebugMain {
             }
         }
 
-        private void dumpValueHistory(@NotNull VMFrame frame) {
+        private void dumpValueHistory(@NotNull VMFrame frame)
+        {
             VMValueTracer frameTracer = frame.getTracer();
             List<ValueTracingEntry> frames = frameTracer.getHistory();
             System.out.printf("    TRACED MANIPULATIONS: %d%n", frames.size());
-            for (int i = 0; i < frames.size(); i++) {
+            for (int i = 0; i < frames.size(); i++)
+            {
                 ValueTracingEntry entry = frames.get(i);
-                switch (entry.type()) {
+                switch (entry.type())
+                {
                     case GENERATION:
                         assert entry.manipulatingInstruction() != null;
-                        System.out.printf("    [v%d] GENERATION: %s, by %s%n",
+                        System.out.printf(
+                                "    [v%d] GENERATION: %s, by %s%n",
                                 i, entry.value(), this.getInstructionText(entry.manipulatingInstruction())
                         );
                         break;
                     case MANIPULATION:
                         assert entry.manipulatingInstruction() != null;
-                        System.out.printf("    [v%d] MANIPULATION: %s -> %s, by %s%n",
-                                i, entry.value(), entry.combinationValue(), this.getInstructionText(entry.manipulatingInstruction())
+                        System.out.printf(
+                                "    [v%d] MANIPULATION: %s -> %s, by %s%n",
+                                i,
+                                entry.value(),
+                                entry.combinationValue(),
+                                this.getInstructionText(entry.manipulatingInstruction())
                         );
                         break;
                     case DESTRUCTION:
                         assert entry.manipulatingInstruction() != null;
-                        System.out.printf("    [v%d] DESTRUCTION: %s, by %s%n",
+                        System.out.printf(
+                                "    [v%d] DESTRUCTION: %s, by %s%n",
                                 i, entry.value(), this.getInstructionText(entry.manipulatingInstruction())
                         );
                         break;
@@ -209,7 +249,8 @@ public class DebugMain {
                         if (entry.manipulatingInstruction() == null)
                             System.out.printf("    [v%d] FIELD_GET: %s, by unknown instruction%n", i, entry.value());
                         else
-                            System.out.printf("    [v%d] FIELD_GET: %s, by %s%n",
+                            System.out.printf(
+                                    "    [v%d] FIELD_GET: %s, by %s%n",
                                     i, entry.value(), this.getInstructionText(entry.manipulatingInstruction())
                             );
                         break;
@@ -217,28 +258,40 @@ public class DebugMain {
                         if (entry.manipulatingInstruction() == null)
                             System.out.printf("    [v%d] FIELD_SET: %s, by unknown instruction%n", i, entry.value());
                         else
-                            System.out.printf("    [v%d] FIELD_SET: %s, by %s%n",
+                            System.out.printf(
+                                    "    [v%d] FIELD_SET: %s, by %s%n",
                                     i, entry.value(), this.getInstructionText(entry.manipulatingInstruction())
                             );
                         break;
                     case PASSING_AS_ARGUMENT:
                         if (entry.manipulatingInstruction() == null)
-                            System.out.printf("    [v%d] PASSING_AS_ARGUMENT: %s, by unknown instruction%n", i, entry.value());
+                            System.out.printf(
+                                    "    [v%d] PASSING_AS_ARGUMENT: %s, by unknown instruction%n",
+                                    i,
+                                    entry.value()
+                            );
                         else
-                            System.out.printf("    [v%d] PASSING_AS_ARGUMENT: %s, by %s%n",
+                            System.out.printf(
+                                    "    [v%d] PASSING_AS_ARGUMENT: %s, by %s%n",
                                     i, entry.value(), this.getInstructionText(entry.manipulatingInstruction())
                             );
                         break;
                     case RETURNING_FROM:
                         assert entry.manipulatingInstruction() != null;
-                        System.out.printf("    [v%d] RETURNING_FROM: %s, by %s%n",
+                        System.out.printf(
+                                "    [v%d] RETURNING_FROM: %s, by %s%n",
                                 i, entry.value(), this.getInstructionText(entry.manipulatingInstruction())
                         );
                         break;
                     case COMBINATION:
                         assert entry.manipulatingInstruction() != null;
-                        System.out.printf("    [v%d] COMBINATION: %s + %s -> %s, by %s%n",
-                                i, entry.combinationValue(), entry.combinationValue2(), entry.value(), this.getInstructionText(entry.manipulatingInstruction())
+                        System.out.printf(
+                                "    [v%d] COMBINATION: %s + %s -> %s, by %s%n",
+                                i,
+                                entry.combinationValue(),
+                                entry.combinationValue2(),
+                                entry.value(),
+                                this.getInstructionText(entry.manipulatingInstruction())
                         );
                         break;
                 }

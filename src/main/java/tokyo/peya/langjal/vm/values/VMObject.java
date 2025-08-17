@@ -14,18 +14,21 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-public class VMObject implements VMValue, VMReferenceValue {
+public class VMObject implements VMValue, VMReferenceValue
+{
     private final VMClass objectType;
     private final Map<VMField, VMValue> fields;
 
-    private boolean isInitialised = false;
+    private boolean isInitialised;
 
-    public VMObject(@NotNull VMClass objectType) {
+    public VMObject(@NotNull VMClass objectType)
+    {
         this.objectType = objectType;
         this.fields = createFields();
     }
 
-    private Map<VMField, VMValue> createFields() {
+    private Map<VMField, VMValue> createFields()
+    {
         Map<VMField, VMValue> fields = new HashMap<>();
         for (VMField field : this.objectType.getFields())
             fields.put(field, null);
@@ -33,32 +36,39 @@ public class VMObject implements VMValue, VMReferenceValue {
         return fields;
     }
 
-    /* non-public */ void forceInitialise() {  // 強制的に初期化を行う。
+    /* non-public */ void forceInitialise()
+    {  // 強制的に初期化を行う。
         if (this.isInitialised)
-            throw new VMPanic("Object has already been initialized: " + this.objectType.getReference().getFullQualifiedName());
+            throw new VMPanic("Object has already been initialized: " + this.objectType.getReference()
+                                                                                       .getFullQualifiedName());
 
         this.isInitialised = true;
     }
 
-    public void initialiseInstance(@NotNull VMThread thread, @Nullable VMClass caller, @NotNull VMValue[] args) {
+    public void initialiseInstance(@NotNull VMThread thread, @Nullable VMClass caller, @NotNull VMValue[] args)
+    {
         if (this.isInitialised)
-            throw new VMPanic("Object has already been initialized: " + this.objectType.getReference().getFullQualifiedName());
+            throw new VMPanic("Object has already been initialized: " + this.objectType.getReference()
+                                                                                       .getFullQualifiedName());
 
-        for (VMField field : this.objectType.getFields()) {
+        for (VMField field : this.objectType.getFields())
+        {
             if (!field.getType().isPrimitive() && field.getAccessAttributes().has(AccessAttribute.FINAL))
-                throw new VMPanic("Field is final and not initialized: " + field.getName() + " in " + this.objectType.getReference().getFullQualifiedName());
+                throw new VMPanic("Field is final and not initialized: " + field.getName() + " in " + this.objectType.getReference()
+                                                                                                                     .getFullQualifiedName());
 
             // フィールドのデフォルト値を設定
             this.fields.put(field, field.defaultValue());
         }
 
         VMType[] argTypes = Arrays.stream(args)
-                .map(VMValue::getType)
-                .toArray(VMType[]::new);
+                                  .map(VMValue::type)
+                                  .toArray(VMType[]::new);
         // 初期化を呼び出す
         VMMethod constructorMethod = this.objectType.findConstructor(caller, argTypes);
         if (constructorMethod == null)
-            throw new IllegalStateException("No suitable constructor found for class: " + this.objectType.getReference().getFullQualifiedName());
+            throw new IllegalStateException("No suitable constructor found for class: " + this.objectType.getReference()
+                                                                                                         .getFullQualifiedName());
 
         // コンストラクタを実行
         constructorMethod.invokeVirtual(
@@ -72,12 +82,14 @@ public class VMObject implements VMValue, VMReferenceValue {
         this.isInitialised = true;
     }
 
-    public void setField(@NotNull String fieldName, @NotNull VMValue value) {
+    public void setField(@NotNull String fieldName, @NotNull VMValue value)
+    {
         VMField field = this.fields.keySet().stream()
-                .filter(f -> f.getName().equals(fieldName))
-                .findFirst()
-                .orElseThrow(() -> new VMPanic("Field not found: " + fieldName + " in " + this.objectType.getReference().getFullQualifiedName()));
-        if (!field.getType().isAssignableFrom(value.getType()))
+                                   .filter(f -> f.getName().equals(fieldName))
+                                   .findFirst()
+                                   .orElseThrow(() -> new VMPanic("Field not found: " + fieldName + " in " + this.objectType.getReference()
+                                                                                                                            .getFullQualifiedName()));
+        if (!field.getType().isAssignableFrom(value.type()))
             throw new VMPanic("Incompatible value type for field: " + fieldName);
 
         if (field instanceof InjectedField injected)
@@ -86,11 +98,13 @@ public class VMObject implements VMValue, VMReferenceValue {
             this.fields.put(field, value);
     }
 
-    public @Nullable VMValue getField(@NotNull String fieldName) {
+    public @Nullable VMValue getField(@NotNull String fieldName)
+    {
         VMField field = this.fields.keySet().stream()
-                .filter(f -> f.getName().equals(fieldName))
-                .findFirst()
-                .orElseThrow(() -> new VMPanic("Field not found: " + fieldName + " in " + this.objectType.getReference().getFullQualifiedName()));
+                                   .filter(f -> f.getName().equals(fieldName))
+                                   .findFirst()
+                                   .orElseThrow(() -> new VMPanic("Field not found: " + fieldName + " in " + this.objectType.getReference()
+                                                                                                                            .getFullQualifiedName()));
         if (field instanceof InjectedField injected)
             return injected.get(this.objectType, this);
         else
@@ -98,32 +112,35 @@ public class VMObject implements VMValue, VMReferenceValue {
     }
 
     @Override
-    public @NotNull VMType getType() {
+    public @NotNull VMType type()
+    {
         return this.objectType.getType();
     }
 
     @Override
-    public boolean isCompatibleTo(@NotNull VMValue other) {
+    public boolean isCompatibleTo(@NotNull VMValue other)
+    {
         VMType otherType;
-        if (other instanceof VMNull nullValue)
-            otherType = nullValue.getType();
+        if (other instanceof VMNull(VMType type))
+            otherType = type;
         else if (other instanceof VMObject objValue)
-            otherType = objValue.getType();
+            otherType = objValue.type();
         else
             return false;
 
-        return this.getType().equals(otherType);
+        return this.type().equals(otherType);
     }
 
     @Override
-    public String toString() {
+    public String toString()
+    {
         StringBuilder sb = new StringBuilder();
         sb.append(this.objectType.getReference().getFullQualifiedName()).append(" {");
-        for (Map.Entry<VMField, VMValue> entry : fields.entrySet())
+        for (Map.Entry<VMField, VMValue> entry : this.fields.entrySet())
             sb.append("\n  ")
-                    .append(entry.getKey().getName())
-                    .append(": ")
-                    .append(entry.getValue() == null ? "?" : entry.getValue().toString());
+              .append(entry.getKey().getName())
+              .append(": ")
+              .append(entry.getValue() == null ? "?": entry.getValue().toString());
         sb.append("\n}");
         return sb.toString();
     }

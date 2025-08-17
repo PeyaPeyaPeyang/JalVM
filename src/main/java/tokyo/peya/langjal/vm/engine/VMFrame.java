@@ -19,7 +19,8 @@ import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
 
 @Getter
-public class VMFrame {
+public class VMFrame
+{
     private final JalVM vm;
     private final VMThread thread;
     private final boolean isVMDecree;
@@ -44,7 +45,8 @@ public class VMFrame {
             boolean isVMDecree,
             @NotNull VMMethod method,
             @NotNull VMValue[] args,
-            @Nullable VMFrame prevFrame) {
+            @Nullable VMFrame prevFrame)
+    {
         this.vm = vm;
         this.thread = thread;
         this.isVMDecree = isVMDecree;  // VMが決めたフレームかどうか
@@ -61,34 +63,8 @@ public class VMFrame {
         this.bookArgumentsHistory(args);
     }
 
-    private static void checkArgumentTypes(@NotNull VMMethod method, @NotNull VMValue[] args) {
-        VMType[] parameterTypes = method.getParameterTypes();
-        int expectedArgs = parameterTypes.length;
-        int actualArgs = args.length;
-
-        boolean needThis = !method.getAccessAttributes().has(AccessAttribute.STATIC);
-        if (needThis)
-            expectedArgs++;  // インスタンスメソッドの場合、this引数があるので1つ多い
-        boolean canOmitLastArray = method.getAccessAttributes().has(AccessAttribute.VARARGS);
-        if (canOmitLastArray && expectedArgs > 0) {
-            VMType lastType = parameterTypes[expectedArgs - 1];
-            if (lastType.getArrayDimensions() > 0 && actualArgs + 1 == expectedArgs) {
-                // 最後の引数が配列である場合、最後の引数を省略できる
-                expectedArgs--;
-            }
-        }
-
-        if (expectedArgs != actualArgs)
-            throw new VMPanic("Method " + method.getMethodNode().name + " expects " + expectedArgs +
-                    " arguments, but got " + actualArgs + (needThis ? ", missing 'this' at first?" : "."));
-
-        for (int i = 0; i < parameterTypes.length; i++)
-            if (!args[i].getType().isAssignableFrom(parameterTypes[i]))
-                throw new VMPanic("Argument " + i + " of method " + method.getMethodNode().name +
-                        " is of type " + args[i].getType() + ", but expected " + parameterTypes[i] + ".");
-    }
-
-    private void bookArgumentsHistory(@NotNull VMValue[] args) {
+    private void bookArgumentsHistory(@NotNull VMValue[] args)
+    {
         for (VMValue arg : args)
             this.tracer.pushHistory(
                     ValueTracingEntry.passing(
@@ -98,11 +74,13 @@ public class VMFrame {
             );
     }
 
-    public void setNextFrame(@NotNull VMFrame nextFrame) {
+    public void setNextFrame(@NotNull VMFrame nextFrame)
+    {
         this.nextFrame = nextFrame;
     }
 
-    public void activate() {
+    public void activate()
+    {
         if (this.isRunning)
             throw new VMPanic("Frame is already running.");
         else if (this.interpreter != null)
@@ -112,12 +90,15 @@ public class VMFrame {
         this.isRunning = true;
     }
 
-    public void heartbeat() {
+    public void heartbeat()
+    {
         if (!this.isRunning)
             throw new VMPanic("Frame is not running.");
 
-        if (this.interpreter.hasNextInstruction()) {
-            try {
+        if (this.interpreter.hasNextInstruction())
+        {
+            try
+            {
                 AbstractInsnNode next = this.interpreter.feedNextInstruction();
                 if (next == null)
                     return;  // そういうこともある。
@@ -128,18 +109,23 @@ public class VMFrame {
                 ));
 
                 VMStackMachine.executeInstruction(this, next);
-            } catch (Throwable e) {
+            }
+            catch (Throwable e)
+            {
                 System.err.println("Error while executing instruction in frame: " + e.getMessage());
                 e.printStackTrace();
             }
-        } else {
+        }
+        else
+        {
             // 実行が終わったら，フレームを戻す
             this.isRunning = false;
             this.thread.restoreFrame();
         }
     }
 
-    public void propagateReturningValue(@NotNull VMValue value, @NotNull AbstractInsnNode returnInsn) {
+    public void propagateReturningValue(@NotNull VMValue value, @NotNull AbstractInsnNode returnInsn)
+    {
         if (this.returnValue != null)
             throw new VMPanic("Frame already has a return value: " + this.returnValue);
 
@@ -150,25 +136,59 @@ public class VMFrame {
     }
 
     @Override
-    public String toString() {
+    public String toString()
+    {
         StringBuilder sb = new StringBuilder();
         VMFrame current = this.thread.getFirstFrame();
-        while (current != null) {
+        while (current != null)
+        {
             sb.append(current.getMethod().getClazz().getReference())
-                    .append("->")
-                    .append(current.getMethod().getMethodNode().name)
-                    .append(current.getMethod().getMethodNode().desc);
-            if (current.nextFrame != null) {
+              .append("->")
+              .append(current.getMethod().getMethodNode().name)
+              .append(current.getMethod().getMethodNode().desc);
+            if (current.nextFrame != null)
+            {
                 sb.append(" -> ");
                 current = current.nextFrame;
             }
 
-            if (current == this) {
+            if (current == this)
+            {
                 sb.append(" (me!)");
                 break;
             }
         }
 
         return sb.toString();
+    }
+
+    private static void checkArgumentTypes(@NotNull VMMethod method, @NotNull VMValue[] args)
+    {
+        VMType[] parameterTypes = method.getParameterTypes();
+        int expectedArgs = parameterTypes.length;
+        int actualArgs = args.length;
+
+        boolean needThis = !method.getAccessAttributes().has(AccessAttribute.STATIC);
+        if (needThis)
+            expectedArgs++;  // インスタンスメソッドの場合、this引数があるので1つ多い
+        boolean canOmitLastArray = method.getAccessAttributes().has(AccessAttribute.VARARGS);
+        if (canOmitLastArray && expectedArgs > 0)
+        {
+            VMType lastType = parameterTypes[expectedArgs - 1];
+            if (lastType.getArrayDimensions() > 0 && actualArgs + 1 == expectedArgs)
+            {
+                // 最後の引数が配列である場合、最後の引数を省略できる
+                expectedArgs--;
+            }
+        }
+
+        if (expectedArgs != actualArgs)
+            throw new VMPanic("Method " + method.getMethodNode().name + " expects " + expectedArgs +
+                                      " arguments, but got " + actualArgs + (needThis ? ", missing 'this' at first?": "."));
+
+        for (int i = 0; i < parameterTypes.length; i++)
+            if (!args[i].type().isAssignableFrom(parameterTypes[i]))
+                throw new VMPanic("Argument " + i + " of method " + method.getMethodNode().name +
+                                          " is of type " + args[i].type() + ", but expected " + parameterTypes[i] + ".");
     }
 }

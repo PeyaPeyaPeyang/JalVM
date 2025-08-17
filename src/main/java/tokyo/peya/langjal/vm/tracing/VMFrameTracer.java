@@ -6,22 +6,27 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class VMFrameTracer {
+public class VMFrameTracer
+{
     private final List<FrameTracingEntry> history;
 
-    public VMFrameTracer() {
+    public VMFrameTracer()
+    {
         this.history = new ArrayList<>();
     }
 
-    public void pushHistory(@NotNull FrameTracingEntry entry) {
+    public void pushHistory(@NotNull FrameTracingEntry entry)
+    {
         this.history.add(entry);
     }
 
-    public void pushHistory(@NotNull VMFrameTracer history) {
+    public void pushHistory(@NotNull VMFrameTracer history)
+    {
         this.history.addAll(history.history);
     }
 
-    public List<FrameTracingEntry> getHistory() {
+    public List<FrameTracingEntry> getHistory()
+    {
         return Collections.unmodifiableList(this.history);
     }
 }

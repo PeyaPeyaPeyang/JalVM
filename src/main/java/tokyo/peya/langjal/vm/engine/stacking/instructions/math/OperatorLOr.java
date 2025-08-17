@@ -8,13 +8,16 @@ import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOpe
 import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
 import tokyo.peya.langjal.vm.values.VMLong;
 
-public class OperatorLOr extends AbstractInstructionOperator<InsnNode> {
-    public OperatorLOr() {
+public class OperatorLOr extends AbstractInstructionOperator<InsnNode>
+{
+    public OperatorLOr()
+    {
         super(EOpcodes.LOR, "lor");
     }
 
     @Override
-    public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand) {
+    public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand)
+    {
         VMLong val1 = frame.getStack().popType(VMLong.class);
         VMLong val2 = frame.getStack().popType(VMLong.class);
         VMLong result = val1.or(val2);

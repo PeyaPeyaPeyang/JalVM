@@ -8,13 +8,16 @@ import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOpe
 import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
 import tokyo.peya.langjal.vm.values.VMDouble;
 
-public class OperatorDNeg extends AbstractInstructionOperator<InsnNode> {
-    public OperatorDNeg() {
+public class OperatorDNeg extends AbstractInstructionOperator<InsnNode>
+{
+    public OperatorDNeg()
+    {
         super(EOpcodes.DNEG, "dneg");
     }
 
     @Override
-    public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand) {
+    public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand)
+    {
         VMDouble val1 = frame.getStack().popType(VMDouble.class);
         VMDouble result = val1.neg();
         frame.getTracer().pushHistory(

@@ -9,9 +9,11 @@ import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
 
-public abstract class InjectedField extends VMField {
+public abstract class InjectedField extends VMField
+{
 
-    public InjectedField(@NotNull VMClass clazz, @NotNull VMType fieldType, @NotNull FieldNode fieldNode) {
+    public InjectedField(@NotNull VMClass clazz, @NotNull VMType fieldType, @NotNull FieldNode fieldNode)
+    {
         super(clazz, fieldType, fieldNode);
     }
 

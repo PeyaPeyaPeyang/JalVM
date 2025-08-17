@@ -9,22 +9,35 @@ import tokyo.peya.langjal.vm.values.VMReferenceValue;
 import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
 
-import java.lang.foreign.*;
+import java.lang.foreign.Arena;
+import java.lang.foreign.FunctionDescriptor;
+import java.lang.foreign.Linker;
+import java.lang.foreign.MemoryLayout;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.SymbolLookup;
+import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandle;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-public class NativeCaller {
+public class NativeCaller
+{
     private static final Linker LINKER = Linker.nativeLinker();
 
     private final Arena arena = Arena.ofShared();
 
     private final Map<ClassReference, NativeLibrary> libraries;
 
-    public NativeCaller() {
+    public NativeCaller()
+    {
         this.libraries = new HashMap<>();
     }
 
-    public SymbolLookup registerLibrary(@NotNull ClassReference caller, @NotNull String name) {
+    public SymbolLookup registerLibrary(@NotNull ClassReference caller, @NotNull String name)
+    {
         Map<String, SymbolLookup> symbols;
         NativeLibrary nativeLibrary = this.libraries.get(caller);
         if (nativeLibrary == null)
@@ -35,12 +48,18 @@ public class NativeCaller {
         if (symbols.containsKey(name))
             return symbols.get(name);
         SymbolLookup lookup;
-        try {
+        try
+        {
             lookup = SymbolLookup.libraryLookup(name, this.arena);
-        } catch (IllegalArgumentException e) {
-            try {
+        }
+        catch (IllegalArgumentException e)
+        {
+            try
+            {
                 lookup = SymbolLookup.libraryLookup(name + ".so", this.arena);  // Linux は省略不可
-            } catch (IllegalArgumentException e2) {
+            }
+            catch (IllegalArgumentException e2)
+            {
                 throw new VMPanic("Failed to register native library: " + name, e2);
             }
         }
@@ -52,17 +71,20 @@ public class NativeCaller {
     private MethodHandle createCachedMethodHandle(@NotNull NativeLibrary nativeLibrary,
                                                   @NotNull String name,
                                                   @NotNull VMType returningType,
-                                                  @NotNull VMValue... args) {
+                                                  @NotNull VMValue... args)
+    {
         VMType[] argTypes = Arrays.stream(args)
-                .map(VMValue::getType)
-                .toArray(VMType[]::new);
+                                  .map(VMValue::type)
+                                  .toArray(VMType[]::new);
         List<MethodHandleCache> caches = nativeLibrary.handles.get(name);
         if (caches == null)
-            nativeLibrary.handles.put(name,  caches = new ArrayList<>());
-        else {
+            nativeLibrary.handles.put(name, caches = new ArrayList<>());
+        else
+        {
             for (MethodHandleCache cached : caches)
                 if (cached.returningType.equals(returningType)
-                        && Arrays.equals(cached.args, argTypes)) {
+                        && Arrays.equals(cached.args, argTypes))
+                {
                     return cached.handle;
                 }
         }
@@ -72,7 +94,7 @@ public class NativeCaller {
             throw new LinkagePanic("No symbol found for name: " + name);
 
         MemorySegment seg = lookup.find(name)
-                .orElseThrow(() -> new LinkagePanic("Failed to find symbol: " + name));
+                                  .orElseThrow(() -> new LinkagePanic("Failed to find symbol: " + name));
 
         MemoryLayout[] arguments = createFunctionLayouts(returningType, args);
         FunctionDescriptor layout;
@@ -94,9 +116,9 @@ public class NativeCaller {
         return methodHandle;
     }
 
-
     public VMValue callFFI(@NotNull ClassReference caller, @NotNull String name,
-                           @NotNull VMType returningType, @NotNull VMValue... args) {
+                           @NotNull VMType returningType, @NotNull VMValue... args)
+    {
         List<VMValue> results = new ArrayList<>();
         NativeLibrary nativeLibrary = this.libraries.get(caller);
         if (nativeLibrary == null)
@@ -106,27 +128,33 @@ public class NativeCaller {
         Object[] convertedArgs = new Object[args.length];
         for (int i = 0; i < args.length; i++)
             convertedArgs[i] = args[i].toJavaObject();
-        try {
+        try
+        {
             Object result = methodHandle.invokeExact(convertedArgs);
             return VMValue.fromJavaObject(result);  // TODO: cast
-        } catch (Throwable e) {
+        }
+        catch (Throwable e)
+        {
             throw new VMPanic("Failed to invoke native function: " + name, e);
         }
     }
 
-    private static MemoryLayout[] createFunctionLayouts(VMType type, VMValue[] args) {
+    private static MemoryLayout[] createFunctionLayouts(VMType type, VMValue[] args)
+    {
         MemoryLayout[] layouts = new MemoryLayout[args.length];
-        for (int i = 0; i < args.length; i++) {
+        for (int i = 0; i < args.length; i++)
+        {
             VMValue arg = args[i];
             if (arg instanceof VMPrimitive<?> primitive)
-                layouts[i] = createFunctionLayout(primitive.getType());
+                layouts[i] = createFunctionLayout(primitive.type());
             else if (arg instanceof VMReferenceValue)
                 layouts[i] = ValueLayout.ADDRESS; // 参照型はアドレスとして扱う
         }
         return layouts;
     }
 
-    private static MemoryLayout createFunctionLayout(@NotNull VMType type) {
+    private static MemoryLayout createFunctionLayout(@NotNull VMType type)
+    {
         if (type == VMType.BOOLEAN)
             return ValueLayout.JAVA_BOOLEAN;
         else if (type == VMType.BYTE)
@@ -165,5 +193,5 @@ public class NativeCaller {
             VMType[] args,
             @NotNull
             MethodHandle handle
-    ) { }
+    ) {}
 }

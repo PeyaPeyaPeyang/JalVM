@@ -11,15 +11,17 @@ import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
 import tokyo.peya.langjal.vm.values.VMValue;
 
+public class OperatorGetStatic extends AbstractInstructionOperator<FieldInsnNode>
+{
 
-public class OperatorGetStatic extends AbstractInstructionOperator<FieldInsnNode> {
-
-    public OperatorGetStatic() {
+    public OperatorGetStatic()
+    {
         super(EOpcodes.GETSTATIC, "getstatic");
     }
 
     @Override
-    public void execute(@NotNull VMFrame frame, @NotNull FieldInsnNode operand) {
+    public void execute(@NotNull VMFrame frame, @NotNull FieldInsnNode operand)
+    {
         String owner = operand.owner;
         String name = operand.name;
         String desc = operand.desc;

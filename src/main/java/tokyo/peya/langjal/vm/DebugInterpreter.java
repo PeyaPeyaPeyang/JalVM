@@ -11,7 +11,8 @@ import tokyo.peya.langjal.vm.engine.threads.VMThread;
 
 import java.util.Scanner;
 
-public class DebugInterpreter implements VMInterpreter {
+public class DebugInterpreter implements VMInterpreter
+{
     private final JalVM vm;
     private final VMThread engine;
     private final VMFrame frame;
@@ -20,7 +21,8 @@ public class DebugInterpreter implements VMInterpreter {
 
     private boolean isRunning = true;
 
-    public DebugInterpreter(@NotNull JalVM vm, @NotNull VMThread engine, @NotNull VMFrame frame) {
+    public DebugInterpreter(@NotNull JalVM vm, @NotNull VMThread engine, @NotNull VMFrame frame)
+    {
         this.vm = vm;
         this.engine = engine;
         this.frame = frame;
@@ -28,18 +30,17 @@ public class DebugInterpreter implements VMInterpreter {
         this.scanner = new Scanner(System.in);
     }
 
-    private static void out(String message, Object... args) {
-        System.out.printf((message) + "%n", args);
-    }
-
     @Override
-    public boolean hasNextInstruction() {
+    public boolean hasNextInstruction()
+    {
         return this.isRunning;
     }
 
     @Override
-    public AbstractInsnNode feedNextInstruction() {
-        if (!this.isRunning) {
+    public AbstractInsnNode feedNextInstruction()
+    {
+        if (!this.isRunning)
+        {
             throw new IllegalStateException("Interpreter is not running.");
         }
 
@@ -49,13 +50,16 @@ public class DebugInterpreter implements VMInterpreter {
             return null;
 
         String insn = parts[0];
-        switch (insn) {
-            case "exit" -> {
+        switch (insn)
+        {
+            case "exit" ->
+            {
                 this.isRunning = false;
                 out("Bye!");
                 return null;
             }
-            case "show" -> {
+            case "show" ->
+            {
                 out("Current frame: %s", this.frame);
                 out("Current thread: %s", this.engine.getName());
                 out("Current method: %s", this.frame.getMethod().getMethodNode().name);
@@ -63,8 +67,10 @@ public class DebugInterpreter implements VMInterpreter {
                 out("Locals: %s", this.frame.getLocals());
                 return null;
             }
-            case "sipush" -> {
-                if (!checkArgs(parts, 2)) {
+            case "sipush" ->
+            {
+                if (!checkArgs(parts, 2))
+                {
                     return null;
                 }
                 int value = asInt(parts[1]);
@@ -72,146 +78,193 @@ public class DebugInterpreter implements VMInterpreter {
             }
 
             // <editor-fold desc="Stack">
-            case "pop" -> {
+            case "pop" ->
+            {
                 return new InsnNode(EOpcodes.POP);
             }
-            case "pop2" -> {
+            case "pop2" ->
+            {
                 return new InsnNode(EOpcodes.POP2);
             }
-            case "dup" -> {
+            case "dup" ->
+            {
                 return new InsnNode(EOpcodes.DUP);
             }
-            case "dup2" -> {
+            case "dup2" ->
+            {
                 return new InsnNode(EOpcodes.DUP2);
             }
-            case "dup_x1" -> {
+            case "dup_x1" ->
+            {
                 return new InsnNode(EOpcodes.DUP_X1);
             }
-            case "dup_x2" -> {
+            case "dup_x2" ->
+            {
                 return new InsnNode(EOpcodes.DUP_X2);
             }
-            case "dup2_x1" -> {
+            case "dup2_x1" ->
+            {
                 return new InsnNode(EOpcodes.DUP2_X1);
             }
-            case "dup2_x2" -> {
+            case "dup2_x2" ->
+            {
                 return new InsnNode(EOpcodes.DUP2_X2);
             }
-            case "swap" -> {
+            case "swap" ->
+            {
                 return new InsnNode(EOpcodes.SWAP);
             }
             // </editor-fold>
 
             // <editor-fold desc="Math">
-            case "iadd" -> {
+            case "iadd" ->
+            {
                 return new InsnNode(EOpcodes.IADD);
             }
-            case "ladd" -> {
+            case "ladd" ->
+            {
                 return new InsnNode(EOpcodes.LADD);
             }
-            case "fadd" -> {
+            case "fadd" ->
+            {
                 return new InsnNode(EOpcodes.FADD);
             }
-            case "dadd" -> {
+            case "dadd" ->
+            {
                 return new InsnNode(EOpcodes.DADD);
             }
-            case "isub" -> {
+            case "isub" ->
+            {
                 return new InsnNode(EOpcodes.ISUB);
             }
-            case "lsub" -> {
+            case "lsub" ->
+            {
                 return new InsnNode(EOpcodes.LSUB);
             }
-            case "fsub" -> {
+            case "fsub" ->
+            {
                 return new InsnNode(EOpcodes.FSUB);
             }
-            case "dsub" -> {
+            case "dsub" ->
+            {
                 return new InsnNode(EOpcodes.DSUB);
             }
-            case "imul" -> {
+            case "imul" ->
+            {
                 return new InsnNode(EOpcodes.IMUL);
             }
-            case "lmul" -> {
+            case "lmul" ->
+            {
                 return new InsnNode(EOpcodes.LMUL);
             }
-            case "fmul" -> {
+            case "fmul" ->
+            {
                 return new InsnNode(EOpcodes.FMUL);
             }
-            case "dmul" -> {
+            case "dmul" ->
+            {
                 return new InsnNode(EOpcodes.DMUL);
             }
-            case "idiv" -> {
+            case "idiv" ->
+            {
                 return new InsnNode(EOpcodes.IDIV);
             }
-            case "ldiv" -> {
+            case "ldiv" ->
+            {
                 return new InsnNode(EOpcodes.LDIV);
             }
-            case "fdiv" -> {
+            case "fdiv" ->
+            {
                 return new InsnNode(EOpcodes.FDIV);
             }
-            case "ddiv" -> {
+            case "ddiv" ->
+            {
                 return new InsnNode(EOpcodes.DDIV);
             }
-            case "irem" -> {
+            case "irem" ->
+            {
                 return new InsnNode(EOpcodes.IREM);
             }
-            case "lrem" -> {
+            case "lrem" ->
+            {
                 return new InsnNode(EOpcodes.LREM);
             }
-            case "frem" -> {
+            case "frem" ->
+            {
                 return new InsnNode(EOpcodes.FREM);
             }
-            case "drem" -> {
+            case "drem" ->
+            {
                 return new InsnNode(EOpcodes.DREM);
             }
-            case "ineg" -> {
+            case "ineg" ->
+            {
                 return new InsnNode(EOpcodes.INEG);
             }
-            case "lneg" -> {
+            case "lneg" ->
+            {
                 return new InsnNode(EOpcodes.LNEG);
             }
-            case "fneg" -> {
+            case "fneg" ->
+            {
                 return new InsnNode(EOpcodes.FNEG);
             }
-            case "dneg" -> {
+            case "dneg" ->
+            {
                 return new InsnNode(EOpcodes.DNEG);
             }
-            case "ishl" -> {
+            case "ishl" ->
+            {
                 return new InsnNode(EOpcodes.ISHL);
             }
-            case "lshl" -> {
+            case "lshl" ->
+            {
                 return new InsnNode(EOpcodes.LSHL);
             }
-            case "ishr" -> {
+            case "ishr" ->
+            {
                 return new InsnNode(EOpcodes.ISHR);
             }
-            case "lshr" -> {
+            case "lshr" ->
+            {
                 return new InsnNode(EOpcodes.LSHR);
             }
-            case "iushr" -> {
+            case "iushr" ->
+            {
                 return new InsnNode(EOpcodes.IUSHR);
             }
-            case "lushr" -> {
+            case "lushr" ->
+            {
                 return new InsnNode(EOpcodes.LUSHR);
             }
-            case "iand" -> {
+            case "iand" ->
+            {
                 return new InsnNode(EOpcodes.IAND);
             }
-            case "land" -> {
+            case "land" ->
+            {
                 return new InsnNode(EOpcodes.LAND);
             }
-            case "ior" -> {
+            case "ior" ->
+            {
                 return new InsnNode(EOpcodes.IOR);
             }
-            case "lor" -> {
+            case "lor" ->
+            {
                 return new InsnNode(EOpcodes.LOR);
             }
-            case "ixor" -> {
+            case "ixor" ->
+            {
                 return new InsnNode(EOpcodes.IXOR);
             }
-            case "lxor" -> {
+            case "lxor" ->
+            {
                 return new InsnNode(EOpcodes.LXOR);
             }
-            case "iinc" -> {
-                if (!checkArgs(parts, 3, 2)) {
+            case "iinc" ->
+            {
+                if (!checkArgs(parts, 3, 2))
+                {
                     return null;
                 }
                 int index = asInt(parts[1]);
@@ -220,40 +273,55 @@ public class DebugInterpreter implements VMInterpreter {
             }
             // </editor-fold>
 
-            default -> {
+            default ->
+            {
                 out("Unknown instruction: ", input);
                 return null;
             }
         }
     }
 
-    private boolean checkArgs(String[] parts, int expected, int minExpected) {
-        if (parts.length < minExpected) {
+    private boolean checkArgs(String[] parts, int expected, int minExpected)
+    {
+        if (parts.length < minExpected)
+        {
             out("Usage: %s", parts[0]);
             return false;
         }
-        if (parts.length > expected) {
+        if (parts.length > expected)
+        {
             out("Too many arguments for %s", parts[0]);
             return false;
         }
         return true;
     }
 
-    private boolean checkArgs(String[] parts, int expected) {
+    private boolean checkArgs(String[] parts, int expected)
+    {
         return checkArgs(parts, expected, expected);
     }
 
-    private int asInt(@NotNull String value) {
-        try {
+    private int asInt(@NotNull String value)
+    {
+        try
+        {
             return Integer.parseInt(value);
-        } catch (NumberFormatException e) {
+        }
+        catch (NumberFormatException e)
+        {
             out("Invalid integer: %s", value);
             return 0; // or throw an exception
         }
     }
 
-    private String okNext() {
+    private String okNext()
+    {
         System.out.print(this.frame.getThread().getName() + " OK >");
         return this.scanner.nextLine();
+    }
+
+    private static void out(String message, Object... args)
+    {
+        System.out.printf((message) + "%n", args);
     }
 }

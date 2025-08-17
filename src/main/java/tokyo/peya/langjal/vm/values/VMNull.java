@@ -2,25 +2,28 @@ package tokyo.peya.langjal.vm.values;
 
 import org.jetbrains.annotations.NotNull;
 
-public class VMNull implements VMValue, VMReferenceValue {
-    private final VMType type;
-
-    public VMNull(@NotNull VMType type) {
+public record VMNull(VMType type) implements VMValue, VMReferenceValue
+{
+    public VMNull(@NotNull VMType type)
+    {
         this.type = type;
     }
 
     @Override
-    public @NotNull VMType getType() {
+    public @NotNull VMType type()
+    {
         return this.type;
     }
 
     @Override
-    public boolean isCompatibleTo(@NotNull VMValue other) {
-        return other instanceof VMNull || this.type.equals(other.getType());
+    public boolean isCompatibleTo(@NotNull VMValue other)
+    {
+        return other instanceof VMNull || this.type.equals(other.type());
     }
 
     @Override
-    public String toString() {
+    public String toString()
+    {
         return "NULL";
     }
 }

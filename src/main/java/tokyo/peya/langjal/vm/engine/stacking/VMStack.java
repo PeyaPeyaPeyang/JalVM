@@ -8,11 +8,13 @@ import tokyo.peya.langjal.vm.values.VMValue;
 
 import java.util.Stack;
 
-public class VMStack {
+public class VMStack
+{
     private final int maxSize;
     private final Stack<VMValue> stack;
 
-    public VMStack(int maxSize) {
+    public VMStack(int maxSize)
+    {
         if (maxSize < 0)
             this.maxSize = Integer.MAX_VALUE;
         else
@@ -20,39 +22,46 @@ public class VMStack {
         this.stack = new Stack<>();
     }
 
-    public boolean isEmpty() {
+    public boolean isEmpty()
+    {
         return this.stack.isEmpty();
     }
 
-    public boolean isFull() {
+    public boolean isFull()
+    {
         return this.stack.size() >= this.maxSize;
     }
 
-    public void push(@NotNull VMValue value) {
-        if (isFull()) {
+    public void push(@NotNull VMValue value)
+    {
+        if (isFull())
+        {
             throw new StackOverflowPanic("Stack is full");
         }
         this.stack.push(value);
     }
 
-
-    public VMValue pop() {
+    public VMValue pop()
+    {
         if (this.isEmpty())
             throw new StackUnderflowPanic("Stack underflow.");
         return this.stack.pop();
     }
 
-    public VMValue peek() {
+    public VMValue peek()
+    {
         if (this.isEmpty())
             throw new StackUnderflowPanic("Stack is empty.");
         return this.stack.peek();
     }
 
-    public <T extends VMValue> T popType(@NotNull Class<? extends T> type) {
+    public <T extends VMValue> T popType(@NotNull Class<? extends T> type)
+    {
         if (this.isEmpty())
             throw new StackUnderflowPanic("Stack underflow.");
         VMValue value = this.stack.pop();
-        if (!type.isInstance(value)) {
+        if (!type.isInstance(value))
+        {
             throw new IllegalOperandPanic(
                     "Expected value of type " + type.getSimpleName() + ", but got " + value.getClass().getSimpleName()
             );
@@ -60,15 +69,17 @@ public class VMStack {
         return type.cast(value);
     }
 
-    public int size() {
+    public int size()
+    {
         return this.stack.size();
     }
 
     @Override
-    public String toString() {
-        return "[" + stack.stream()
-                .map(VMValue::toString)
-                .reduce((a, b) -> a + ", " + b)
-                .orElse("") + "]";
+    public String toString()
+    {
+        return "[" + this.stack.stream()
+                               .map(VMValue::toString)
+                               .reduce((a, b) -> a + ", " + b)
+                               .orElse("") + "]";
     }
 }

@@ -8,5 +8,6 @@ public record ThreadTracingEntry(
         ThreadManipulationType type,
         @NotNull
         VMThread thread
-) {
+)
+{
 }

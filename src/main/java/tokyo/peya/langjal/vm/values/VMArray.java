@@ -5,14 +5,16 @@ import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.vm.exceptions.VMPanic;
 
 @Getter
-public class VMArray implements VMValue, VMReferenceValue {
+public class VMArray implements VMValue, VMReferenceValue
+{
 
     private final VMType objectType;
     private final VMValue[] elements;
 
     private final VMType arrayType;
 
-    public VMArray(@NotNull VMType objectType, int size) {
+    public VMArray(@NotNull VMType objectType, int size)
+    {
         if (size < 0)
             throw new VMPanic("Size cannot be negative: " + size);
         else if (objectType.getArrayDimensions() > 0)
@@ -24,14 +26,16 @@ public class VMArray implements VMValue, VMReferenceValue {
         this.arrayType = VMType.ofTypeDescriptor("[" + objectType.getTypeDescriptor());
     }
 
-    public VMArray(@NotNull VMType objectType, @NotNull VMValue[] values) {
+    public VMArray(@NotNull VMType objectType, @NotNull VMValue[] values)
+    {
         if (values.length == 0)
             throw new VMPanic("Array cannot be empty");
 
         // 値チェック
         for (VMValue value : values)
-            if (!objectType.isAssignableFrom(value.getType()))
-                throw new VMPanic("VM BUG!!! Incompatible type in array: " + value.getType().getTypeDescriptor() + " for " + objectType.getTypeDescriptor());
+            if (!objectType.isAssignableFrom(value.type()))
+                throw new VMPanic("VM BUG!!! Incompatible type in array: " + value.type()
+                                                                                  .getTypeDescriptor() + " for " + objectType.getTypeDescriptor());
 
         this.objectType = objectType;
         this.elements = values;
@@ -39,9 +43,9 @@ public class VMArray implements VMValue, VMReferenceValue {
         this.arrayType = VMType.ofTypeDescriptor("[" + objectType.getTypeDescriptor());
     }
 
-
     @NotNull
-    public VMValue get(int index) {
+    public VMValue get(int index)
+    {
         if (index < 0 || index >= this.elements.length)
             throw new VMPanic("Index: " + index + ", Size: " + this.elements.length);
 
@@ -52,32 +56,38 @@ public class VMArray implements VMValue, VMReferenceValue {
         return value;
     }
 
-    public void set(int index, @NotNull VMValue value) {
+    public void set(int index, @NotNull VMValue value)
+    {
         if (index < 0 || index >= this.elements.length)
             throw new VMPanic("Index: " + index + ", Size: " + this.elements.length);
         this.elements[index] = value;
     }
 
-    public int length() {
+    public int length()
+    {
         return this.elements.length;
     }
 
     @Override
-    public @NotNull VMType getType() {
+    public @NotNull VMType type()
+    {
         return this.arrayType;
     }
 
     @Override
-    public boolean isCompatibleTo(@NotNull VMValue other) {
+    public boolean isCompatibleTo(@NotNull VMValue other)
+    {
         if (other instanceof VMArray otherArray)
             return this.objectType.isAssignableFrom(otherArray.getObjectType());
         return other instanceof VMNull;
     }
 
     @Override
-    public String toString() {
+    public String toString()
+    {
         StringBuilder sb = new StringBuilder("{");
-        for (int i = 0; i < this.elements.length; i++) {
+        for (int i = 0; i < this.elements.length; i++)
+        {
             if (i > 0) sb.append(", ");
             VMValue value = this.elements[i];
             if (value == null)

@@ -4,17 +4,104 @@ import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
-import tokyo.peya.langjal.vm.engine.stacking.instructions.constants.*;
-import tokyo.peya.langjal.vm.engine.stacking.instructions.loads.*;
-import tokyo.peya.langjal.vm.engine.stacking.instructions.math.*;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.constants.OperatorAConstNull;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.constants.OperatorBIPush;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.constants.OperatorDConst0;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.constants.OperatorDConst1;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.constants.OperatorFConst0;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.constants.OperatorFConst1;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.constants.OperatorFConst2;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.constants.OperatorIConst0;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.constants.OperatorIConst1;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.constants.OperatorIConst2;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.constants.OperatorIConst3;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.constants.OperatorIConst4;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.constants.OperatorIConst5;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.constants.OperatorIConstM1;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.constants.OperatorLConst0;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.constants.OperatorLConst1;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.constants.OperatorLDC;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.constants.OperatorNop;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.constants.OperatorSIPush;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.loads.OperatorAALoad;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.loads.OperatorALoad;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.loads.OperatorBALoad;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.loads.OperatorCALoad;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.loads.OperatorDALoad;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.loads.OperatorDLoad;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.loads.OperatorFALoad;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.loads.OperatorFLoad;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.loads.OperatorIALoad;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.loads.OperatorILoad;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.loads.OperatorLALoad;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.loads.OperatorLLoad;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.loads.OperatorSALoad;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorDAdd;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorDDiv;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorDMul;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorDNeg;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorDRem;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorDSub;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorFAdd;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorFDiv;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorFMul;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorFNeg;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorFRem;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorFSub;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorIAdd;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorIAnd;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorIDiv;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorIInc;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorIMul;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorINeg;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorIOr;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorIRem;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorIShl;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorIShr;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorISub;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorIUShr;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorIXor;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorLAdd;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorLAnd;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorLDiv;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorLMul;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorLNeg;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorLOr;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorLRem;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorLShl;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorLShr;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorLSub;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorLUShr;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorLXor;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorGetStatic;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorInvokeStatic;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorInvokeVirtual;
-import tokyo.peya.langjal.vm.engine.stacking.instructions.stack.*;
-import tokyo.peya.langjal.vm.engine.stacking.instructions.stores.*;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.stack.OperatorDup;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.stack.OperatorDup2;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.stack.OperatorDup2X1;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.stack.OperatorDup2X2;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.stack.OperatorDupX1;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.stack.OperatorDupX2;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.stack.OperatorPop;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.stack.OperatorPop2;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.stack.OperatorSwap;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.stores.OperatorAAStore;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.stores.OperatorAStore;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.stores.OperatorBAStore;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.stores.OperatorCAStore;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.stores.OperatorDAStore;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.stores.OperatorDStore;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.stores.OperatorFAStore;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.stores.OperatorFStore;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.stores.OperatorIAStore;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.stores.OperatorIStore;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.stores.OperatorLAStore;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.stores.OperatorLStore;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.stores.OperatorSAStore;
 import tokyo.peya.langjal.vm.exceptions.UnknownInstructionPanic;
 
-public class VMStackMachine {
+public class VMStackMachine
+{
     private static final AbstractInstructionOperator<?>[] OPERATORS = new AbstractInstructionOperator<?>[]{
             // <editor-fold desc="Constants">
             new OperatorNop(), // 0x00 - 0
@@ -131,7 +218,8 @@ public class VMStackMachine {
             // </editor-fold>
     };
 
-    public static AbstractInstructionOperator<?> getOperator(final int opcode) {
+    public static AbstractInstructionOperator<?> getOperator(final int opcode)
+    {
         for (AbstractInstructionOperator<?> operator : OPERATORS)
             if (operator.getOpcode() == opcode)
                 return operator;
@@ -140,8 +228,10 @@ public class VMStackMachine {
     }
 
     @SuppressWarnings("unchecked")
-    public static void executeInstruction(@NotNull VMFrame frame, @NotNull AbstractInsnNode insn) {
-        AbstractInstructionOperator<AbstractInsnNode> operator = (AbstractInstructionOperator<AbstractInsnNode>) getOperator(insn.getOpcode());
+    public static void executeInstruction(@NotNull VMFrame frame, @NotNull AbstractInsnNode insn)
+    {
+        AbstractInstructionOperator<AbstractInsnNode> operator = (AbstractInstructionOperator<AbstractInsnNode>) getOperator(
+                insn.getOpcode());
 
         operator.execute(frame, insn);
     }

@@ -10,20 +10,21 @@ import tokyo.peya.langjal.vm.exceptions.VMPanic;
 
 import java.util.Scanner;
 
-public class BytecodeInterpreter implements VMInterpreter {
+public class BytecodeInterpreter implements VMInterpreter
+{
     private final Scanner scanner = new Scanner(System.in);
     private final JalVM vm;
     private final VMThread engine;
     private final VMFrame frame;
 
-
     private final boolean isDebugging;
     private final MethodNode method;
-    private boolean stepIn;
+    private final boolean stepIn;
     private AbstractInsnNode current;
 
     public BytecodeInterpreter(@NotNull JalVM vm, @NotNull VMThread engine, @NotNull VMFrame frame,
-                               @NotNull MethodNode method, boolean debugging) {
+                               @NotNull MethodNode method, boolean debugging)
+    {
         this.vm = vm;
         this.engine = engine;
         this.frame = frame;
@@ -33,31 +34,34 @@ public class BytecodeInterpreter implements VMInterpreter {
         if (method.instructions != null)
             this.current = method.instructions.getFirst();
 
-        this.stepIn = isDebugging;
-    }
-
-    private static void out(String message, Object... args) {
-        System.out.printf((message) + "%n", args);
+        this.stepIn = this.isDebugging;
     }
 
     @Override
-    public boolean hasNextInstruction() {
-        return !(current == null || current.getNext() == null);
+    public boolean hasNextInstruction()
+    {
+        return !(this.current == null || this.current.getNext() == null);
     }
 
     @Override
-    public AbstractInsnNode feedNextInstruction() {
+    public AbstractInsnNode feedNextInstruction()
+    {
         if (!this.hasNextInstruction())
             throw new VMPanic("No next instruction available.");
 
         if (this.current == null)
             return null;
 
-        while (current != null && current.getOpcode() == -1)
-            current = current.getNext();
+        while (this.current != null && this.current.getOpcode() == -1)
+            this.current = this.current.getNext();
 
         AbstractInsnNode instruction = this.current;
         this.current = this.current.getNext();
         return instruction;
+    }
+
+    private static void out(String message, Object... args)
+    {
+        System.out.printf((message) + "%n", args);
     }
 }

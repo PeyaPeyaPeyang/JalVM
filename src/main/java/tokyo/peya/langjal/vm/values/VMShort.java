@@ -2,19 +2,23 @@ package tokyo.peya.langjal.vm.values;
 
 import org.jetbrains.annotations.NotNull;
 
-public final class VMShort extends VMInteger {
+public final class VMShort extends VMInteger
+{
     public static final VMShort ZERO = new VMShort((short) 0);
 
-    public VMShort(final short value) {
+    public VMShort(final short value)
+    {
         super(VMType.SHORT, value);
     }
 
     @Override
-    public boolean isCompatibleTo(@NotNull VMValue other) {
+    public boolean isCompatibleTo(@NotNull VMValue other)
+    {
         if (other instanceof VMShort)
             return true;
 
-        if (other instanceof VMInteger intVal) {
+        if (other instanceof VMInteger intVal)
+        {
             int value = intVal.asNumber().intValue();
             return value >= Short.MIN_VALUE && value <= Short.MAX_VALUE;
         }
@@ -23,7 +27,8 @@ public final class VMShort extends VMInteger {
     }
 
     @Override
-    public String toString() {
+    public String toString()
+    {
         return String.valueOf(this.asNumber().shortValue()) + "s";
     }
 }

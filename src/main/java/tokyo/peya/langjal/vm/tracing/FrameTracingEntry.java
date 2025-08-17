@@ -8,5 +8,6 @@ public record FrameTracingEntry(
         FrameManipulationType type,
         @NotNull
         VMFrame frame
-) {
+)
+{
 }

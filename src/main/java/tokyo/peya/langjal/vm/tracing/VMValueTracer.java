@@ -7,22 +7,27 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class VMValueTracer {
+public class VMValueTracer
+{
     private final List<ValueTracingEntry> history;
 
-    public VMValueTracer() {
+    public VMValueTracer()
+    {
         this.history = new ArrayList<>();
     }
 
-    public void pushHistory(@NotNull ValueTracingEntry entry) {
+    public void pushHistory(@NotNull ValueTracingEntry entry)
+    {
         this.history.add(entry);
     }
 
-    public void pushHistory(@NotNull VMValueTracer history) {
+    public void pushHistory(@NotNull VMValueTracer history)
+    {
         this.history.addAll(history.history);
     }
 
-    public List<ValueTracingEntry> getHistory(@NotNull VMValue value) {
+    public List<ValueTracingEntry> getHistory(@NotNull VMValue value)
+    {
         List<ValueTracingEntry> result = new ArrayList<>();
         for (ValueTracingEntry entry : this.history)
             if (entry.value().equals(value))
@@ -34,7 +39,8 @@ public class VMValueTracer {
         return Collections.unmodifiableList(result);
     }
 
-    public List<ValueTracingEntry> getHistory() {
+    public List<ValueTracingEntry> getHistory()
+    {
         return Collections.unmodifiableList(this.history);
     }
 }

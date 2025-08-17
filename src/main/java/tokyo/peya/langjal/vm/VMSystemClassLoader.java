@@ -9,20 +9,23 @@ import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.injections.InjectorManager;
 import tokyo.peya.langjal.vm.references.ClassReference;
 
-public class VMSystemClassLoader {
+public class VMSystemClassLoader
+{
     @Getter
     private final JalVM vm;
     private final VMHeap heap;
     private final InjectorManager injector;
 
-    public VMSystemClassLoader(@NotNull JalVM vm, @NotNull VMHeap heap) {
+    public VMSystemClassLoader(@NotNull JalVM vm, @NotNull VMHeap heap)
+    {
         this.vm = vm;
         this.heap = heap;
         this.injector = new InjectorManager();
     }
 
     @Nullable
-    public VMClass findClassSafe(@NotNull ClassReference ref) {
+    public VMClass findClassSafe(@NotNull ClassReference ref)
+    {
         VMClass vmClass = this.heap.getLoadedClass(ref);
         if (vmClass != null)
             return vmClass;
@@ -35,7 +38,8 @@ public class VMSystemClassLoader {
     }
 
     @NotNull
-    public VMClass findClass(@NotNull ClassReference ref) {
+    public VMClass findClass(@NotNull ClassReference ref)
+    {
         VMClass vmClass = this.findClassSafe(ref);
         if (vmClass == null)
             throw new IllegalArgumentException("No class found for: " + ref.getFullQualifiedName());
@@ -44,7 +48,8 @@ public class VMSystemClassLoader {
     }
 
     @NotNull
-    public VMClass defineClass(@NotNull ClassNode classNode) {
+    public VMClass defineClass(@NotNull ClassNode classNode)
+    {
         String name = classNode.name;
         if (this.heap.getLoadedClass(name) != null)
             throw new IllegalStateException("Class " + name + " is already defined!");
@@ -64,12 +69,16 @@ public class VMSystemClassLoader {
     }
 
     @NotNull
-    public VMClass defineClass(byte[] classBytes) {
+    public VMClass defineClass(byte[] classBytes)
+    {
         ClassReader reader = new ClassReader(classBytes);
         ClassNode classNode = new ClassNode();
-        try {
+        try
+        {
             reader.accept(classNode, 0);
-        } catch (Exception e) {
+        }
+        catch (Exception e)
+        {
             throw new IllegalArgumentException("Failed to read class bytes: " + e.getMessage(), e);
         }
 

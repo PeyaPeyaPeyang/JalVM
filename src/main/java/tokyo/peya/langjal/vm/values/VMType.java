@@ -14,7 +14,8 @@ import tokyo.peya.langjal.vm.references.ClassReference;
 import java.util.Objects;
 
 @Getter
-public class VMType {
+public class VMType
+{
     public static final VMType VOID = new VMType(PrimitiveTypes.VOID);
     public static final VMType BOOLEAN = new VMType(PrimitiveTypes.BOOLEAN);
     public static final VMType BYTE = new VMType(PrimitiveTypes.BYTE);
@@ -34,7 +35,8 @@ public class VMType {
 
     private VMClass linkedClass;
 
-    public VMType(@NotNull Type type, int arrayDimensions) {
+    public VMType(@NotNull Type type, int arrayDimensions)
+    {
         if (type instanceof PrimitiveTypes)
             throw new VMPanic("type can not be a PrimitiveTypes instance directly. Use VMType.PRIMITIVE_NAME instead.");
 
@@ -43,38 +45,34 @@ public class VMType {
         this.isPrimitive = type.isPrimitive();
     }
 
-
-    private VMType(@NotNull PrimitiveTypes type) {
+    private VMType(@NotNull PrimitiveTypes type)
+    {
         this.type = type;
         this.arrayDimensions = 0;
         this.isPrimitive = true;
     }
 
-    public VMType(@NotNull ClassReference reference) {
+    public VMType(@NotNull ClassReference reference)
+    {
         this(TypeDescriptor.className(reference.getFullQualifiedName()));
     }
 
-    public VMType(@NotNull TypeDescriptor desc) {
+    public VMType(@NotNull TypeDescriptor desc)
+    {
         this.type = desc.getBaseType();
         this.arrayDimensions = desc.getArrayDimensions();
-        this.isPrimitive = type.isPrimitive();
+        this.isPrimitive = this.type.isPrimitive();
     }
 
-    public static VMType ofTypeDescriptor(@NotNull String typeDescriptor) {
-        return new VMType(TypeDescriptor.parse(typeDescriptor));
-    }
-
-    public static VMType ofClassName(@NotNull String className) {
-        return new VMType(TypeDescriptor.className(className));
-    }
-
-    public VMValue defaultValue() {
+    public VMValue defaultValue()
+    {
         // 非プリミティブまたは配列は「参照型」であるから， null
         if (this.type instanceof ClassReferenceType || this.arrayDimensions > 0)
             return new VMNull(this);
 
         // プリミティブ型のデフォルト値を返す
-        return switch ((PrimitiveTypes) this.type) {
+        return switch ((PrimitiveTypes) this.type)
+        {
             case BOOLEAN -> VMBoolean.FALSE;
             case BYTE -> VMByte.ZERO;
             case CHAR -> VMChar.ZERO;
@@ -87,18 +85,21 @@ public class VMType {
         };
     }
 
-    public void linkClass(@NotNull VMSystemClassLoader cl) {
+    public void linkClass(@NotNull VMSystemClassLoader cl)
+    {
         if (this.isPrimitive)
             return;  // プリミティブ型はリンク不要
 
-        if (this.linkedClass == null) {
+        if (this.linkedClass == null)
+        {
             ClassReferenceType classRefType = (ClassReferenceType) this.type;
             this.linkedClass = cl.findClass(ClassReference.of(classRefType));
         }
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj)
+    {
         if (!(obj instanceof VMType that))
             return false;
         if (this == that)
@@ -110,18 +111,21 @@ public class VMType {
     }
 
     @Override
-    public int hashCode() {
+    public int hashCode()
+    {
         return Objects.hash(this.type, this.arrayDimensions);
     }
 
-    public boolean isAssignableFrom(@NotNull VMType other) {
+    public boolean isAssignableFrom(@NotNull VMType other)
+    {
         // 同じ型なら代入可能
         if (this.equals(other))
             return true;
 
         // プリミティブ型同士の互換性チェック
         boolean isBothPrimitive = this.isPrimitive && other.isPrimitive;
-        if (isBothPrimitive) {
+        if (isBothPrimitive)
+        {
             // 配列型は同じ次元数であれば互換性あり
             if (this.arrayDimensions != other.arrayDimensions)
                 return false;
@@ -140,11 +144,13 @@ public class VMType {
         return this.linkedClass.isSubclassOf(other.linkedClass);
     }
 
-    private boolean isAssignableFromPrimitive(@NotNull PrimitiveTypes other) {
+    private boolean isAssignableFromPrimitive(@NotNull PrimitiveTypes other)
+    {
         if (this.type == other)
             return true;
 
-        return switch ((PrimitiveTypes) this.type) {
+        return switch ((PrimitiveTypes) this.type)
+        {
             case SHORT -> other == PrimitiveTypes.BYTE;
             case INT -> other == PrimitiveTypes.BYTE
                     || other == PrimitiveTypes.SHORT
@@ -168,14 +174,26 @@ public class VMType {
         };
     }
 
-    public String getTypeDescriptor() {
+    public String getTypeDescriptor()
+    {
         return "[".repeat(Math.max(0, this.arrayDimensions)) +
                 this.type.getDescriptor();
     }
 
-    public VMObject createInstance() {
+    public VMObject createInstance()
+    {
         if (this.linkedClass == null)
             throw new VMPanic("Class must be linked before creating an instance.");
         return this.linkedClass.createInstance();
+    }
+
+    public static VMType ofTypeDescriptor(@NotNull String typeDescriptor)
+    {
+        return new VMType(TypeDescriptor.parse(typeDescriptor));
+    }
+
+    public static VMType ofClassName(@NotNull String className)
+    {
+        return new VMType(TypeDescriptor.className(className));
     }
 }

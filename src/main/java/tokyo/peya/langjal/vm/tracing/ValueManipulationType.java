@@ -1,6 +1,7 @@
 package tokyo.peya.langjal.vm.tracing;
 
-public enum ValueManipulationType {
+public enum ValueManipulationType
+{
     GENERATION,
     MANIPULATION,
     COMBINATION,

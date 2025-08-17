@@ -9,13 +9,16 @@ import tokyo.peya.langjal.vm.exceptions.IllegalOperationPanic;
 import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
 import tokyo.peya.langjal.vm.values.VMValue;
 
-public class OperatorDup extends AbstractInstructionOperator<InsnNode> {
-    public OperatorDup() {
+public class OperatorDup extends AbstractInstructionOperator<InsnNode>
+{
+    public OperatorDup()
+    {
         super(EOpcodes.DUP, "dup");
     }
 
     @Override
-    public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand) {
+    public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand)
+    {
         VMValue value = frame.getStack().peek();
         if (value.isCategory2())
             throw new IllegalOperationPanic("Cannot duplicate category 2 value with DUP");

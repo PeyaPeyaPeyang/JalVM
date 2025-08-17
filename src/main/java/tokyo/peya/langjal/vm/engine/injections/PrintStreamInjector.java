@@ -12,27 +12,35 @@ import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMStringCreator;
 import tokyo.peya.langjal.vm.values.VMValue;
 
-public class PrintStreamInjector implements Injector {
+public class PrintStreamInjector implements Injector
+{
     public static final ClassReference CLAZZ = ClassReference.of("java/io/PrintStream");
 
     @Override
-    public ClassReference suitableClass() {
+    public ClassReference suitableClass()
+    {
         return CLAZZ;
     }
 
     @Override
-    public void inject(@NotNull VMSystemClassLoader classLoader, @NotNull VMClass clazz) {
+    public void inject(@NotNull VMSystemClassLoader classLoader, @NotNull VMClass clazz)
+    {
         clazz.injectMethod(
                 classLoader,
-                new InjectedMethod(clazz, new MethodNode(
+                new InjectedMethod(
+                        clazz, new MethodNode(
                         EOpcodes.ACC_PUBLIC,
                         "println",
                         "(Ljava/lang/String;)V",
                         null,
                         null
-                )) {
+                )
+                )
+                {
                     @Override
-                    @Nullable VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller, @Nullable VMObject instance, @NotNull VMValue[] args) {
+                    @Nullable VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
+                    {
                         VMValue arg = args[0];
                         PrintStreamInjector.this.println(arg);
                         return null;
@@ -41,7 +49,8 @@ public class PrintStreamInjector implements Injector {
         );
     }
 
-    private void println(@NotNull VMValue string) {
+    private void println(@NotNull VMValue string)
+    {
         if (!(string instanceof VMObject vmObject))
             throw new IllegalArgumentException("Expected a VMObject for println, got: " + string);
         String str = VMStringCreator.getString(vmObject);

@@ -8,7 +8,8 @@ import tokyo.peya.langjal.vm.api.VMEventHandlerList;
 
 @Getter
 @AllArgsConstructor
-public abstract class JalVMEvent extends VMEvent {
+public abstract class JalVMEvent extends VMEvent
+{
     public static final VMEventHandlerList<JalVMEvent> HANDLER_LIST = new VMEventHandlerList<>(JalVMEvent.class);
 
     private final JalVM vm;

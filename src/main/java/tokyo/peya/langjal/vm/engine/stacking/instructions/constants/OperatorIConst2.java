@@ -6,13 +6,16 @@ import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
 
-public class OperatorIConst2 extends AbstractInstructionOperator<InsnNode> {
-    public OperatorIConst2() {
+public class OperatorIConst2 extends AbstractInstructionOperator<InsnNode>
+{
+    public OperatorIConst2()
+    {
         super(EOpcodes.ICONST_2, "iconst_2");
     }
 
     @Override
-    public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand) {
+    public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand)
+    {
         OperatorIConstSupport.execute(frame, operand, 2);
     }
 }

@@ -8,24 +8,29 @@ import tokyo.peya.langjal.vm.references.ClassReference;
 import java.util.ArrayList;
 import java.util.List;
 
-public class VMHeap {
+public class VMHeap
+{
     private final List<VMClass> loadedClasses;
 
-    public VMHeap() {
+    public VMHeap()
+    {
         this.loadedClasses = new ArrayList<>();
     }
 
-    public void addClass(VMClass vmClass) {
+    public void addClass(VMClass vmClass)
+    {
         this.loadedClasses.add(vmClass);
     }
 
-    public void removeClass(@NotNull String name) {
-        loadedClasses.removeIf(vmClass -> vmClass.getReference().isEqualClass(name));
+    public void removeClass(@NotNull String name)
+    {
+        this.loadedClasses.removeIf(vmClass -> vmClass.getReference().isEqualClass(name));
     }
 
     @Nullable
-    public VMClass getLoadedClass(@NotNull String className) {
-        for (VMClass vmClass : loadedClasses)
+    public VMClass getLoadedClass(@NotNull String className)
+    {
+        for (VMClass vmClass : this.loadedClasses)
             if (vmClass.getReference().isEqualClass(className))
                 return vmClass;
 
@@ -33,15 +38,17 @@ public class VMHeap {
     }
 
     @Nullable
-    public VMClass getLoadedClass(@NotNull ClassReference className) {
-        for (VMClass vmClass : loadedClasses)
+    public VMClass getLoadedClass(@NotNull ClassReference className)
+    {
+        for (VMClass vmClass : this.loadedClasses)
             if (vmClass.getReference().equals(className))
                 return vmClass;
 
         return null;
     }
 
-    public List<VMClass> getLoadedClasses() {
-        return new ArrayList<>(loadedClasses);
+    public List<VMClass> getLoadedClasses()
+    {
+        return new ArrayList<>(this.loadedClasses);
     }
 }

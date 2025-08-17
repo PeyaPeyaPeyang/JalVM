@@ -12,7 +12,8 @@ import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMType;
 
 @Getter
-public class JalVM {
+public class JalVM
+{
     private final VMHeap heap;
     private final ClassPaths classPaths;
     private final VMSystemClassLoader classLoader;
@@ -22,8 +23,8 @@ public class JalVM {
     private final VMPluginLoader pluginLoader;
     private final boolean debugging = true;
 
-
-    public JalVM() {
+    public JalVM()
+    {
         System.out.println("Initialising J(al)VM...");
 
         this.eventManager = new VMEventManager();
@@ -39,33 +40,37 @@ public class JalVM {
         initialiseWellKnownClasses(this.classLoader);
     }
 
-    private static void initialiseWellKnownClasses(@NotNull VMSystemClassLoader cl) {
-        VMType.STRING.linkClass(cl);
-    }
-
-    public void startJVM() {
+    public void startJVM()
+    {
         System.out.println("Starting J(al)VM...");
         this.engine.startEngine();
         System.out.println("J(al)VM has stopped successfully.");
     }
 
-    public void executeMain(@NotNull ClassReference clazz, @NotNull String[] args) {
+    public void executeMain(@NotNull ClassReference clazz, @NotNull String[] args)
+    {
         VMClass vmClass = this.heap.getLoadedClass(clazz);
         if (vmClass == null)
             throw new IllegalStateException("Unable to load class: " + clazz.getFullQualifiedName()
-                    + ", please define it with VMHeap#defineClass() first!");
+                                                    + ", please define it with VMHeap#defineClass() first!");
 
         this.executeMain(vmClass, args);
     }
 
-    public void executeMain(@NotNull VMClass clazz, @NotNull String[] args) {
+    public void executeMain(@NotNull VMClass clazz, @NotNull String[] args)
+    {
         VMMethod mainMethod = clazz.findEntryPoint();
         if (mainMethod == null)
             throw new IllegalStateException("There is no main method in class:  "
-                    + clazz.getReference().getFullQualifiedName());
+                                                    + clazz.getReference().getFullQualifiedName());
 
         this.engine.getMainThread().startMainThread(mainMethod, args);
 
         this.startJVM();
+    }
+
+    private static void initialiseWellKnownClasses(@NotNull VMSystemClassLoader cl)
+    {
+        VMType.STRING.linkClass(cl);
     }
 }

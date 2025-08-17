@@ -8,13 +8,16 @@ import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOpe
 import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
 import tokyo.peya.langjal.vm.values.VMFloat;
 
-public class OperatorFSub extends AbstractInstructionOperator<InsnNode> {
-    public OperatorFSub() {
+public class OperatorFSub extends AbstractInstructionOperator<InsnNode>
+{
+    public OperatorFSub()
+    {
         super(EOpcodes.FSUB, "fsub");
     }
 
     @Override
-    public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand) {
+    public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand)
+    {
         VMFloat val1 = frame.getStack().popType(VMFloat.class);
         VMFloat val2 = frame.getStack().popType(VMFloat.class);
         VMFloat result = val2.sub(val1);

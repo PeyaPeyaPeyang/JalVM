@@ -8,13 +8,16 @@ import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOpe
 import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
 import tokyo.peya.langjal.vm.values.VMInteger;
 
-public class OperatorIXor extends AbstractInstructionOperator<InsnNode> {
-    public OperatorIXor() {
+public class OperatorIXor extends AbstractInstructionOperator<InsnNode>
+{
+    public OperatorIXor()
+    {
         super(EOpcodes.IXOR, "ixor");
     }
 
     @Override
-    public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand) {
+    public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand)
+    {
         VMInteger val1 = frame.getStack().popType(VMInteger.class);
         VMInteger val2 = frame.getStack().popType(VMInteger.class);
         VMInteger result = val1.xor(val2);

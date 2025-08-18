@@ -8,12 +8,12 @@ import tokyo.peya.langjal.vm.exceptions.VMPanic;
 public class VMArray implements VMValue, VMReferenceValue
 {
 
-    private final VMType objectType;
+    private final VMType<?> objectType;
     private final VMValue[] elements;
 
-    private final VMType arrayType;
+    private final VMType<?> arrayType;
 
-    public VMArray(@NotNull VMType objectType, int size)
+    public VMArray(@NotNull VMType<?> objectType, int size)
     {
         if (size < 0)
             throw new VMPanic("Size cannot be negative: " + size);
@@ -26,7 +26,7 @@ public class VMArray implements VMValue, VMReferenceValue
         this.arrayType = VMType.ofTypeDescriptor("[" + objectType.getTypeDescriptor());
     }
 
-    public VMArray(@NotNull VMType objectType, @NotNull VMValue[] values)
+    public VMArray(@NotNull VMType<?> objectType, @NotNull VMValue[] values)
     {
         // 値チェック
         for (VMValue value : values)
@@ -48,7 +48,7 @@ public class VMArray implements VMValue, VMReferenceValue
 
         VMValue value = this.elements[index];
         if (value == null)
-            return new VMNull(this.objectType);
+            return new VMNull<>(this.objectType);
 
         return value;
     }
@@ -66,7 +66,7 @@ public class VMArray implements VMValue, VMReferenceValue
     }
 
     @Override
-    public @NotNull VMType type()
+    public @NotNull VMType<?> type()
     {
         return this.arrayType;
     }

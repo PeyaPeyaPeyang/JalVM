@@ -70,12 +70,12 @@ public class NativeCaller
 
     private MethodHandle createCachedMethodHandle(@NotNull NativeLibrary nativeLibrary,
                                                   @NotNull String name,
-                                                  @NotNull VMType returningType,
+                                                  @NotNull VMType<?> returningType,
                                                   @NotNull VMValue... args)
     {
-        VMType[] argTypes = Arrays.stream(args)
+        VMType<?>[] argTypes = Arrays.stream(args)
                                   .map(VMValue::type)
-                                  .toArray(VMType[]::new);
+                                  .toArray(VMType<?>[]::new);
         List<MethodHandleCache> caches = nativeLibrary.handles.get(name);
         if (caches == null)
             nativeLibrary.handles.put(name, caches = new ArrayList<>());
@@ -117,7 +117,7 @@ public class NativeCaller
     }
 
     public VMValue callFFI(@NotNull ClassReference owner, @NotNull String name,
-                           @NotNull VMType returningType, @NotNull VMValue... args)
+                           @NotNull VMType<?> returningType, @NotNull VMValue... args)
     {
         List<VMValue> results = new ArrayList<>();
         NativeLibrary nativeLibrary = this.libraries.get(owner);
@@ -140,13 +140,13 @@ public class NativeCaller
         }
     }
 
-    private static MemoryLayout[] createFunctionLayouts(VMType type, VMValue[] args)
+    private static MemoryLayout[] createFunctionLayouts(VMType<?> type, VMValue[] args)
     {
         MemoryLayout[] layouts = new MemoryLayout[args.length];
         for (int i = 0; i < args.length; i++)
         {
             VMValue arg = args[i];
-            if (arg instanceof VMPrimitive<?> primitive)
+            if (arg instanceof VMPrimitive primitive)
                 layouts[i] = createFunctionLayout(primitive.type());
             else if (arg instanceof VMReferenceValue)
                 layouts[i] = ValueLayout.ADDRESS; // 参照型はアドレスとして扱う
@@ -154,7 +154,7 @@ public class NativeCaller
         return layouts;
     }
 
-    private static MemoryLayout createFunctionLayout(@NotNull VMType type)
+    private static MemoryLayout createFunctionLayout(@NotNull VMType<?> type)
     {
         if (type == VMType.BOOLEAN)
             return ValueLayout.JAVA_BOOLEAN;
@@ -189,9 +189,9 @@ public class NativeCaller
             @NotNull
             String name,
             @NotNull
-            VMType returningType,
+            VMType<?> returningType,
             @NotNull
-            VMType[] args,
+            VMType<?>[] args,
             @NotNull
             MethodHandle handle
     ) {}

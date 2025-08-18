@@ -37,7 +37,7 @@ public class JalVM
         this.nativeCaller = new NativeCaller();
 
         this.pluginLoader.loadPlugins();
-        initialiseWellKnownClasses(this.classLoader);
+        VMType.initialiseWellKnownClasses(this.classLoader);
     }
 
     public void startJVM()
@@ -67,10 +67,5 @@ public class JalVM
         this.engine.getMainThread().startMainThread(mainMethod, args);
 
         this.startJVM();
-    }
-
-    private static void initialiseWellKnownClasses(@NotNull VMSystemClassLoader cl)
-    {
-        VMType.STRING.linkClass(cl);
     }
 }

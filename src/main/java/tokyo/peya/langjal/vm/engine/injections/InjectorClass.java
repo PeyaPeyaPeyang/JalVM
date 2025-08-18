@@ -45,6 +45,25 @@ public class InjectorClass implements Injector
                     }
                 }
         );
+        clazz.injectMethod(
+                cl,
+                new InjectedMethod(
+                        clazz, new MethodNode(
+                        EOpcodes.ACC_PRIVATE | EOpcodes.ACC_STATIC | EOpcodes.ACC_NATIVE,
+                        "desiredAssertionStatus0",
+                        "(Ljava/lang/Class;)Z",
+                        null,
+                        null
+                )
+                )
+                {
+                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
+                    {
+                        return VMBoolean.TRUE;
+                    }
+                }
+        );
     }
 
 }

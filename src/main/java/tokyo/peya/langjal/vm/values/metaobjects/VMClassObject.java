@@ -16,23 +16,24 @@ public class VMClassObject extends VMObject
     @Nullable
     private final VMClass clazz;
     @NotNull
-    private final VMType typeOf;
+    private final VMType<?> typeOf;
 
-    public VMClassObject(@NotNull VMSystemClassLoader cl, @Nullable VMClass clazz, @NotNull VMType typeOf)
+    public VMClassObject(@NotNull VMSystemClassLoader cl, @Nullable VMClass clazz, @NotNull VMType<?> typeOf)
     {
         super(cl.findClass(ClassReference.of("java/lang/Class")));
         this.clazz = clazz;
         this.typeOf = typeOf;
 
+        typeOf.linkClass(cl);
         this.forceInitialise();
     }
 
-    public VMClassObject(@NotNull JalVM vm, @NotNull VMType typeOf)
+    public VMClassObject(@NotNull JalVM vm, @NotNull VMType<?> typeOf)
     {
         this(vm.getClassLoader(), null, typeOf);
     }
 
-    public VMClassObject(@NotNull VMSystemClassLoader cl, @NotNull VMType typeOf)
+    public VMClassObject(@NotNull VMSystemClassLoader cl, @NotNull VMType<?> typeOf)
     {
         this(cl, null, typeOf);
     }

@@ -14,20 +14,31 @@ import tokyo.peya.langjal.vm.references.ClassReference;
 import java.util.Objects;
 
 @Getter
-public class VMType
+public class VMType<T extends VMValue>
 {
-    public static final VMType VOID = new VMType(PrimitiveTypes.VOID);
-    public static final VMType BOOLEAN = new VMType(PrimitiveTypes.BOOLEAN);
-    public static final VMType BYTE = new VMType(PrimitiveTypes.BYTE);
-    public static final VMType CHAR = new VMType(PrimitiveTypes.CHAR);
-    public static final VMType SHORT = new VMType(PrimitiveTypes.SHORT);
-    public static final VMType INTEGER = new VMType(PrimitiveTypes.INT);
-    public static final VMType LONG = new VMType(PrimitiveTypes.LONG);
-    public static final VMType FLOAT = new VMType(PrimitiveTypes.FLOAT);
-    public static final VMType DOUBLE = new VMType(PrimitiveTypes.DOUBLE);
+    public static final VMType<VMVoid> VOID = new VMType<>(PrimitiveTypes.VOID);
+    public static final VMType<VMBoolean> BOOLEAN = new VMType<>(PrimitiveTypes.BOOLEAN);
+    public static final VMType<VMByte> BYTE = new VMType<>(PrimitiveTypes.BYTE);
+    public static final VMType<VMChar> CHAR = new VMType<>(PrimitiveTypes.CHAR);
+    public static final VMType<VMShort> SHORT = new VMType<>(PrimitiveTypes.SHORT);
+    public static final VMType<VMInteger> INTEGER = new VMType<>(PrimitiveTypes.INT);
+    public static final VMType<VMLong> LONG = new VMType<>(PrimitiveTypes.LONG);
+    public static final VMType<VMFloat> FLOAT = new VMType<>(PrimitiveTypes.FLOAT);
+    public static final VMType<VMDouble> DOUBLE = new VMType<>(PrimitiveTypes.DOUBLE);
 
     // プリミティブではないが，よく使うため，
-    public static final VMType STRING = new VMType(TypeDescriptor.className("java/lang/String"));
+    public static final VMType<VMReferenceValue> GENERIC_OBJECT = new VMType<>(TypeDescriptor.className("java/lang/Object"));
+    public static final VMType<VMArray> GENERIC_ARRAY = new VMType<>(TypeDescriptor.parse("[Ljava/lang/Object;"));
+    public static final VMType<VMObject> STRING = new VMType<>(TypeDescriptor.className("java/lang/String"));
+
+    public static void initialiseWellKnownClasses(@NotNull VMSystemClassLoader classLoader)
+    {
+        // ここでよく使うクラスをリンクしておく
+        GENERIC_OBJECT.linkClass(classLoader);
+        STRING.linkClass(classLoader);
+        GENERIC_ARRAY.linkClass(classLoader);
+    }
+
 
     private final Type type;
     private final int arrayDimensions;
@@ -68,7 +79,7 @@ public class VMType
     {
         // 非プリミティブまたは配列は「参照型」であるから， null
         if (this.type instanceof ClassReferenceType || this.arrayDimensions > 0)
-            return new VMNull(this);
+            return new VMNull<>(this);
 
         // プリミティブ型のデフォルト値を返す
         return switch ((PrimitiveTypes) this.type)
@@ -100,7 +111,7 @@ public class VMType
     @Override
     public boolean equals(Object obj)
     {
-        if (!(obj instanceof VMType that))
+        if (!(obj instanceof VMType<?> that))
             return false;
         if (this == that)
             return true;
@@ -116,7 +127,7 @@ public class VMType
         return Objects.hash(this.type, this.arrayDimensions);
     }
 
-    public boolean isAssignableFrom(@NotNull VMType other)
+    public boolean isAssignableFrom(@NotNull VMType<?> other)
     {
         // 同じ型なら代入可能
         if (this.equals(other))
@@ -187,13 +198,13 @@ public class VMType
         return this.linkedClass.createInstance();
     }
 
-    public static VMType ofTypeDescriptor(@NotNull String typeDescriptor)
+    public static VMType<?> ofTypeDescriptor(@NotNull String typeDescriptor)
     {
-        return new VMType(TypeDescriptor.parse(typeDescriptor));
+        return new VMType<>(TypeDescriptor.parse(typeDescriptor));
     }
 
-    public static VMType ofClassName(@NotNull String className)
+    public static VMType<VMObject> ofClassName(@NotNull String className)
     {
-        return new VMType(TypeDescriptor.className(className));
+        return new VMType<>(TypeDescriptor.className(className));
     }
 }

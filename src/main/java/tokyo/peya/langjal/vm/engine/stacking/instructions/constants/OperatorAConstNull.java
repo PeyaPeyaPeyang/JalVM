@@ -8,6 +8,7 @@ import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOpe
 import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
 import tokyo.peya.langjal.vm.values.VMNull;
 import tokyo.peya.langjal.vm.values.VMType;
+import tokyo.peya.langjal.vm.values.VMVoid;
 
 public class OperatorAConstNull extends AbstractInstructionOperator<InsnNode>
 {
@@ -19,7 +20,7 @@ public class OperatorAConstNull extends AbstractInstructionOperator<InsnNode>
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand)
     {
-        VMNull vmNull = new VMNull(VMType.VOID);
+        VMNull<VMVoid> vmNull = new VMNull<>(VMType.VOID);
         frame.getTracer().pushHistory(
                 ValueTracingEntry.generation(vmNull, frame.getMethod(), operand)
         );

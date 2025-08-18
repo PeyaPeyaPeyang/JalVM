@@ -19,10 +19,10 @@ public class VMField implements RestrictedAccessor
     private final AccessLevel accessLevel;
     private final AccessAttributeSet accessAttributes;
 
-    private final VMType type;
+    private final VMType<?> type;
     private final String name;
 
-    public VMField(@NotNull VMClass clazz, @NotNull VMType fieldType, @NotNull FieldNode fieldNode)
+    public VMField(@NotNull VMClass clazz, @NotNull VMType<?> fieldType, @NotNull FieldNode fieldNode)
     {
         this.clazz = clazz;
         this.fieldNode = fieldNode;

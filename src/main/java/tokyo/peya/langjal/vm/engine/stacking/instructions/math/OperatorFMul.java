@@ -7,6 +7,7 @@ import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
 import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
 import tokyo.peya.langjal.vm.values.VMFloat;
+import tokyo.peya.langjal.vm.values.VMType;
 
 public class OperatorFMul extends AbstractInstructionOperator<InsnNode>
 {
@@ -18,8 +19,8 @@ public class OperatorFMul extends AbstractInstructionOperator<InsnNode>
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand)
     {
-        VMFloat val1 = frame.getStack().popType(VMFloat.class);
-        VMFloat val2 = frame.getStack().popType(VMFloat.class);
+        VMFloat val1 = frame.getStack().popType(VMType.FLOAT);
+        VMFloat val2 = frame.getStack().popType(VMType.FLOAT);
         VMFloat result = val1.mul(val2);
         frame.getTracer().pushHistory(
                 ValueTracingEntry.combination(result, frame.getMethod(), operand, val1, val2)

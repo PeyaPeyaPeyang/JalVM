@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.vm.exceptions.IllegalOperandPanic;
 import tokyo.peya.langjal.vm.exceptions.StackOverflowPanic;
 import tokyo.peya.langjal.vm.exceptions.StackUnderflowPanic;
+import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
 
 import java.util.Stack;
@@ -34,8 +35,8 @@ public class VMStack
 
     public void push(@NotNull VMValue value)
     {
-        if (this.isFull())
-            throw new StackOverflowPanic("Stack is full");
+        // if (this.isFull())
+        //     throw new StackOverflowPanic("Stack is full");
         this.stack.push(value);
     }
 
@@ -53,18 +54,18 @@ public class VMStack
         return this.stack.peek();
     }
 
-    public <T extends VMValue> T popType(@NotNull Class<? extends T> type)
+    @SuppressWarnings("unchecked")  // 型キャストのため
+    public <T extends VMValue> T popType(@NotNull VMType<T> type)
     {
         if (this.isEmpty())
             throw new StackUnderflowPanic("Stack underflow.");
         VMValue value = this.stack.pop();
-        if (!type.isInstance(value))
-        {
-            throw new IllegalOperandPanic(
-                    "Expected value of type " + type.getSimpleName() + ", but got " + value.getClass().getSimpleName()
-            );
-        }
-        return type.cast(value);
+
+        VMValue conformedValue = value.conformValue(type); // 値をフィールドの型に適合させる
+        if (conformedValue == null)
+            throw new IllegalOperandPanic("Expected type: " + type + ", but got: " + type);
+
+        return (T) conformedValue; // 型キャスト
     }
 
     public int size()

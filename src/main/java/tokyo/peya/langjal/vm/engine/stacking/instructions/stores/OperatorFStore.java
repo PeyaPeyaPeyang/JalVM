@@ -6,6 +6,7 @@ import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
 import tokyo.peya.langjal.vm.values.VMFloat;
+import tokyo.peya.langjal.vm.values.VMType;
 
 public class OperatorFStore extends AbstractInstructionOperator<VarInsnNode>
 {
@@ -17,7 +18,7 @@ public class OperatorFStore extends AbstractInstructionOperator<VarInsnNode>
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull VarInsnNode operand)
     {
-        VMFloat value = frame.getStack().popType(VMFloat.class);
+        VMFloat value = frame.getStack().popType(VMType.FLOAT);
         frame.getLocals().setSlot(operand.var, value);
     }
 }

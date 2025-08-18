@@ -6,7 +6,7 @@ import tokyo.peya.langjal.vm.exceptions.VMPanic;
 public interface VMValue
 {
     @NotNull
-    VMType type();
+    VMType<?> type();
 
     boolean isCompatibleTo(@NotNull VMValue other);
 
@@ -19,8 +19,8 @@ public interface VMValue
 
     default Object toJavaObject()
     {
-        if (this instanceof VMPrimitive<?>)
-            return ((VMPrimitive<?>) this).asNumber();
+        if (this instanceof VMPrimitive)
+            return ((VMPrimitive) this).asNumber();
         else
             throw new VMPanic("Cannot convert " + this.getClass().getName());
     }
@@ -36,5 +36,14 @@ public interface VMValue
             case Boolean b -> b ? VMBoolean.TRUE: VMBoolean.FALSE;
             default -> throw new VMPanic("Unsupported type: " + obj.getClass().getName());
         };
+    }
+
+    default VMValue conformValue(@NotNull VMType<?> expectedType)
+    {
+        // 値を暗黙的に変換する場合は，型が一致しているかどうかを確認する
+        if (this.type().equals(expectedType))
+            return this;
+
+        throw new VMPanic("Cannot conform " + this.type() + " to " + expectedType);
     }
 }

@@ -13,6 +13,7 @@ import org.objectweb.asm.util.TraceMethodVisitor;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.api.VMEventHandler;
 import tokyo.peya.langjal.vm.api.VMListener;
+import tokyo.peya.langjal.vm.api.events.VMFrameInEvent;
 import tokyo.peya.langjal.vm.api.events.VMStepInEvent;
 import tokyo.peya.langjal.vm.api.events.VMThreadDeathEvent;
 import tokyo.peya.langjal.vm.engine.VMClass;
@@ -182,9 +183,7 @@ public class DebugMain
         public void onStepIn(@NotNull VMStepInEvent event)
         {
             if (!this.stepIn)
-            {
                 return; // Debugging is disabled
-            }
 
             this.debugOptions(event);
         }
@@ -294,6 +293,12 @@ public class DebugMain
         private void print(int index, String type, String value, String instr)
         {
             System.out.printf("    [v%d] %s: %s, by %s%n", index, type, value, instr);
+        }
+
+        @VMEventHandler
+        public void onFrameIn(@NotNull VMFrameInEvent e)
+        {
+            System.out.printf("Frame in: %s%n", e.getFrame().toString());
         }
     }
 }

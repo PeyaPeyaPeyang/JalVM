@@ -7,11 +7,9 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
-import tokyo.peya.langjal.compiler.JALClassCompiler;
 import tokyo.peya.langjal.compiler.jvm.AccessAttribute;
 import tokyo.peya.langjal.compiler.jvm.AccessAttributeSet;
 import tokyo.peya.langjal.compiler.jvm.AccessLevel;
-import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.injections.InjectedField;
 import tokyo.peya.langjal.vm.engine.injections.InjectedMethod;
@@ -22,6 +20,7 @@ import tokyo.peya.langjal.vm.engine.threads.VMThread;
 import tokyo.peya.langjal.vm.exceptions.VMPanic;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMObject;
+import tokyo.peya.langjal.vm.values.VMReferenceValue;
 import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
 import tokyo.peya.langjal.vm.values.metaobjects.VMClassObject;
@@ -33,7 +32,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Getter
-public class VMClass extends VMType implements RestrictedAccessor
+public class VMClass extends VMType<VMReferenceValue> implements RestrictedAccessor
 {
     private final VMSystemClassLoader cl;
     private final ClassReference reference;
@@ -86,10 +85,8 @@ public class VMClass extends VMType implements RestrictedAccessor
     public void injectMethod(@NotNull VMSystemClassLoader cl, @NotNull InjectedMethod method)
     {
         if (!this.reference.equals(method.getOwningClass().getReference()))
-        {
             throw new IllegalArgumentException("Injected method does not belong to this class: " + method.getOwningClass()
                                                                                                          .getReference());
-        }
 
         String injectingMethodName = method.getName();
         for (VMMethod existingMethod : this.methods)
@@ -140,7 +137,7 @@ public class VMClass extends VMType implements RestrictedAccessor
 
     public boolean isSubclassOf(@NotNull VMClass maySuper)
     {
-        if (this == maySuper)
+        if (this.equals(maySuper))
             return true; // 同じクラスならtrue
         if (this.superLink == null)
             return false; // スーパークラスがない場合はfalse
@@ -149,8 +146,10 @@ public class VMClass extends VMType implements RestrictedAccessor
         VMClass current = this.superLink;
         while (current != null)
         {
-            if (current == maySuper)
+            if (current.equals(maySuper))
                 return true;
+            if (current == current.superLink)
+                break; // 無限ループを防ぐためのチェック
             current = current.superLink;
         }
 
@@ -161,6 +160,7 @@ public class VMClass extends VMType implements RestrictedAccessor
     public void initialiseClass(@NotNull VMSystemClassLoader cl)
     {
         // リンク処理 -> クラスのスーパクラスやメンバの参照を解決
+        this.linkClass(cl);
         this.linkSuper(cl);
         this.linkMembers(cl);
         // 静的初期化メソッドを呼び出す
@@ -307,16 +307,21 @@ public class VMClass extends VMType implements RestrictedAccessor
         return null; // 一致するメソッドが見つからなかった場合はnullを返す
     }
 
-    public void setStaticField(@NotNull String fieldName, @NotNull VMValue value)
+    public void setStaticField(@NotNull VMField field, @NotNull VMValue value)
     {
-        VMField field = this.findStaticField(fieldName);
-        if (!field.getType().isAssignableFrom(value.type()))
-            throw new VMPanic("Cannot assign value of type " + value.type() + " to field " + fieldName + " of type " + field.getType());
+        VMValue conformedValue = value.conformValue(field.getType()); // 値をフィールドの型に適合させる
+        if (!field.getType().isAssignableFrom(conformedValue.type()))
+            throw new VMPanic("Cannot assign value of type " + value.type() + " to field " + field.getName() + " of type " + field.getType());
 
         if (field instanceof InjectedField)
-            ((InjectedField) field).set(this, null, value); // InjectedFieldの場合は特別な処理を行う
-
-        this.staticFields.put(field, value); // 静的フィールドに値を設定
+            ((InjectedField) field).set(this, null, conformedValue); // InjectedFieldの場合は特別な処理を行う
+        else
+            this.staticFields.put(field, conformedValue); // 静的フィールドに値を設定
+    }
+    public void setStaticField(@NotNull String fieldName, @NotNull VMValue value)
+    {
+        VMField field = this.findField(fieldName);
+        this.setStaticField(field, value); // フィールド名からフィールドを取得し、値を設定
     }
 
     @NotNull
@@ -333,7 +338,7 @@ public class VMClass extends VMType implements RestrictedAccessor
     }
 
     @NotNull
-    public VMField findStaticField(@NotNull String fieldName)
+    public VMField findField(@NotNull String fieldName)
     {
         for (VMField field : this.fields)
             if (field.getName().equals(fieldName))

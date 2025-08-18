@@ -21,9 +21,7 @@ public class OperatorSIPush extends AbstractInstructionOperator<IntInsnNode>
     {
         int value = operand.operand;
         if (value < Short.MIN_VALUE || value > Short.MAX_VALUE)
-        {
             throw new IllegalOperandPanic("Value out of range for short: " + value);
-        }
         VMShort vmShort = new VMShort((short) value);
         frame.getTracer().pushHistory(
                 ValueTracingEntry.generation(vmShort, frame.getMethod(), operand)

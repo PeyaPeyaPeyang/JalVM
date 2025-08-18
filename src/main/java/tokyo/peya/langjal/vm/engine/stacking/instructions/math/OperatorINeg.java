@@ -7,6 +7,7 @@ import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
 import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
 import tokyo.peya.langjal.vm.values.VMInteger;
+import tokyo.peya.langjal.vm.values.VMType;
 
 public class OperatorINeg extends AbstractInstructionOperator<InsnNode>
 {
@@ -18,7 +19,7 @@ public class OperatorINeg extends AbstractInstructionOperator<InsnNode>
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand)
     {
-        VMInteger val1 = frame.getStack().popType(VMInteger.class);
+        VMInteger val1 = frame.getStack().popType(VMType.INTEGER);
         VMInteger result = val1.neg();
         frame.getTracer().pushHistory(
                 ValueTracingEntry.manipulation(result, val1, frame.getMethod(), operand)

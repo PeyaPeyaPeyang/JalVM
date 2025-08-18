@@ -37,4 +37,15 @@ public final class VMBoolean extends AbstractVMPrimitive
     {
         return value ? TRUE: FALSE;
     }
+
+    @Override
+    public VMValue conformValue(@NotNull VMType<?> expectedType)
+    {
+        if (expectedType.equals(VMType.BOOLEAN))
+            return this;
+        else if (expectedType.equals(VMType.INTEGER))
+            return new VMInteger(this.asNumber().intValue());
+
+        return super.conformValue(expectedType);
+    }
 }

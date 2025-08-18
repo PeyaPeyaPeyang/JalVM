@@ -11,9 +11,11 @@ import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
 import tokyo.peya.langjal.vm.exceptions.LinkagePanic;
+import tokyo.peya.langjal.vm.exceptions.VMPanic;
 import tokyo.peya.langjal.vm.exceptions.invocation.IllegalInvocationTypePanic;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMObject;
+import tokyo.peya.langjal.vm.values.VMReferenceValue;
 import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
 
@@ -39,14 +41,19 @@ public class OperatorInvokeVirtual extends AbstractInstructionOperator<MethodIns
 
         TypeDescriptor[] parameterTypes = methodDescriptor.getParameterTypes();
         VMValue[] arguments = new VMValue[parameterTypes.length];
-        VMType[] vmTypes = new VMType[parameterTypes.length];
+        VMType<?>[] vmTypes = new VMType[parameterTypes.length];
         for (int i = 0; i < arguments.length; i++)
         {
             VMValue arg = arguments[i] = frame.getStack().pop();
             vmTypes[i] = arg.type();
         }
 
-        VMObject instance = frame.getStack().popType(VMObject.class);
+        VMReferenceValue referenceValue = frame.getStack().popType(clazz);
+        if (!(referenceValue instanceof VMObject instance))
+            throw new VMPanic("Expected an object to access instance '" + name + "', but got " + referenceValue.getClass().getSimpleName());
+
+        if (!instance.isInitialised())
+            throw new LinkagePanic("Cannot invoke method on uninitialised instance: " + owner + "." + name + desc);
 
         VMMethod method = clazz.findSuitableMethod(
                 caller,
@@ -63,7 +70,7 @@ public class OperatorInvokeVirtual extends AbstractInstructionOperator<MethodIns
                     "Cannot invoke static method " + owner + "." + name + desc + " as a virtual method"
             );
 
-        method.invokeVirtual(
+        method.invokeInstanceMethod(
                 operand,
                 frame.getThread(),
                 caller,

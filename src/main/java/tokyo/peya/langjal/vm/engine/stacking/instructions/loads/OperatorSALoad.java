@@ -6,6 +6,7 @@ import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
 import tokyo.peya.langjal.vm.values.VMShort;
+import tokyo.peya.langjal.vm.values.VMType;
 
 public class OperatorSALoad extends AbstractInstructionOperator<InsnNode>
 {
@@ -17,6 +18,6 @@ public class OperatorSALoad extends AbstractInstructionOperator<InsnNode>
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand)
     {
-        OperatorXALoadSupporter.execute(frame, operand, VMShort.class);
+        OperatorXALoadSupporter.execute(frame, operand, VMType.SHORT);
     }
 }

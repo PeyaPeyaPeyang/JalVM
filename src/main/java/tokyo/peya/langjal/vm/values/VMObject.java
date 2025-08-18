@@ -1,8 +1,8 @@
 package tokyo.peya.langjal.vm.values;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import tokyo.peya.langjal.compiler.jvm.AccessAttribute;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.injections.InjectedField;
 import tokyo.peya.langjal.vm.engine.members.VMField;
@@ -16,9 +16,11 @@ import java.util.Map;
 
 public class VMObject implements VMValue, VMReferenceValue
 {
+    @Getter
     private final VMClass objectType;
     private final Map<VMField, VMValue> fields;
 
+    @Getter
     private boolean isInitialised;
 
     public VMObject(@NotNull VMClass objectType)
@@ -75,7 +77,7 @@ public class VMObject implements VMValue, VMReferenceValue
                                                                                                          .getFullQualifiedName());
 
         // コンストラクタを実行
-        constructorMethod.invokeVirtual(
+        constructorMethod.invokeInstanceMethod(
                 null,
                 thread,
                 this.objectType,
@@ -87,15 +89,11 @@ public class VMObject implements VMValue, VMReferenceValue
         this.isInitialised = true;
     }
 
-    public void setField(@NotNull String fieldName, @NotNull VMValue value)
+    public void setField(@NotNull VMField field, @NotNull VMValue value)
     {
-        VMField field = this.fields.keySet().stream()
-                                   .filter(f -> f.getName().equals(fieldName))
-                                   .findFirst()
-                                   .orElseThrow(() -> new VMPanic("Field not found: " + fieldName + " in " + this.objectType.getReference()
-                                                                                                                            .getFullQualifiedName()));
-        if (!field.getType().isAssignableFrom(value.type()))
-            throw new VMPanic("Incompatible value type for field: " + fieldName);
+        VMValue conformedValue = value.conformValue(field.getType()); // 値をフィールドの型に適合させる
+        if (!field.getType().isAssignableFrom(conformedValue.type()))
+            throw new VMPanic("Incompatible value type for field: " + field.getName());
 
         if (field instanceof InjectedField injected)
             injected.set(this.objectType, this, value);
@@ -103,17 +101,36 @@ public class VMObject implements VMValue, VMReferenceValue
             this.fields.put(field, value);
     }
 
-    public @Nullable VMValue getField(@NotNull String fieldName)
+    public void setField(@NotNull String fieldName, @NotNull VMValue value)
     {
         VMField field = this.fields.keySet().stream()
                                    .filter(f -> f.getName().equals(fieldName))
                                    .findFirst()
                                    .orElseThrow(() -> new VMPanic("Field not found: " + fieldName + " in " + this.objectType.getReference()
                                                                                                                             .getFullQualifiedName()));
+        this.setField(field, value);
+    }
+
+    public @NotNull VMValue getField(@NotNull VMField field)
+    {
+        VMValue value;
         if (field instanceof InjectedField injected)
-            return injected.get(this.objectType, this);
+            value = injected.get(this.objectType, this);
         else
-            return this.fields.get(field);
+            value = this.fields.get(field);
+        if (value == null)
+            throw new VMPanic("Field not initialized: " + field.getName() + " in " + this.objectType.getReference()
+                                                                                                    .getFullQualifiedName());
+        return value;
+    }
+
+    public @Nullable VMValue getField(@NotNull String fieldName)
+    {
+        VMField field = this.fields.keySet().stream()
+                                   .filter(f -> f.getName().equals(fieldName))
+                                   .findFirst()
+                                   .orElseThrow(() -> new VMPanic("Field not found: " + fieldName + " in " + this.objectType.getReference()));
+        return this.getField(field);
     }
 
     @Override

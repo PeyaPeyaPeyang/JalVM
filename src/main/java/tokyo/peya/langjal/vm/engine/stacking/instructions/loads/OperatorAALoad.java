@@ -5,7 +5,7 @@ import org.objectweb.asm.tree.InsnNode;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
-import tokyo.peya.langjal.vm.values.VMReferenceValue;
+import tokyo.peya.langjal.vm.values.VMType;
 
 public class OperatorAALoad extends AbstractInstructionOperator<InsnNode>
 {
@@ -17,6 +17,6 @@ public class OperatorAALoad extends AbstractInstructionOperator<InsnNode>
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand)
     {
-        OperatorXALoadSupporter.execute(frame, operand, VMReferenceValue.class);
+        OperatorXALoadSupporter.execute(frame, operand, VMType.GENERIC_OBJECT);
     }
 }

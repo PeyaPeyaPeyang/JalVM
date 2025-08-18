@@ -19,8 +19,8 @@ public abstract class InjectedMethod extends VMMethod
     }
 
     @Override
-    public void invokeVirtual(@Nullable MethodInsnNode operand, @NotNull VMThread thread, @Nullable VMClass caller, @NotNull VMObject instance,
-                              boolean isVMDecree, @NotNull VMValue... args)
+    public void invokeInstanceMethod(@Nullable MethodInsnNode operand, @NotNull VMThread thread, @Nullable VMClass caller, @NotNull VMObject instance,
+                                     boolean isVMDecree, @NotNull VMValue... args)
     {
         VMValue returning = this.invoke(thread, caller, instance, args);
         if (returning != null)

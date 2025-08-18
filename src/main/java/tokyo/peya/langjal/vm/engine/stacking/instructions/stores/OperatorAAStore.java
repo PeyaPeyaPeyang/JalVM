@@ -6,17 +6,18 @@ import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
 import tokyo.peya.langjal.vm.values.VMReferenceValue;
+import tokyo.peya.langjal.vm.values.VMType;
 
 public class OperatorAAStore extends AbstractInstructionOperator<InsnNode>
 {
     public OperatorAAStore()
     {
-        super(EOpcodes.AALOAD, "aaload");
+        super(EOpcodes.AASTORE, "aastore");
     }
 
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand)
     {
-        OperatorXAStoreSupporter.execute(frame, operand, VMReferenceValue.class);
+        OperatorXAStoreSupporter.execute(frame, operand, VMType.GENERIC_OBJECT);
     }
 }

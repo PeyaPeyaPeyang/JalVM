@@ -36,7 +36,7 @@ public class OperatorInvokeStatic extends AbstractInstructionOperator<MethodInsn
 
         TypeDescriptor[] parameterTypes = methodDescriptor.getParameterTypes();
         VMValue[] arguments = new VMValue[parameterTypes.length];
-        VMType[] vmTypes = new VMType[parameterTypes.length];
+        VMType<?>[] vmTypes = new VMType[parameterTypes.length];
         for (int i = 0; i < arguments.length; i++)
         {
             VMValue arg = arguments[i] = frame.getStack().pop();

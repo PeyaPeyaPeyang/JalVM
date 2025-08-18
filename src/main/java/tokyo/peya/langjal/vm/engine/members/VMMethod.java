@@ -33,8 +33,8 @@ public class VMMethod implements RestrictedAccessor
     private final AccessAttributeSet accessAttributes;
 
     private final MethodDescriptor descriptor;
-    private final VMType returnType;
-    private final VMType[] parameterTypes;
+    private final VMType<?> returnType;
+    private final VMType<?>[] parameterTypes;
 
     public VMMethod(@NotNull VMClass clazz, @NotNull MethodNode methodNode)
     {
@@ -45,7 +45,7 @@ public class VMMethod implements RestrictedAccessor
         this.accessAttributes = AccessAttributeSet.fromAccess(methodNode.access);
 
         this.descriptor = MethodDescriptor.parse(methodNode.desc);
-        this.returnType = new VMType(this.descriptor.getReturnType());
+        this.returnType = new VMType<>(this.descriptor.getReturnType());
         this.parameterTypes = Arrays.stream(this.descriptor.getParameterTypes())
                                     .map(VMType::new)
                                     .toArray(VMType[]::new);
@@ -61,7 +61,7 @@ public class VMMethod implements RestrictedAccessor
     public void linkTypes(@NotNull VMSystemClassLoader cl)
     {
         this.returnType.linkClass(cl);
-        for (VMType type : this.parameterTypes)
+        for (VMType<?> type : this.parameterTypes)
             type.linkClass(cl);
     }
 
@@ -84,8 +84,8 @@ public class VMMethod implements RestrictedAccessor
         thread.createInterrupting(this, (_) -> {}, args);
     }
 
-    public void invokeVirtual(@Nullable MethodInsnNode operand, @NotNull VMThread thread, @Nullable VMClass caller,
-                              @NotNull VMObject instance, boolean isVMDecree, @NotNull VMValue... args)
+    public void invokeInstanceMethod(@Nullable MethodInsnNode operand, @NotNull VMThread thread, @Nullable VMClass caller,
+                                     @NotNull VMObject instance, boolean isVMDecree, @NotNull VMValue... args)
     {
         if (this.accessAttributes.has(AccessAttribute.STATIC))
             throw new NonStaticInvocationPanic(thread, this);

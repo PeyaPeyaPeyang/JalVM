@@ -7,6 +7,7 @@ import tokyo.peya.langjal.vm.engine.members.VMMethod;
 import tokyo.peya.langjal.vm.exceptions.NoReferencePanic;
 import tokyo.peya.langjal.vm.exceptions.VMPanic;
 import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
+import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
 
 import java.util.HashMap;
@@ -97,17 +98,15 @@ public class VMLocals
     }
 
     @NotNull
-    public <T extends VMValue> T getType(int i, @NotNull Class<T> vmIntegerClass, @Nullable AbstractInsnNode performer)
+    public <T extends VMValue> T getType(int i, @NotNull VMType<T> type, @Nullable AbstractInsnNode performer)
     {
         VMValue value = this.getLocal(i, performer);
-        if (vmIntegerClass.isInstance(value))
-            return vmIntegerClass.cast(value);
-        else
-            throw new VMPanic("Local variable at index " + i + " is not of type " + vmIntegerClass.getSimpleName());
+        VMValue conformedValue = value.conformValue(type); // 値をフィールドの型に適合させる
+        return (T) conformedValue;
     }
 
-    public <T extends VMValue> T getType(int i, @NotNull Class<T> vmIntegerClass)
+    public <T extends VMValue> T getType(int i, @NotNull VMType<T> type)
     {
-        return this.getType(i, vmIntegerClass, null);
+        return this.getType(i, type, null);
     }
 }

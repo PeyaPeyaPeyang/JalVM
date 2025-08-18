@@ -113,8 +113,8 @@ public class VMFrame
             }
             catch (Throwable e)
             {
-                System.err.println("Error while executing instruction in frame: " + e.getMessage());
                 e.printStackTrace();
+                throw new VMPanic("Error while executing instruction in frame: " + e.getMessage(), e);
             }
         }
         else
@@ -130,12 +130,15 @@ public class VMFrame
         this.returnValue = value;
     }
 
-    public void propagateReturningValue(@NotNull VMValue value, @NotNull AbstractInsnNode returnInsn)
+    public void returnFromMethod(@NotNull VMValue value, @NotNull AbstractInsnNode returnInsn)
     {
         this.setReturnValue0(value);
         this.tracer.pushHistory(
                 ValueTracingEntry.returning(value, this.method, returnInsn)
         );
+
+        this.isRunning = false;
+        this.thread.restoreFrame();
     }
 
     @Override
@@ -149,7 +152,7 @@ public class VMFrame
 
     private static void checkArgumentTypes(@NotNull VMMethod method, @NotNull VMValue[] args)
     {
-        VMType[] parameterTypes = method.getParameterTypes();
+        VMType<?>[] parameterTypes = method.getParameterTypes();
         int expectedArgs = parameterTypes.length;
         int actualArgs = args.length;
 
@@ -159,7 +162,7 @@ public class VMFrame
         boolean canOmitLastArray = method.getAccessAttributes().has(AccessAttribute.VARARGS);
         if (canOmitLastArray && expectedArgs > 0)
         {
-            VMType lastType = parameterTypes[expectedArgs - 1];
+            VMType<?> lastType = parameterTypes[expectedArgs - 1];
             if (lastType.getArrayDimensions() > 0 && actualArgs + 1 == expectedArgs)
             {
                 // 最後の引数が配列である場合、最後の引数を省略できる

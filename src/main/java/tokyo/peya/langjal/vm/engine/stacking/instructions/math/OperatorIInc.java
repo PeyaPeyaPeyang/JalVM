@@ -7,6 +7,7 @@ import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
 import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
 import tokyo.peya.langjal.vm.values.VMInteger;
+import tokyo.peya.langjal.vm.values.VMType;
 
 public class OperatorIInc extends AbstractInstructionOperator<IincInsnNode>
 {
@@ -18,7 +19,7 @@ public class OperatorIInc extends AbstractInstructionOperator<IincInsnNode>
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull IincInsnNode operand)
     {
-        VMInteger val1 = frame.getLocals().getType(operand.var, VMInteger.class, operand);
+        VMInteger val1 = frame.getLocals().getType(operand.var, VMType.INTEGER, operand);
         int amount = operand.incr;
 
         if (amount == 0)

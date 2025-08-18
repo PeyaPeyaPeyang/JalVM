@@ -2,15 +2,15 @@ package tokyo.peya.langjal.vm.values;
 
 import org.jetbrains.annotations.NotNull;
 
-public record VMNull(VMType type) implements VMValue, VMReferenceValue
+public record VMNull<T extends VMValue>(VMType<T> type) implements VMValue, VMReferenceValue
 {
-    public VMNull(@NotNull VMType type)
+    public VMNull(@NotNull VMType<T> type)
     {
         this.type = type;
     }
 
     @Override
-    public @NotNull VMType type()
+    public @NotNull VMType<T> type()
     {
         return this.type;
     }

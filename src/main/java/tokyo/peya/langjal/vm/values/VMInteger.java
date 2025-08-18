@@ -91,4 +91,46 @@ public sealed class VMInteger extends AbstractVMPrimitive permits VMByte, VMChar
     {
         return new VMInteger(this.asNumber().intValue() ^ val1.asNumber().intValue());
     }
+
+    @Override
+    public VMValue conformValue(@NotNull VMType expectedType)
+    {
+        if (this.type().equals(expectedType))
+            return this;
+
+        if (expectedType.equals(VMType.BYTE))
+        {
+            int value = this.asNumber().intValue();
+            if (value < Byte.MIN_VALUE || value > Byte.MAX_VALUE)
+                throw new IllegalOperandPanic("Value out of range for byte: " + value);
+
+            return new VMByte((byte) value);
+        }
+        else if (expectedType.equals(VMType.CHAR))
+        {
+            int value = this.asNumber().intValue();
+            if (value < Character.MIN_VALUE || value > Character.MAX_VALUE)
+                throw new IllegalOperandPanic("Value out of range for char: " + value);
+
+            return new VMChar((char) value);
+        }
+        else if (expectedType.equals(VMType.SHORT))
+        {
+            int value = this.asNumber().intValue();
+            if (value < Short.MIN_VALUE || value > Short.MAX_VALUE)
+                throw new IllegalOperandPanic("Value out of range for short: " + value);
+
+            return new VMShort((short) value);
+        }
+        else if (expectedType.equals(VMType.BOOLEAN))
+        {
+            int value = this.asNumber().intValue();
+            if (value < 0 || value > 1)
+                throw new IllegalOperandPanic("Value out of range for boolean: " + value);
+
+            return VMBoolean.of(value == 1);
+        }
+
+        return super.conformValue(expectedType);
+    }
 }

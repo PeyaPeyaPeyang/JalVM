@@ -65,7 +65,7 @@ public class VMThread
         // ネイティブの場合は，FFIで呼び出し
         if (method.getAccessAttributes().has(AccessAttribute.NATIVE))
         {
-            VMType returningType = new VMType(method.getDescriptor().getReturnType());
+            VMType<?> returningType = new VMType<>(method.getDescriptor().getReturnType());
             VMValue respond = this.vm.getNativeCaller().callFFI(
                     method.getClazz().getReference(),
                     method.getName(),

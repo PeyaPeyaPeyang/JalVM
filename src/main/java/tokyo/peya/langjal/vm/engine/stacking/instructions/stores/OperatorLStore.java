@@ -6,6 +6,7 @@ import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
 import tokyo.peya.langjal.vm.values.VMLong;
+import tokyo.peya.langjal.vm.values.VMType;
 
 public class OperatorLStore extends AbstractInstructionOperator<VarInsnNode>
 {
@@ -17,7 +18,7 @@ public class OperatorLStore extends AbstractInstructionOperator<VarInsnNode>
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull VarInsnNode operand)
     {
-        VMLong val1 = frame.getLocals().getType(operand.var, VMLong.class, operand);
+        VMLong val1 = frame.getLocals().getType(operand.var, VMType.LONG, operand);
         frame.getStack().push(val1);
     }
 }

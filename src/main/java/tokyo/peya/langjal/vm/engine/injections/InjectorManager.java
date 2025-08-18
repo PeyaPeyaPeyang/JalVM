@@ -8,8 +8,19 @@ import tokyo.peya.langjal.vm.references.ClassReference;
 public class InjectorManager
 {
     private static final Injector[] INJECTORS = {
-            new SystemInjector(),
-            new PrintStreamInjector()
+            new InjectorClass(),
+            new InjectorConsole(),
+            new InjectorFileDescriptor(),
+            new InjectorInet4Address(),
+            new InjectorInet6Address(),
+            new InjectorNativeEntryPoint(),
+            new InjectorPerf(),
+            new InjectorPrintStream(),
+            new InjectorRandomAccessFile(),
+            new InjectorReflection(),
+            new InjectorSystem(),
+            new InjectorThread(),
+            new InjectorUnsafe(),
     };
 
     public Injector findInjector(@NotNull ClassReference reference)

@@ -12,7 +12,7 @@ import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMStringCreator;
 import tokyo.peya.langjal.vm.values.VMValue;
 
-public class PrintStreamInjector implements Injector
+public class InjectorPrintStream implements Injector
 {
     public static final ClassReference CLAZZ = ClassReference.of("java/io/PrintStream");
 
@@ -42,7 +42,7 @@ public class PrintStreamInjector implements Injector
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMValue arg = args[0];
-                        PrintStreamInjector.this.println(arg);
+                        InjectorPrintStream.this.println(arg);
                         return null;
                     }
                 }

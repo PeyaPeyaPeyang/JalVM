@@ -64,6 +64,7 @@ public class OperatorInvokeVirtual extends AbstractInstructionOperator<MethodIns
             );
 
         method.invokeVirtual(
+                operand,
                 frame.getThread(),
                 caller,
                 instance,

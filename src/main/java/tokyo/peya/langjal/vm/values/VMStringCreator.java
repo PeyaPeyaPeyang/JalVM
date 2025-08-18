@@ -5,13 +5,21 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import tokyo.peya.langjal.vm.exceptions.VMPanic;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @UtilityClass
 public class VMStringCreator
 {
-    public static VMValue createString(@Nullable String value)
+    private static final Map<String, VMValue> STRING_CACHE = new HashMap<>();
+    private static final VMValue EMPTY;
+
+    static {
+         EMPTY = createString0("");
+    }
+
+    public static VMValue createString0(@NotNull String value)
     {
-        if (value == null)
-            return new VMNull(VMType.STRING);
         VMObject stringObject = VMType.STRING.createInstance();
 
         VMByte[] vmChars = new VMByte[value.length() * 2];
@@ -49,6 +57,20 @@ public class VMStringCreator
         return stringObject;
     }
 
+    public static VMValue createString(@Nullable String value)
+    {
+        if (value == null)
+            return new VMNull(VMType.STRING);
+        if (STRING_CACHE.containsKey(value))
+            return STRING_CACHE.get(value);
+        if (value.isEmpty())
+            return EMPTY;
+
+        VMValue stringValue = createString0(value);
+        STRING_CACHE.put(value, stringValue);
+
+        return stringValue;
+    }
     public static String getString(@NotNull VMObject stringObj)
     {
         if (!stringObj.type().equals(VMType.STRING))

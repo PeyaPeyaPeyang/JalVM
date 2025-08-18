@@ -55,20 +55,8 @@ public class OperatorInvokeStatic extends AbstractInstructionOperator<MethodInsn
         if (!method.getAccessAttributes().has(AccessAttribute.STATIC))
             throw new IllegalStateException("Method is not static: " + owner + "." + name + desc);
 
-        if (method.getAccessAttributes().has(AccessAttribute.NATIVE))
-        {
-            VMType returningType = new VMType(method.getDescriptor().getReturnType());
-
-            frame.getVm().getNativeCaller().callFFI(
-                    frame.getMethod().getClazz().getReference(),
-                    method.getName(),
-                    returningType,
-                    arguments
-            );
-            return;
-        }
-
         method.invokeStatic(
+                operand,
                 frame.getThread(),
                 caller,
                 false,

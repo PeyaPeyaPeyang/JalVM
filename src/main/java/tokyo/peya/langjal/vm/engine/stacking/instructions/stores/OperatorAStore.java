@@ -11,7 +11,7 @@ public class OperatorAStore extends AbstractInstructionOperator<VarInsnNode>
 {
     public OperatorAStore()
     {
-        super(EOpcodes.AASTORE, "astore");
+        super(EOpcodes.ASTORE, "astore");
     }
 
     @Override

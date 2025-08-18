@@ -7,9 +7,11 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
+import tokyo.peya.langjal.compiler.JALClassCompiler;
 import tokyo.peya.langjal.compiler.jvm.AccessAttribute;
 import tokyo.peya.langjal.compiler.jvm.AccessAttributeSet;
 import tokyo.peya.langjal.compiler.jvm.AccessLevel;
+import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.injections.InjectedField;
 import tokyo.peya.langjal.vm.engine.injections.InjectedMethod;
@@ -22,6 +24,7 @@ import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
+import tokyo.peya.langjal.vm.values.metaobjects.VMClassObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,8 +33,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Getter
-public class VMClass implements RestrictedAccessor
+public class VMClass extends VMType implements RestrictedAccessor
 {
+    private final VMSystemClassLoader cl;
     private final ClassReference reference;
     private final ClassNode clazz;
 
@@ -44,10 +48,13 @@ public class VMClass implements RestrictedAccessor
     @Getter(lombok.AccessLevel.NONE)
     private final Map<VMField, VMValue> staticFields;
 
+    private VMClassObject classObject;
     private VMClass superLink;
 
-    public VMClass(@NotNull ClassNode clazz)
+    public VMClass(@NotNull VMSystemClassLoader cl, @NotNull ClassNode clazz)
     {
+        super(ClassReference.of(clazz));
+        this.cl = cl;
         this.reference = ClassReference.of(clazz);
         this.clazz = clazz;
 
@@ -58,6 +65,14 @@ public class VMClass implements RestrictedAccessor
         this.fields = extractFields(clazz);
 
         this.staticFields = this.initialiseStaticFields();
+    }
+
+    public VMClassObject getClassObject()
+    {
+        // 遅延評価しないと，ロード時に StackOverflowError が発生する可能性がある
+        if (this.classObject == null)
+            this.classObject = new VMClassObject(this.cl, this, this);
+        return this.classObject;
     }
 
     public VMObject createInstance()
@@ -150,7 +165,7 @@ public class VMClass implements RestrictedAccessor
         this.linkMembers(cl);
         // 静的初期化メソッドを呼び出す
         VMThread currentThread = cl.getVm().getEngine().getCurrentThread();
-        // this.invokeStaticInitaliser(currentThread);
+        this.invokeStaticInitaliser(currentThread);
     }
 
     private void invokeStaticInitaliser(@NotNull VMThread callerThread)
@@ -184,9 +199,8 @@ public class VMClass implements RestrictedAccessor
     {
         FieldNode[] fields = classNode.fields.toArray(new FieldNode[0]);
         List<VMField> vmFields = new ArrayList<>();
-        for (int i = 0; i < fields.length; i++)
+        for (FieldNode fieldNode : fields)
         {
-            FieldNode fieldNode = fields[i];
             String descString = fieldNode.desc;
             vmFields.add(new VMField(
                     this,
@@ -326,12 +340,6 @@ public class VMClass implements RestrictedAccessor
                 return field; // 一致するフィールドを返す
 
         throw new VMPanic("Field not found: " + fieldName + " in class " + this.reference.getFullQualifiedName());
-    }
-
-    @NotNull
-    public VMType getType()
-    {
-        return new VMType(this.reference);
     }
 
     @Override

@@ -2,17 +2,24 @@ package tokyo.peya.langjal.vm.engine.threads;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
+import tokyo.peya.langjal.compiler.jvm.AccessAttribute;
 import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.api.events.VMFrameInEvent;
 import tokyo.peya.langjal.vm.api.events.VMFrameOutEvent;
 import tokyo.peya.langjal.vm.engine.VMFrame;
+import tokyo.peya.langjal.vm.engine.VMInterruptingFrame;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
 import tokyo.peya.langjal.vm.exceptions.IllegalOperationPanic;
 import tokyo.peya.langjal.vm.exceptions.LinkagePanic;
 import tokyo.peya.langjal.vm.tracing.FrameManipulationType;
 import tokyo.peya.langjal.vm.tracing.FrameTracingEntry;
 import tokyo.peya.langjal.vm.tracing.VMFrameTracer;
+import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 
 @Getter
 public class VMThread
@@ -21,10 +28,12 @@ public class VMThread
     protected final int currentFrameIndex;
     private final JalVM vm;
     private final VMFrameTracer tracer;
+
     @Getter
     protected VMFrame firstFrame;
     @Getter
     protected VMFrame currentFrame;
+
 
     public VMThread(@NotNull JalVM vm, @NotNull String name)
     {
@@ -51,11 +60,45 @@ public class VMThread
         this.currentFrame.heartbeat();
     }
 
-    public VMFrame invokeMethod(@NotNull VMMethod method, boolean isVMDecree, @NotNull VMValue... args)
+    public void invokeMethod(@NotNull VMMethod method, boolean isVMDecree, @NotNull VMValue... args)
     {
+        // ネイティブの場合は，FFIで呼び出し
+        if (method.getAccessAttributes().has(AccessAttribute.NATIVE))
+        {
+            VMType returningType = new VMType(method.getDescriptor().getReturnType());
+            VMValue respond = this.vm.getNativeCaller().callFFI(
+                    method.getClazz().getReference(),
+                    method.getName(),
+                    returningType,
+                    args
+            );
+            this.currentFrame.getStack().push(respond);
+            return;
+        }
+
+
         VMFrame newFrame = this.createFrame(method, isVMDecree, args);
         this.currentFrame = newFrame;
         newFrame.activate();
+    }
+
+    public VMFrame createInterrupting(@NotNull VMMethod method, @NotNull Consumer<? super VMValue> callback, @NotNull VMValue... args)
+    {
+        VMInterruptingFrame newFrame = new VMInterruptingFrame(
+                this.vm,
+                this,
+                method,
+                args,
+                this.currentFrame,
+                callback
+        );
+        newFrame.activate();
+        if (this.firstFrame == null)
+            this.firstFrame = newFrame;
+
+        if (this.currentFrame != null)
+            this.currentFrame.setNextFrame(newFrame);
+        this.currentFrame = newFrame;
         return newFrame;
     }
 
@@ -94,11 +137,16 @@ public class VMThread
 
         // 親フレームと戻り値を，スタックに積んでおく
         VMFrame prevFrame = this.currentFrame.getPrevFrame();
-        if (this.currentFrame.isVMDecree())
+        if (!this.currentFrame.isVMDecree())
         {
             VMValue returnValue = this.currentFrame.getReturnValue();
             if (!(returnValue == null || prevFrame == null))
                 prevFrame.getStack().push(returnValue);
+        }
+        else if (this.currentFrame instanceof VMInterruptingFrame interruptingFrame)
+        {
+            VMValue returnValue = this.currentFrame.getReturnValue();
+            interruptingFrame.getCallback().accept(returnValue);
         }
 
         this.tracer.pushHistory(

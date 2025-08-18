@@ -4,6 +4,8 @@ import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorIfNonNull;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorIfNull;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.constants.OperatorAConstNull;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.constants.OperatorBIPush;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.constants.OperatorDConst0;
@@ -74,8 +76,10 @@ import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorLSub;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorLUShr;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorLXor;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorGetStatic;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorInvokeDynamic;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorInvokeStatic;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorInvokeVirtual;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorNew;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.stack.OperatorDup;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.stack.OperatorDup2;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.stack.OperatorDup2X1;
@@ -209,10 +213,18 @@ public class VMStackMachine
             new OperatorIInc(), // 0x85 - 133
             // </editor-fold>
 
+            // <editor-fold desc="Comparisons">
+            new OperatorIfNull(),  // 0xC6 - 198
+            new OperatorIfNonNull(), // 0xC7 - 199
+            // </editor-fold>
+
             // <editor-fold desc="References">
             new OperatorGetStatic(), // 0xB2 - 178
             new OperatorInvokeVirtual(), // 0xB6 - 182
             new OperatorInvokeStatic(), // 0xB8 - 184
+            new OperatorInvokeDynamic(), // 0xBA - 186
+
+            new OperatorNew(), // 0xBB - 187
             // </editor-fold>
 
             // </editor-fold>

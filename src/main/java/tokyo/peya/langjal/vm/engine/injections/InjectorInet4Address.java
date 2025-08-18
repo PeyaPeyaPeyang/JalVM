@@ -8,7 +8,6 @@ import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.threads.VMThread;
 import tokyo.peya.langjal.vm.references.ClassReference;
-import tokyo.peya.langjal.vm.values.VMClassLiteral;
 import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMValue;
 

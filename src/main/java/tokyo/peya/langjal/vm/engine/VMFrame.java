@@ -3,6 +3,7 @@ package tokyo.peya.langjal.vm.engine;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import tokyo.peya.langjal.compiler.jvm.AccessAttribute;
 import tokyo.peya.langjal.vm.JalVM;
@@ -86,7 +87,7 @@ public class VMFrame
         else if (this.interpreter != null)
             throw new VMPanic("Frame has already started by other interpreter.");
 
-        this.interpreter = this.method.createInterpreter(this.vm, this.thread, this);
+        this.interpreter = this.method.createInterpreter(this.vm);
         this.isRunning = true;
     }
 
@@ -124,12 +125,14 @@ public class VMFrame
         }
     }
 
+    protected void setReturnValue0(@NotNull VMValue value)
+    {
+        this.returnValue = value;
+    }
+
     public void propagateReturningValue(@NotNull VMValue value, @NotNull AbstractInsnNode returnInsn)
     {
-        if (this.returnValue != null)
-            throw new VMPanic("Frame already has a return value: " + this.returnValue);
-
-        this.returnValue = value;
+        this.setReturnValue0(value);
         this.tracer.pushHistory(
                 ValueTracingEntry.returning(value, this.method, returnInsn)
         );
@@ -138,28 +141,10 @@ public class VMFrame
     @Override
     public String toString()
     {
-        StringBuilder sb = new StringBuilder();
-        VMFrame current = this.thread.getFirstFrame();
-        while (current != null)
-        {
-            sb.append(current.getMethod().getClazz().getReference())
-              .append("->")
-              .append(current.getMethod().getMethodNode().name)
-              .append(current.getMethod().getMethodNode().desc);
-            if (current.nextFrame != null)
-            {
-                sb.append(" -> ");
-                current = current.nextFrame;
-            }
-
-            if (current == this)
-            {
-                sb.append(" (me!)");
-                break;
-            }
-        }
-
-        return sb.toString();
+        return "Calling " + this.method.getMethodNode().name + " with " +
+                this.args.length + " arguments in frame of " + this.thread.getName() +
+                (this.isVMDecree ? " (VM Decree)" : "") +
+                (this.prevFrame != null ? ", previous frame: " + this.prevFrame.method.getMethodNode().name : "");
     }
 
     private static void checkArgumentTypes(@NotNull VMMethod method, @NotNull VMValue[] args)
@@ -190,5 +175,14 @@ public class VMFrame
             if (!args[i].type().isAssignableFrom(parameterTypes[i]))
                 throw new VMPanic("Argument " + i + " of method " + method.getMethodNode().name +
                                           " is of type " + args[i].type() + ", but expected " + parameterTypes[i] + ".");
+    }
+
+    public void jumpTo(@NotNull Label label)
+    {
+        int labelIndex = this.interpreter.getLabelInstructionIndex(label);
+        if (labelIndex < 0)
+            throw new VMPanic("Label " + label + " not found in method " + this.method.getMethodNode().name);
+
+        this.interpreter.setCurrent(labelIndex);
     }
 }

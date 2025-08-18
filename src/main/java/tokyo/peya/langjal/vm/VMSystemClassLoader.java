@@ -57,7 +57,7 @@ public class VMSystemClassLoader
         if (this.vm.isDebugging())
             System.out.println("Defining class: " + name);
 
-        VMClass vmClass = new VMClass(classNode);
+        VMClass vmClass = new VMClass( this, classNode);
         this.heap.addClass(vmClass);
 
         vmClass.initialiseClass(this);

@@ -31,7 +31,7 @@ public interface RestrictedAccessor
                     callerClass.getReference()
                                .isEqualPackage(target.getSuperLink()
                                                      .getReference()); // 同じパッケージ内，またはスーパークラスが同じパッケージ内ならアクセス可能
-            case PRIVATE -> false; // privateは同じクラス内のみアクセス可能
+            case PRIVATE -> callerClass.equals(target);
         };
     }
 }

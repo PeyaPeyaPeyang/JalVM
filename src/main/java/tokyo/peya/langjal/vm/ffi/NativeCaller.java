@@ -116,13 +116,14 @@ public class NativeCaller
         return methodHandle;
     }
 
-    public VMValue callFFI(@NotNull ClassReference caller, @NotNull String name,
+    public VMValue callFFI(@NotNull ClassReference owner, @NotNull String name,
                            @NotNull VMType returningType, @NotNull VMValue... args)
     {
         List<VMValue> results = new ArrayList<>();
-        NativeLibrary nativeLibrary = this.libraries.get(caller);
+        NativeLibrary nativeLibrary = this.libraries.get(owner);
         if (nativeLibrary == null)
-            throw new LinkagePanic("No native library registered for the current class.");
+            throw new LinkagePanic("No native library registered for the current class, can't call native function: " + name
+                                           + " (owner: " + owner + ")");
 
         MethodHandle methodHandle = this.createCachedMethodHandle(nativeLibrary, name, returningType, args);
         Object[] convertedArgs = new Object[args.length];

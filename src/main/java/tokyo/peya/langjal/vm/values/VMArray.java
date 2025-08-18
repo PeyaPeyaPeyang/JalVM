@@ -28,9 +28,6 @@ public class VMArray implements VMValue, VMReferenceValue
 
     public VMArray(@NotNull VMType objectType, @NotNull VMValue[] values)
     {
-        if (values.length == 0)
-            throw new VMPanic("Array cannot be empty");
-
         // 値チェック
         for (VMValue value : values)
             if (!objectType.isAssignableFrom(value.type()))
@@ -85,7 +82,7 @@ public class VMArray implements VMValue, VMReferenceValue
     @Override
     public String toString()
     {
-        StringBuilder sb = new StringBuilder("{");
+        StringBuilder sb = new StringBuilder("[" + this.objectType.getTypeDescriptor() + "{");
         for (int i = 0; i < this.elements.length; i++)
         {
             if (i > 0) sb.append(", ");

@@ -1,6 +1,8 @@
 package tokyo.peya.langjal.vm;
 
 import org.jetbrains.annotations.NotNull;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
@@ -59,7 +61,8 @@ public class DebugMain
         methodNode.visitCode();
         // System.out.println("Hello, World!");
         //helloWorld(methodNode);
-        comparisons(methodNode);
+        // comparisons(methodNode);
+        getProp(methodNode);
         methodNode.visitInsn(Opcodes.RETURN); // Return instruction
         methodNode.visitMaxs(-1, -1); // Max stack and local variables
         methodNode.visitEnd();
@@ -93,11 +96,23 @@ public class DebugMain
         );
     }
 
+    private static void getProp(MethodNode node)
+    {
+        node.visitLdcInsn("java.home");
+        node.visitMethodInsn(
+                Opcodes.INVOKESTATIC,
+                "java/lang/System",
+                "getProperty",
+                "(Ljava/lang/String;)Ljava/lang/String;",
+                false // Is interface
+        );
+    }
+
     private static class EventListeners implements VMListener
     {
         private static final Scanner scanner = new Scanner(System.in);
 
-        private boolean stepIn = true;
+        private boolean stepIn = false;
 
         private void printFrame(VMFrame frame, VMEngine engine)
         {
@@ -195,107 +210,90 @@ public class DebugMain
 
             System.out.println("--- END OF THREAD MANIPULATION HISTORIES ---");
         }
-
         private void dumpThreadHistory(@NotNull VMThread thread)
         {
             VMFrameTracer frameTracer = thread.getTracer();
             List<FrameTracingEntry> frames = frameTracer.getHistory();
+
             System.out.printf("  TRACED FRAMES: %d%n", frames.size());
+
             for (int i = 0; i < frames.size(); i++)
             {
                 FrameTracingEntry entry = frames.get(i);
                 VMFrame frame = entry.frame();
-                System.out.printf("  [f%d] %s: %s%n", i, frame.getMethod(), entry.type().name());
+
+                System.out.printf("  [f%d] %s: %s%n",
+                                  i, frame.getMethod(), entry.type().name());
+
                 if (entry.type() == FrameManipulationType.FRAME_OUT)
-                    this.dumpValueHistory(frame);
+                    dumpValueHistory(frame);
             }
         }
 
         private void dumpValueHistory(@NotNull VMFrame frame)
         {
             VMValueTracer frameTracer = frame.getTracer();
-            List<ValueTracingEntry> frames = frameTracer.getHistory();
-            System.out.printf("    TRACED MANIPULATIONS: %d%n", frames.size());
-            for (int i = 0; i < frames.size(); i++)
+            List<ValueTracingEntry> history = frameTracer.getHistory();
+
+            System.out.printf("    TRACED MANIPULATIONS: %d%n", history.size());
+
+            for (int i = 0; i < history.size(); i++)
             {
-                ValueTracingEntry entry = frames.get(i);
+                ValueTracingEntry entry = history.get(i);
+                String value = safeValue(entry.value());
+                String comb1 = safeValue(entry.combinationValue());
+                String comb2 = safeValue(entry.combinationValue2());
+                String instr = safeInstr(entry.manipulatingInstruction());
+
                 switch (entry.type())
                 {
-                    case GENERATION:
-                        assert entry.manipulatingInstruction() != null;
-                        System.out.printf(
-                                "    [v%d] GENERATION: %s, by %s%n",
-                                i, entry.value(), this.getInstructionText(entry.manipulatingInstruction())
-                        );
-                        break;
-                    case MANIPULATION:
-                        assert entry.manipulatingInstruction() != null;
-                        System.out.printf(
-                                "    [v%d] MANIPULATION: %s -> %s, by %s%n",
-                                i,
-                                entry.value(),
-                                entry.combinationValue(),
-                                this.getInstructionText(entry.manipulatingInstruction())
-                        );
-                        break;
-                    case DESTRUCTION:
-                        assert entry.manipulatingInstruction() != null;
-                        System.out.printf(
-                                "    [v%d] DESTRUCTION: %s, by %s%n",
-                                i, entry.value(), this.getInstructionText(entry.manipulatingInstruction())
-                        );
-                        break;
-                    case FIELD_GET:
-                        if (entry.manipulatingInstruction() == null)
-                            System.out.printf("    [v%d] FIELD_GET: %s, by unknown instruction%n", i, entry.value());
-                        else
-                            System.out.printf(
-                                    "    [v%d] FIELD_GET: %s, by %s%n",
-                                    i, entry.value(), this.getInstructionText(entry.manipulatingInstruction())
-                            );
-                        break;
-                    case FIELD_SET:
-                        if (entry.manipulatingInstruction() == null)
-                            System.out.printf("    [v%d] FIELD_SET: %s, by unknown instruction%n", i, entry.value());
-                        else
-                            System.out.printf(
-                                    "    [v%d] FIELD_SET: %s, by %s%n",
-                                    i, entry.value(), this.getInstructionText(entry.manipulatingInstruction())
-                            );
-                        break;
-                    case PASSING_AS_ARGUMENT:
-                        if (entry.manipulatingInstruction() == null)
-                            System.out.printf(
-                                    "    [v%d] PASSING_AS_ARGUMENT: %s, by unknown instruction%n",
-                                    i,
-                                    entry.value()
-                            );
-                        else
-                            System.out.printf(
-                                    "    [v%d] PASSING_AS_ARGUMENT: %s, by %s%n",
-                                    i, entry.value(), this.getInstructionText(entry.manipulatingInstruction())
-                            );
-                        break;
-                    case RETURNING_FROM:
-                        assert entry.manipulatingInstruction() != null;
-                        System.out.printf(
-                                "    [v%d] RETURNING_FROM: %s, by %s%n",
-                                i, entry.value(), this.getInstructionText(entry.manipulatingInstruction())
-                        );
-                        break;
-                    case COMBINATION:
-                        assert entry.manipulatingInstruction() != null;
-                        System.out.printf(
-                                "    [v%d] COMBINATION: %s + %s -> %s, by %s%n",
-                                i,
-                                entry.combinationValue(),
-                                entry.combinationValue2(),
-                                entry.value(),
-                                this.getInstructionText(entry.manipulatingInstruction())
-                        );
-                        break;
+                    case GENERATION ->
+                            print(i, "GENERATION", value, instr);
+
+                    case MANIPULATION ->
+                            print(i, "MANIPULATION", "%s -> %s".formatted(value, comb1), instr);
+
+                    case DESTRUCTION ->
+                            print(i, "DESTRUCTION", value, instr);
+
+                    case FIELD_GET ->
+                            print(i, "FIELD_GET", value, instr);
+
+                    case FIELD_SET ->
+                            print(i, "FIELD_SET", value, instr);
+
+                    case PASSING_AS_ARGUMENT ->
+                            print(i, "PASSING_AS_ARGUMENT", value, instr);
+
+                    case RETURNING_FROM ->
+                            print(i, "RETURNING_FROM", value, instr);
+
+                    case COMBINATION ->
+                            print(i, "COMBINATION",
+                                  "%s + %s -> %s".formatted(comb1, comb2, value), instr);
+
+                    case FROM_LOCAL ->
+                            print(i, "FROM_LOCAL", "%s -> local".formatted(value), instr);
+
+                    case TO_LOCAL ->
+                            print(i, "TO_LOCAL", "local -> %s".formatted(value), instr);
                 }
             }
+        }
+
+        private String safeValue(Object v)
+        {
+            return v == null ? "null" : v.toString().replace("\n", "\n    ");
+        }
+
+        private String safeInstr(AbstractInsnNode instr)
+        {
+            return instr == null ? "unknown instruction" : getInstructionText(instr);
+        }
+
+        private void print(int index, String type, String value, String instr)
+        {
+            System.out.printf("    [v%d] %s: %s, by %s%n", index, type, value, instr);
         }
     }
 }

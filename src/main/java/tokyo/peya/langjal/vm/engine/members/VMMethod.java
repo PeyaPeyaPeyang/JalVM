@@ -3,6 +3,7 @@ package tokyo.peya.langjal.vm.engine.members;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import tokyo.peya.langjal.compiler.jvm.AccessAttribute;
 import tokyo.peya.langjal.compiler.jvm.AccessAttributeSet;
@@ -13,7 +14,6 @@ import tokyo.peya.langjal.vm.VMInterpreter;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.BytecodeInterpreter;
 import tokyo.peya.langjal.vm.engine.VMClass;
-import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.threads.VMThread;
 import tokyo.peya.langjal.vm.exceptions.AccessRestrictedPanic;
 import tokyo.peya.langjal.vm.exceptions.invocation.NonStaticInvocationPanic;
@@ -52,11 +52,9 @@ public class VMMethod implements RestrictedAccessor
     }
 
     public VMInterpreter createInterpreter(
-            @NotNull JalVM vm,
-            @NotNull VMThread engine,
-            @NotNull VMFrame frame)
+            @NotNull JalVM vm)
     {
-        return new BytecodeInterpreter(vm, engine, frame, this.methodNode, vm.isDebugging());
+        return new BytecodeInterpreter(vm, this.methodNode);
         // return new DebugInterpreter(vm, engine, frame);
     }
 
@@ -67,7 +65,7 @@ public class VMMethod implements RestrictedAccessor
             type.linkClass(cl);
     }
 
-    public void invokeStatic(@NotNull VMThread thread, @Nullable VMClass caller, boolean isVMDecree,
+    public void invokeStatic(@Nullable MethodInsnNode operand, @NotNull VMThread thread, @Nullable VMClass caller, boolean isVMDecree,
                              @NotNull VMValue... args)
     {
         if (!this.accessAttributes.has(AccessAttribute.STATIC))
@@ -83,10 +81,10 @@ public class VMMethod implements RestrictedAccessor
         if (!this.accessAttributes.has(AccessAttribute.STATIC))
             throw new NonStaticInvocationPanic(thread, this);
 
-        thread.invokeMethod(this, true, args);
+        thread.createInterrupting(this, (_) -> {}, args);
     }
 
-    public void invokeVirtual(@NotNull VMThread thread, @Nullable VMClass caller,
+    public void invokeVirtual(@Nullable MethodInsnNode operand, @NotNull VMThread thread, @Nullable VMClass caller,
                               @NotNull VMObject instance, boolean isVMDecree, @NotNull VMValue... args)
     {
         if (this.accessAttributes.has(AccessAttribute.STATIC))

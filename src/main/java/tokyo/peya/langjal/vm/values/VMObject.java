@@ -36,13 +36,25 @@ public class VMObject implements VMValue, VMReferenceValue
         return fields;
     }
 
-    /* non-public */ void forceInitialise()
+    protected void forceInitialise()
     {  // 強制的に初期化を行う。
         if (this.isInitialised)
             throw new VMPanic("Object has already been initialized: " + this.objectType.getReference()
                                                                                        .getFullQualifiedName());
 
+        this.setDefaultValues();
         this.isInitialised = true;
+    }
+
+    private void setDefaultValues()
+    {
+        for (VMField field : this.objectType.getFields())
+        {
+            if (this.fields.containsKey(field) && this.fields.get(field) != null)
+                continue; // 既にフィールドが存在する場合はスキップ
+            // フィールドのデフォルト値を設定
+            this.fields.put(field, field.defaultValue());
+        }
     }
 
     public void initialiseInstance(@NotNull VMThread thread, @Nullable VMClass caller, @NotNull VMValue[] args)
@@ -51,15 +63,7 @@ public class VMObject implements VMValue, VMReferenceValue
             throw new VMPanic("Object has already been initialized: " + this.objectType.getReference()
                                                                                        .getFullQualifiedName());
 
-        for (VMField field : this.objectType.getFields())
-        {
-            if (!field.getType().isPrimitive() && field.getAccessAttributes().has(AccessAttribute.FINAL))
-                throw new VMPanic("Field is final and not initialized: " + field.getName() + " in " + this.objectType.getReference()
-                                                                                                                     .getFullQualifiedName());
-
-            // フィールドのデフォルト値を設定
-            this.fields.put(field, field.defaultValue());
-        }
+        this.setDefaultValues();
 
         VMType[] argTypes = Arrays.stream(args)
                                   .map(VMValue::type)
@@ -72,6 +76,7 @@ public class VMObject implements VMValue, VMReferenceValue
 
         // コンストラクタを実行
         constructorMethod.invokeVirtual(
+                null,
                 thread,
                 this.objectType,
                 this,
@@ -114,19 +119,30 @@ public class VMObject implements VMValue, VMReferenceValue
     @Override
     public @NotNull VMType type()
     {
-        return this.objectType.getType();
+        return this.objectType;
     }
 
     @Override
     public boolean isCompatibleTo(@NotNull VMValue other)
     {
         VMType otherType;
-        if (other instanceof VMNull(VMType type))
-            otherType = type;
-        else if (other instanceof VMObject objValue)
-            otherType = objValue.type();
-        else
-            return false;
+        switch (other)
+        {
+            case VMNull(VMType type) -> otherType = type;
+            case VMObject objValue -> otherType = objValue.type();
+            case VMArray array ->
+            {
+                VMType arrayType = array.getObjectType();
+                if (arrayType.isPrimitive())
+                    return false;
+                else
+                    return this.objectType.getClazz().name.equals("java/lang/Object");
+            }
+            default ->
+            {
+                return false;
+            }
+        }
 
         return this.type().equals(otherType);
     }

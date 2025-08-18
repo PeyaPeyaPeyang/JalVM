@@ -34,10 +34,8 @@ public class VMStack
 
     public void push(@NotNull VMValue value)
     {
-        if (isFull())
-        {
+        if (this.isFull())
             throw new StackOverflowPanic("Stack is full");
-        }
         this.stack.push(value);
     }
 

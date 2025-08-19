@@ -8,6 +8,7 @@ import tokyo.peya.langjal.compiler.jvm.Type;
 import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
+import tokyo.peya.langjal.vm.engine.VMPrimitiveClass;
 import tokyo.peya.langjal.vm.exceptions.VMPanic;
 import tokyo.peya.langjal.vm.references.ClassReference;
 
@@ -54,6 +55,8 @@ public class VMType<T extends VMValue>
         this.type = type;
         this.arrayDimensions = arrayDimensions;
         this.isPrimitive = type.isPrimitive();
+        if (type instanceof PrimitiveTypes primitive)
+            this.linkedClass = new VMPrimitiveClass(this, primitive.getName());
     }
 
     private VMType(@NotNull PrimitiveTypes type)
@@ -61,6 +64,7 @@ public class VMType<T extends VMValue>
         this.type = type;
         this.arrayDimensions = 0;
         this.isPrimitive = true;
+        this.linkedClass = new VMPrimitiveClass(this, type.getName());
     }
 
     public VMType(@NotNull ClassReference reference)
@@ -146,7 +150,7 @@ public class VMType<T extends VMValue>
     public boolean isAssignableFrom(@NotNull VMType<?> other)
     {
         // 同じ型なら代入可能
-        if (this.equals(other))
+        if (this.type.equals(other.type))
             return true;
         else if (other.equals(VMType.VOID))
             return true;  // Void型はどんな型からも代入可能
@@ -161,16 +165,31 @@ public class VMType<T extends VMValue>
             return this.isAssignableFromPrimitive((PrimitiveTypes) other.type);
         }
 
-        // 片方がプリミティブ型で他方が参照型の場合は，これが Object 型であれば互換性あり
-        if (this.isPrimitive || other.isPrimitive)
-            return this.linkedClass != null && this.linkedClass.getReference().equals(ClassReference.OBJECT);
-
         // 参照型同士の互換性チェック
         if (this.linkedClass == null || other.linkedClass == null)
-            return false;
+        {
+            // どちらかがリンクされていない場合はリンクを試みる
+            this.linkOthers(other);
+            if (this.linkedClass == null || other.linkedClass == null)
+                return false;  // リンクに失敗した場合は互換性なし
+        }
 
         // 参照型の互換性チェック
         return other.linkedClass.isSubclassOf(this.linkedClass);
+    }
+
+    private void linkOthers(@NotNull VMType<?> other)
+    {
+        VMClass linkedClass = this.linkedClass == null ? other.linkedClass : this.linkedClass;
+        if (linkedClass == null)
+            return;
+
+        VMSystemClassLoader cl = linkedClass.getClassLoader();
+        if (cl == null)
+            return;
+
+        this.linkClass(cl);
+        other.linkClass(cl);
     }
 
     private boolean isAssignableFromPrimitive(@NotNull PrimitiveTypes other)
@@ -224,5 +243,32 @@ public class VMType<T extends VMValue>
     public static VMType<VMObject> ofClassName(@NotNull String className)
     {
         return of(TypeDescriptor.className(className));
+    }
+
+    public static VMType<? extends VMPrimitive> getPrimitiveType(@NotNull String name)
+    {
+        return switch (name)
+        {
+            case "void" -> VOID;
+            case "boolean" -> BOOLEAN;
+            case "byte" -> BYTE;
+            case "char" -> CHAR;
+            case "short" -> SHORT;
+            case "int" -> INTEGER;
+            case "long" -> LONG;
+            case "float" -> FLOAT;
+            case "double" -> DOUBLE;
+            default -> throw new VMPanic("Unknown primitive type: " + name);
+        };
+    }
+
+    @Override
+    public String toString()
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.append(this.type.getDescriptor());
+        if (this.arrayDimensions > 0)
+            sb.append("[]".repeat(this.arrayDimensions));
+        return sb.toString();
     }
 }

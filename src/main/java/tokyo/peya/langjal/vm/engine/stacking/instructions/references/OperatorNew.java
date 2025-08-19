@@ -29,8 +29,17 @@ public class OperatorNew extends AbstractInstructionOperator<TypeInsnNode>
     {
         String descriptor = operand.desc;
         ClassReferenceType classReferenceType = ClassReferenceType.parse(descriptor);
-        VMClass vmClass = frame.getVm().getClassLoader().findClass(ClassReference.of(classReferenceType));
-        VMObject newObject = vmClass.createInstance();
+
+        VMClass clazz = frame.getVm().getClassLoader().findClass(ClassReference.of(classReferenceType));
+        if (!clazz.isInitialised())
+        {
+            // クラスが初期化されていない場合は初期化をして，この命令を再実行する
+            clazz.initialise(frame.getThread());
+            frame.rerunInstruction();
+            return;
+        }
+
+        VMObject newObject = clazz.createInstance();
         frame.getTracer().pushHistory(
                 ValueTracingEntry.generation(newObject, frame.getMethod(), operand)
         );

@@ -12,7 +12,7 @@ public class OperatorLLoad extends AbstractInstructionOperator<VarInsnNode>
 {
     public OperatorLLoad()
     {
-        super(EOpcodes.ILOAD, "iload");
+        super(EOpcodes.LLOAD, "lload");
     }
 
     @Override

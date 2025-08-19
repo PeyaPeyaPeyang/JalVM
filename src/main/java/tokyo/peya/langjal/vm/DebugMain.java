@@ -39,7 +39,7 @@ public class DebugMain
     {
         JalVM jalVM = new JalVM();
 
-        jalVM.getEventManager().registerListener(new EventListeners());
+        // jalVM.getEventManager().registerListener(new EventListeners());
 
         ClassNode classNode = new ClassNode();
         classNode.visit(

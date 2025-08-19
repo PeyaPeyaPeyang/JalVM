@@ -26,7 +26,7 @@ public record FrameTracingEntry(
     }
     public static FrameTracingEntry frameOut(@NotNull VMFrame frame) {
         return new FrameTracingEntry(
-                FrameManipulationType.FRAME_IN,
+                FrameManipulationType.FRAME_OUT,
                 frame,
                 null,
                 -1

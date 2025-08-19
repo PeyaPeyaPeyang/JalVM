@@ -6,10 +6,13 @@ import org.objectweb.asm.tree.MethodNode;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
+import tokyo.peya.langjal.vm.engine.VMPrimitiveClass;
 import tokyo.peya.langjal.vm.engine.threads.VMThread;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMBoolean;
 import tokyo.peya.langjal.vm.values.VMObject;
+import tokyo.peya.langjal.vm.values.VMStringCreator;
+import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
 
 public class InjectorClass implements Injector
@@ -61,6 +64,31 @@ public class InjectorClass implements Injector
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         return VMBoolean.TRUE;
+                    }
+                }
+        );
+        clazz.injectMethod(
+                cl,
+                new InjectedMethod(
+                        clazz, new MethodNode(
+                         EOpcodes.ACC_STATIC | EOpcodes.ACC_NATIVE,
+                        "getPrimitiveClass",
+                        "(Ljava/lang/String;)Ljava/lang/Class;",
+                        null,
+                        null
+                )
+                )
+                {
+                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
+                    {
+                        VMValue arg = args[0];
+                        if (!(arg instanceof VMObject object))
+                            throw new IllegalArgumentException("Expected a VMObject as argument");
+                        String str = VMStringCreator.getString(object);
+                        return VMType.getPrimitiveType(str)
+                                     .getLinkedClass()
+                                     .getClassObject(thread.getVm().getClassLoader());
                     }
                 }
         );

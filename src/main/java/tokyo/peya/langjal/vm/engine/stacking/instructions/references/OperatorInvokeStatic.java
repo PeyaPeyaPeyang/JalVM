@@ -33,14 +33,21 @@ public class OperatorInvokeStatic extends AbstractInstructionOperator<MethodInsn
 
         VMClass caller = frame.getMethod().getClazz();
         VMClass clazz = frame.getVm().getClassLoader().findClass(ClassReference.of(owner));
+        if (!clazz.isInitialised())
+        {
+            // クラスが初期化されていない場合は初期化をして，この命令を再実行する
+            clazz.initialise(frame.getThread());
+            frame.rerunInstruction();
+            return;
+        }
 
         TypeDescriptor[] parameterTypes = methodDescriptor.getParameterTypes();
         VMValue[] arguments = new VMValue[parameterTypes.length];
         VMType<?>[] vmTypes = new VMType[parameterTypes.length];
         for (int i = arguments.length - 1; i >= 0; i--)  // スタックの順序は逆なので、最後からポップする
         {
-            arguments[i] = frame.getStack().pop();
             vmTypes[i] = VMType.of(parameterTypes[i]);
+            arguments[i] = frame.getStack().popType(vmTypes[i]);
         }
 
         VMMethod method = clazz.findSuitableMethod(

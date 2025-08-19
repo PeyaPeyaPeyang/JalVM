@@ -44,8 +44,8 @@ public class OperatorInvokeVirtual extends AbstractInstructionOperator<MethodIns
         VMType<?>[] vmTypes = new VMType[parameterTypes.length];
         for (int i = arguments.length - 1; i >= 0; i--)  // スタックの順序は逆なので、最後からポップする
         {
-            arguments[i] = frame.getStack().pop();
             vmTypes[i] = VMType.of(parameterTypes[i]);
+            arguments[i] = frame.getStack().popType(vmTypes[i]);
         }
 
         VMReferenceValue referenceValue = frame.getStack().popType(clazz);
@@ -57,6 +57,7 @@ public class OperatorInvokeVirtual extends AbstractInstructionOperator<MethodIns
 
         VMMethod method = instance.getObjectType().findSuitableMethod(
                 caller,
+                null,
                 name,
                 null,
                 vmTypes

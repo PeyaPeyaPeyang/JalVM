@@ -4,15 +4,16 @@ import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import tokyo.peya.langjal.vm.engine.VMClass;
+import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.injections.InjectedField;
 import tokyo.peya.langjal.vm.engine.members.VMField;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
 import tokyo.peya.langjal.vm.engine.threads.VMThread;
 import tokyo.peya.langjal.vm.exceptions.VMPanic;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class VMObject implements VMValue, VMReferenceValue
 {
@@ -23,6 +24,7 @@ public class VMObject implements VMValue, VMReferenceValue
     private final VMObject superObject;
     private final Map<VMField, VMValue> fields;
 
+    private boolean isInitialising;
     @Getter
     private boolean isInitialised;
 
@@ -81,12 +83,17 @@ public class VMObject implements VMValue, VMReferenceValue
         // 初期化を呼び出す
         VMMethod constructorMethod = this.objectType.findConstructor(caller, owner, argTypes);
         if (constructorMethod == null)
-            throw new IllegalStateException("No suitable constructor found for class: " + this.objectType.getReference()
-                                                                                                         .getFullQualifiedName());
+            throw new IllegalStateException("No suitable constructor found for class: " +
+                                                    this.objectType.getReference().getFullQualifiedName());
 
-        if (this.owner.getObjectType().equals(owner) && this.isInitialised)
-            throw new VMPanic("Object has already been initialized: " + this.objectType.getReference()
-                                                                                       .getFullQualifiedName());
+        boolean isOuterInitialise = this.isOuterInitialiseChain(thread);
+        if (this.owner.getObjectType().equals(owner) && isOuterInitialise)
+        {
+            if (this.isInitialised)
+                throw new VMPanic("Outer object is already initialised: " + this.objectType.getReference()
+                                                                                          .getFullQualifiedName());
+            this.isInitialised = true; // 初期化フラグを立てる
+        }
 
         // コンストラクタを実行
         constructorMethod.invokeInstanceMethod(
@@ -97,16 +104,17 @@ public class VMObject implements VMValue, VMReferenceValue
                 isVMDecree,
                 args
         );
+    }
 
-        if (!owner.equals(caller))
-        {
-            VMObject target = this;
-            do
-            {
-                target.isInitialised = true;
-            }
-            while ((target = target.superObject) != null); // スーパークラスのオブジェクトも初期化する
-        }
+
+
+    private boolean isOuterInitialiseChain(@NotNull VMThread thread)
+    {
+        // initialised フラグをチェックする
+        VMFrame currentFrame = thread.getCurrentFrame();
+        VMMethod currentMethod = currentFrame.getMethod();
+        return !(currentMethod.getClazz().equals(this.objectType)
+                && currentMethod.getName().equals("<init>"));
     }
 
     public void setField(@NotNull VMField field, @NotNull VMValue value)
@@ -138,10 +146,9 @@ public class VMObject implements VMValue, VMReferenceValue
             value = injected.get(this.objectType, this);
         else
             value = this.fields.get(field);
-        if (value == null)
-            throw new VMPanic("Field not initialized: " + field.getName() + " in " + this.objectType.getReference()
-                                                                                                    .getFullQualifiedName());
-        return value;
+
+        // フィールドがnullの場合はnull値を返す
+        return Objects.requireNonNullElseGet(value, () -> new VMNull<>(field.getType()));
     }
 
     public @Nullable VMValue getField(@NotNull String fieldName)
@@ -191,9 +198,9 @@ public class VMObject implements VMValue, VMReferenceValue
         sb.append(this.objectType.getReference().getFullQualifiedName()).append(" {");
         for (Map.Entry<VMField, VMValue> entry : this.fields.entrySet())
             sb.append("\n  ")
-              .append(entry.getKey().getName())
-              .append(": ")
-              .append(entry.getValue() == null ? "?": entry.getValue().toString());
+                .append(entry.getKey().getName())
+                .append(": ")
+                .append(entry.getValue() == null ? "null" : entry.getValue().type().toString());
         sb.append("\n}");
         return sb.toString();
     }

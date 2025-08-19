@@ -7,6 +7,12 @@ import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOpe
 import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorIfEQ;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorIfGE;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorIfGT;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorIfICmpEQ;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorIfICmpGE;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorIfICmpGT;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorIfICmpLE;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorIfICmpLT;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorIfICmpNE;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorIfLE;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorIfLT;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorIfNE;
@@ -97,6 +103,7 @@ import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorInv
 import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorInvokeStatic;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorInvokeVirtual;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorNew;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorNewArray;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorPutField;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorPutStatic;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.stack.OperatorDup;
@@ -239,6 +246,13 @@ public class VMStackMachine
             new OperatorIfGE(), // 0x9C - 156
             new OperatorIfGT(), // 0x9D - 157
             new OperatorIfLE(), // 0x9E - 158
+            new OperatorIfICmpEQ(),  // 0x9F - 159
+            new OperatorIfICmpNE(),  // 0xA0 - 160
+            new OperatorIfICmpLT(),  // 0xA1 - 161
+            new OperatorIfICmpGE(),  // 0xA2 - 162
+            new OperatorIfICmpGT(),  // 0xA3 - 163
+            new OperatorIfICmpLE(),  // 0xA4 - 164
+
 
             new OperatorIfNull(),  // 0xC6 - 198
             new OperatorIfNonNull(), // 0xC7 - 199
@@ -265,6 +279,7 @@ public class VMStackMachine
             new OperatorInvokeDynamic(), // 0xBA - 186
 
             new OperatorNew(), // 0xBB - 187
+            new OperatorNewArray(), // 0xBC - 188
             new OperatorANewArray(), // 0xBD - 189
             new OperatorArrayLength(), // 0xBE - 190
             // </editor-fold>

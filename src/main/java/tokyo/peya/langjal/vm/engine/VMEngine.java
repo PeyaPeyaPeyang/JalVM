@@ -58,7 +58,6 @@ public class VMEngine
             this.currentThread = thread;
             if (thread.isAlive())
             {
-                this.vm.getClassLoader().invokeInitialiserOnThreads(thread);
                 this.getVm().getEventManager().dispatchEvent(new VMThreadHeartbeatEvent(this.vm, thread));
                 try
                 {

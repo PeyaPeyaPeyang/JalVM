@@ -26,8 +26,15 @@ public class OperatorPutStatic extends AbstractInstructionOperator<FieldInsnNode
         String owner = operand.owner;
         String name = operand.name;
 
-        // Retrieve the static field value from the class
         VMClass clazz = frame.getVm().getClassLoader().findClass(ClassReference.of(owner));
+        if (!clazz.isInitialised())
+        {
+            // クラスが初期化されていない場合は初期化をして，この命令を再実行する
+            clazz.initialise(frame.getThread());
+            frame.rerunInstruction();
+            return;
+        }
+
         VMField field = clazz.findField(name);
         if (!field.canAccessFrom(frame.getMethod().getClazz()))
             throw new VMPanic("Static field " + name + " cannot be accessed from method "
@@ -35,8 +42,6 @@ public class OperatorPutStatic extends AbstractInstructionOperator<FieldInsnNode
 
         VMValue value = frame.getStack().pop();
         VMValue conformedValue = value.conformValue(field.getType());
-
-        clazz.setStaticField(field, conformedValue);
 
         frame.getTracer().pushHistory(
                 ValueTracingEntry.fieldSet(
@@ -46,7 +51,7 @@ public class OperatorPutStatic extends AbstractInstructionOperator<FieldInsnNode
                         field
                 )
         );
+        clazz.setStaticField(field, conformedValue);
 
-        frame.getStack().push(conformedValue);
     }
 }

@@ -96,6 +96,11 @@ public class VMFrame
         this.isRunning = true;
     }
 
+    public void rerunInstruction()
+    {
+        this.interpreter.stepBackward();
+    }
+
     public void heartbeat()
     {
         if (!this.isRunning)
@@ -109,6 +114,7 @@ public class VMFrame
                 if (next == null)
                     return;  // そういうこともある。
 
+                System.out.println("Executing instruction: " + next.getOpcode() + " in frame: " + this);
                 this.vm.getEventManager().dispatchEvent(new VMStepInEvent(
                         this,
                         next
@@ -193,6 +199,6 @@ public class VMFrame
                 performer,
                 labelIndex
         ));
-        this.interpreter.setCurrent(labelIndex);
+        this.interpreter.setCurrent(labelIndex - 1);  // 次は，進めてから見るため，-1する
     }
 }

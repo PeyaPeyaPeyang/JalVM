@@ -33,7 +33,6 @@ public class OperatorLDC extends AbstractInstructionOperator<LdcInsnNode>
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull LdcInsnNode operand)
     {
-        VMStack stack = frame.getStack();
         Object value = operand.cst;
         VMValue toValue = switch (value)
         {
@@ -72,6 +71,6 @@ public class OperatorLDC extends AbstractInstructionOperator<LdcInsnNode>
         frame.getTracer().pushHistory(
                 ValueTracingEntry.generation(toValue, frame.getMethod(), operand)
         );
-        stack.push(toValue);
+        frame.getStack().push(toValue);
     }
 }

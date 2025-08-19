@@ -18,7 +18,12 @@ import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
 
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 @Getter
 public class VMThread
@@ -166,5 +171,10 @@ public class VMThread
     public boolean isAlive()
     {
         return !(this.firstFrame == null || !this.firstFrame.isRunning());
+    }
+
+    public Stream<VMFrame> getFrames()
+    {
+        return Stream.iterate(this.firstFrame, Objects::nonNull, VMFrame::getNextFrame);
     }
 }

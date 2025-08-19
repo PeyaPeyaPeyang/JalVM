@@ -17,7 +17,6 @@ import java.util.Scanner;
 
 public class BytecodeInterpreter implements VMInterpreter
 {
-    private final Scanner scanner = new Scanner(System.in);
     private final JalVM vm;
 
     private final AbstractInsnNode first;
@@ -39,9 +38,16 @@ public class BytecodeInterpreter implements VMInterpreter
     @Override
     public boolean hasNextInstruction()
     {
-        // 現在の命令がnullでないか、または次の命令が存在するかを確認
-        return !(this.current == null || this.current.getNext() == null)
-                || (this.first != null && this.currentInstructionIndex == 0);
+        if (this.first == null) return false;
+        if (this.current == null) return true; // まだ開始してない → 最初の命令はある
+        AbstractInsnNode next = this.current.getNext();
+        while (next != null && next.getOpcode() == -1) // ラベルや
+        {
+            if (next instanceof LabelNode ln)
+                cacheLabel(ln);
+            next = next.getNext();
+        }
+        return next != null && next.getOpcode() != -1; // 次の命令が存在するか
     }
 
     private void cacheLabel(@NotNull LabelNode label)
@@ -52,70 +58,80 @@ public class BytecodeInterpreter implements VMInterpreter
             this.labelToInstructionIndexMap.put(labelID, this.currentInstructionIndex);
     }
 
+
     private void skipToNextInstruction(boolean forward)
     {
-        // 現在の命令がnullの場合は、最初の命令に移動
-        if (this.current == null)
+        AbstractInsnNode next = this.current;
+        while (true)
         {
-            this.current = this.first;
-            this.currentInstructionIndex = 0;
-        }
+            next = next == null ? this.first: (forward ? next.getNext() : next.getPrevious());
 
-        // 次の命令が存在するまでスキップ
-        while (!(this.current == null || (this.current = forward ? this.current.getNext() : this.current.getPrevious()) == null))
-        {
-            if (this.current.getOpcode() == -1)  // ラベルやフレームノードの場合
+            if (next == null)  // 終端
             {
-                if (this.current instanceof LabelNode labelNode)
-                    this.cacheLabel(labelNode);
+                this.current = null;
+                if (!forward)
+                    this.currentInstructionIndex = 0;  // 戻るときは0に設定
+
+                return;
             }
-            else
+
+            if (next.getOpcode() == -1)
             {
-                this.currentInstructionIndex += forward ? 1 : -1;  // インデックスを更新
-                break;  // 有効な命令に到達したらループを抜ける
+                if (next instanceof LabelNode ln)
+                    cacheLabel(ln);
+                continue; // ラベルやフレームは飛ばす
             }
+
+            // 有効命令にヒット
+            this.current = next;
+            this.currentInstructionIndex += (forward ? 1 : -1);
+            return;
         }
     }
 
     public void stepForward()
     {
-        if (this.current == null && this.currentInstructionIndex != 0)
-            throw new VMPanic("Cannot step forward when current is null and instruction index is not zero.");
+        if (this.first == null)
+            throw new VMPanic("No instructions available.");
 
-        this.skipToNextInstruction(true);
+        if (this.current == null)
+        {
+            // 初回だけ特別扱い
+            this.current = this.first;
+            while (this.current != null && this.current.getOpcode() == -1)
+            {
+                if (this.current instanceof LabelNode ln)
+                    cacheLabel(ln);
+                this.current = this.current.getNext();
+            }
+            this.currentInstructionIndex = 0;
+            return;
+        }
+        skipToNextInstruction(true);
     }
 
     public void stepBackward()
     {
-        if (this.current == null)
-            return;
-
-        this.skipToNextInstruction(false);
+        if (this.current == null) return;
+        skipToNextInstruction(false);
     }
 
     public void setCurrent(int instructionIndex)
     {
         if (instructionIndex < 0)
             throw new VMPanic("Instruction index cannot be negative.");
-
-        // 現在と同じインデックスなら何もしない
-        if (this.currentInstructionIndex == instructionIndex)
-            return;
-
-        if (this.current == null && this.first == null)
+        if (this.first == null)
             throw new VMPanic("No instructions available to set.");
 
+        // 現在未設定なら先頭にジャンプ
         if (this.current == null)
-            this.current = this.first;
+            this.currentInstructionIndex = -1;
 
-        if (instructionIndex < this.currentInstructionIndex)
-            while (this.current != null && this.currentInstructionIndex > instructionIndex)
-                this.stepBackward();
-        else  // 次のインデックスに進む
-            while (this.current != null && this.currentInstructionIndex < instructionIndex)
-                this.stepForward();
+        while (this.currentInstructionIndex < instructionIndex)
+            stepForward();
+        while (this.currentInstructionIndex > instructionIndex)
+            stepBackward();
     }
-
     @Override
     public AbstractInsnNode feedNextInstruction()
     {

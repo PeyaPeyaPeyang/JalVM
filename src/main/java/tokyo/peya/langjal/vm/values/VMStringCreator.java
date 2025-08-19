@@ -60,7 +60,7 @@ public class VMStringCreator
     public static VMValue createString(@Nullable String value)
     {
         if (value == null)
-            return new VMNull(VMType.STRING);
+            return new VMNull<>(VMType.STRING);
         if (STRING_CACHE.containsKey(value))
             return STRING_CACHE.get(value);
         if (value.isEmpty())
@@ -71,9 +71,18 @@ public class VMStringCreator
 
         return stringValue;
     }
+
+    public static VMValue[] createStringArray(@NotNull String[] values)
+    {
+        VMValue[] stringArray = new VMValue[values.length];
+        for (int i = 0; i < values.length; i++)
+            stringArray[i] = createString(values[i]);
+        return stringArray;
+    }
+
     public static String getString(@NotNull VMObject stringObj)
     {
-        if (!stringObj.type().equals(VMType.STRING))
+        if (!stringObj.type().getTypeDescriptor().equals("Ljava/lang/String;"))
             throw new VMPanic("Expected a VMObject of type String, but got: " + stringObj.type());
 
         VMArray valueArray = (VMArray) stringObj.getField("value");

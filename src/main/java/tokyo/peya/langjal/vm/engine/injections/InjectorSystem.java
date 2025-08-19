@@ -5,9 +5,13 @@ import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
+import tokyo.peya.langjal.compiler.jvm.MethodDescriptor;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
+import tokyo.peya.langjal.vm.engine.VMFrame;
+import tokyo.peya.langjal.vm.engine.members.VMMethod;
 import tokyo.peya.langjal.vm.engine.threads.VMThread;
+import tokyo.peya.langjal.vm.exceptions.VMPanic;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMArray;
 import tokyo.peya.langjal.vm.values.VMLong;
@@ -27,7 +31,7 @@ public class InjectorSystem implements Injector
 
     @Override
     public void inject(@NotNull VMSystemClassLoader cl, @NotNull VMClass clazz)
-    {
+    {/*
         clazz.injectField(
                 cl,
                 new InjectedField(
@@ -54,7 +58,7 @@ public class InjectorSystem implements Injector
 
                     }
                 }
-        );
+        );*/
         clazz.injectMethod(
                 cl,
                 new InjectedMethod(
@@ -71,6 +75,17 @@ public class InjectorSystem implements Injector
                     @Nullable VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
+                        assert caller != null : "Caller class cannot be null";
+                        VMClass systemClass = caller.getLinkedClass();
+                        VMMethod method = systemClass.findMethod("initPhase1", MethodDescriptor.parse("()V"));
+                        if (method == null)
+                            throw new VMPanic("System class does not have initPhase1 method");
+                        VMFrame f = thread.createFrame(
+                                method,
+                                true
+                        );
+                        f.activate();
+
                         return null;
                     }
                 }

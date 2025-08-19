@@ -21,7 +21,7 @@ public class OperatorFMul extends AbstractInstructionOperator<InsnNode>
     {
         VMFloat val1 = frame.getStack().popType(VMType.FLOAT);
         VMFloat val2 = frame.getStack().popType(VMType.FLOAT);
-        VMFloat result = val1.mul(val2);
+        VMFloat result = val2.mul(val1);
         frame.getTracer().pushHistory(
                 ValueTracingEntry.combination(result, frame.getMethod(), operand, val1, val2)
         );

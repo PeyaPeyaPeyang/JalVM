@@ -21,7 +21,7 @@ public class OperatorLShl extends AbstractInstructionOperator<InsnNode>
     {
         VMLong val1 = frame.getStack().popType(VMType.LONG);
         VMLong val2 = frame.getStack().popType(VMType.LONG);
-        VMLong result = val1.shl(val2);
+        VMLong result = val2.shl(val1);
         frame.getTracer().pushHistory(
                 ValueTracingEntry.combination(result, frame.getMethod(), operand, val1, val2)
         );

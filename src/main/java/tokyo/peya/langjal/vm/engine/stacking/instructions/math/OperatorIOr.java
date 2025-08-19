@@ -21,7 +21,7 @@ public class OperatorIOr extends AbstractInstructionOperator<InsnNode>
     {
         VMInteger val1 = frame.getStack().popType(VMType.INTEGER);
         VMInteger val2 = frame.getStack().popType(VMType.INTEGER);
-        VMInteger result = val1.or(val2);
+        VMInteger result = val2.or(val1);
         frame.getTracer().pushHistory(
                 ValueTracingEntry.combination(result, frame.getMethod(), operand, val1, val2)
         );

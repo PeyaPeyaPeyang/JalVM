@@ -21,7 +21,7 @@ public class OperatorIUShr extends AbstractInstructionOperator<InsnNode>
     {
         VMInteger val1 = frame.getStack().popType(VMType.INTEGER);
         VMInteger val2 = frame.getStack().popType(VMType.INTEGER);
-        VMInteger result = val1.ushr(val2);
+        VMInteger result = val2.ushr(val1);
         frame.getTracer().pushHistory(
                 ValueTracingEntry.combination(result, frame.getMethod(), operand, val1, val2)
         );

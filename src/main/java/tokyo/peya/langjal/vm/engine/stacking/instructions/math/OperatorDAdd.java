@@ -21,7 +21,7 @@ public class OperatorDAdd extends AbstractInstructionOperator<InsnNode>
     {
         VMDouble val1 = frame.getStack().popType(VMType.DOUBLE);
         VMDouble val2 = frame.getStack().popType(VMType.DOUBLE);
-        VMDouble result = val1.add(val2);
+        VMDouble result = val2.add(val1);
         frame.getTracer().pushHistory(
                 ValueTracingEntry.combination(result, frame.getMethod(), operand, val1, val2)
         );

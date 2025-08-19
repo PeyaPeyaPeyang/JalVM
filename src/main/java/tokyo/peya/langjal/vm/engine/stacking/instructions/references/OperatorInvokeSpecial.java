@@ -1,6 +1,7 @@
 package tokyo.peya.langjal.vm.engine.stacking.instructions.references;
 
 import org.jetbrains.annotations.NotNull;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.MethodInsnNode;
 import tokyo.peya.langjal.compiler.jvm.AccessAttribute;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
@@ -42,18 +43,32 @@ public class OperatorInvokeSpecial extends AbstractInstructionOperator<MethodIns
         TypeDescriptor[] parameterTypes = methodDescriptor.getParameterTypes();
         VMValue[] arguments = new VMValue[parameterTypes.length];
         VMType<?>[] vmTypes = new VMType[parameterTypes.length];
-        for (int i = 0; i < arguments.length; i++)
+        for (int i = arguments.length - 1; i >= 0; i--)  // スタックの順序は逆なので、最後からポップする
         {
-            VMValue arg = arguments[i] = frame.getStack().pop();
-            vmTypes[i] = arg.type();
+            arguments[i] = frame.getStack().pop();
+            vmTypes[i] = VMType.of(parameterTypes[i]);
         }
 
         VMReferenceValue referenceValue = frame.getStack().popType(clazz);
         if (!(referenceValue instanceof VMObject instance))
             throw new VMPanic("Expected an object to access instance '" + name + "', but got " + referenceValue.getClass().getSimpleName());
 
+        if (name.equals("<init>"))
+        {
+            instance.initialiseInstance(
+                    frame.getThread(),
+                    caller,
+                    clazz,
+                    vmTypes,
+                    arguments,
+                    frame.isVMDecree()
+            );
+            return; // コンストラクタはここで終わり
+        }
+
         VMMethod method = clazz.findSuitableMethod(
                 caller,
+                clazz,
                 name,
                 null,
                 vmTypes
@@ -72,7 +87,7 @@ public class OperatorInvokeSpecial extends AbstractInstructionOperator<MethodIns
                 frame.getThread(),
                 caller,
                 instance,
-                false,
+                frame.isVMDecree(),
                 arguments
         );
     }

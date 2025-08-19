@@ -11,10 +11,6 @@ import tokyo.peya.langjal.vm.values.VMValue;
 
 public class VMMainThread extends VMThread
 {
-    private VMMethod entryPointMethod;
-    private VMArray entryPointArgs;
-    private boolean isStartPhaseConverged;
-
     public VMMainThread(@NotNull JalVM vm)
     {
         super(vm, "main");
@@ -23,30 +19,13 @@ public class VMMainThread extends VMThread
 
     public void startMainThread(@NotNull VMMethod entryPointMethod, @NotNull String[] args)
     {
-        this.entryPointMethod = entryPointMethod;
-        this.entryPointArgs = createArgsArray(args);
-        this.isStartPhaseConverged = false;
-    }
-
-    @Override
-    public void heartbeat()
-    {
-        super.heartbeat();
-        if (this.currentFrame == null && !this.isStartPhaseConverged)
-        {
-            this.isStartPhaseConverged = true;
-            this.invokeEntryPoint();
-        }
-    }
-
-    private void invokeEntryPoint()
-    {
         this.firstFrame = this.createFrame(
-                this.entryPointMethod,
+                entryPointMethod,
                 true,
-                this.entryPointArgs
+                createArgsArray(args)
         );
         this.currentFrame = this.firstFrame;
+
         this.firstFrame.activate();
     }
 

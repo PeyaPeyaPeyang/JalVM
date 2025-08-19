@@ -11,7 +11,7 @@ public interface VMReferenceValue extends VMValue
         if (expectedType.isPrimitive())
             throw new VMPanic("Cannot conform a reference value to a primitive type: " + expectedType.getTypeDescriptor());
 
-        if (this.type().isAssignableFrom(expectedType))
+        if (expectedType.isAssignableFrom(this.type()))
             return this;
 
         throw new VMPanic("Cannot conform a reference value to the expected type: " + this.type().getTypeDescriptor() + " to " + expectedType.getTypeDescriptor());

@@ -45,9 +45,9 @@ public class VMMethod implements RestrictedAccessor
         this.accessAttributes = AccessAttributeSet.fromAccess(methodNode.access);
 
         this.descriptor = MethodDescriptor.parse(methodNode.desc);
-        this.returnType = new VMType<>(this.descriptor.getReturnType());
+        this.returnType = VMType.of(this.descriptor.getReturnType());
         this.parameterTypes = Arrays.stream(this.descriptor.getParameterTypes())
-                                    .map(VMType::new)
+                                    .map(VMType::of)
                                     .toArray(VMType[]::new);
     }
 
@@ -73,7 +73,7 @@ public class VMMethod implements RestrictedAccessor
         else if (!this.canAccessFrom(caller))
             throw new AccessRestrictedPanic(caller, this);
 
-        thread.invokeMethod(this, isVMDecree, args);
+        thread.invokeMethod(this, isVMDecree, null,args);
     }
 
     public void invokeBypassAccess(@NotNull VMThread thread, @Nullable VMClass caller, @NotNull VMValue... args)
@@ -92,11 +92,7 @@ public class VMMethod implements RestrictedAccessor
         else if (!this.canAccessFrom(caller))
             throw new AccessRestrictedPanic(caller, this);
 
-        VMValue[] newArgs = new VMValue[args.length + 1];
-        newArgs[0] = instance; // インスタンスを最初の引数に
-        System.arraycopy(args, 0, newArgs, 1, args.length);
-
-        thread.invokeMethod(this, isVMDecree, newArgs);
+        thread.invokeMethod(this, isVMDecree, instance, args);
     }
 
     @NotNull
@@ -124,7 +120,7 @@ public class VMMethod implements RestrictedAccessor
     @Override
     public String toString()
     {
-        return this.clazz.getReference() + "." + this.methodNode.name + this.methodNode.desc +
+        return this.clazz.getReference() + "->" + this.methodNode.name + this.methodNode.desc +
                 " (access: " + this.accessLevel + ", attributes: " + this.accessAttributes + ")";
     }
 }

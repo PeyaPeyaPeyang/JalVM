@@ -2,6 +2,7 @@ package tokyo.peya.langjal.vm.values;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
+import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.exceptions.VMPanic;
 
 @Getter
@@ -23,7 +24,19 @@ public class VMArray implements VMValue, VMReferenceValue
         this.objectType = objectType;
         this.elements = new VMValue[size];
 
-        this.arrayType = VMType.ofTypeDescriptor("[" + objectType.getTypeDescriptor());
+        this.arrayType = VMType.of("[" + objectType.getTypeDescriptor());
+    }
+
+    public void linkClass(@NotNull VMSystemClassLoader cl)
+    {
+        if (this.objectType.getArrayDimensions() > 0)
+            throw new VMPanic("Cannot link an array of arrays: " + this.objectType.getTypeDescriptor());
+
+        // 配列の型をリンクする
+        this.arrayType.linkClass(cl);
+
+        // 要素の型をリンクする
+        this.objectType.linkClass(cl);
     }
 
     public VMArray(@NotNull VMType<?> objectType, @NotNull VMValue[] values)
@@ -37,7 +50,7 @@ public class VMArray implements VMValue, VMReferenceValue
         this.objectType = objectType;
         this.elements = values;
 
-        this.arrayType = VMType.ofTypeDescriptor("[" + objectType.getTypeDescriptor());
+        this.arrayType = VMType.of("[" + objectType.getTypeDescriptor());
     }
 
     @NotNull
@@ -76,7 +89,17 @@ public class VMArray implements VMValue, VMReferenceValue
     {
         if (other instanceof VMArray otherArray)
             return this.objectType.isAssignableFrom(otherArray.getObjectType());
-        return other instanceof VMNull;
+        return other.type().equals(VMType.GENERIC_OBJECT) || other instanceof VMNull;
+    }
+
+    @Override
+    public VMValue conformValue(@NotNull VMType<?> expectedType)
+    {
+        if (expectedType.isAssignableFrom(this.arrayType))
+            return this;
+
+        throw new VMPanic("Cannot conform an array of type: " + this.arrayType.getTypeDescriptor() +
+                          " to the expected type: " + expectedType.getTypeDescriptor());
     }
 
     @Override

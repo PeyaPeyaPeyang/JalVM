@@ -19,18 +19,18 @@ public class VMLocals
     private final int maxSize;
     private final Map<Integer, VMValue> locals;
 
-    public VMLocals(@NotNull VMFrame frame, int maxSize, @NotNull VMValue[] args)
+    public VMLocals(@NotNull VMFrame frame, int maxSize, boolean isStatic, @NotNull VMValue[] args)
     {
         this.frame = frame;
         this.maxSize = maxSize;
         this.locals = new HashMap<>();
 
-        this.initialiseArgs(args);
+        this.initialiseArgs(isStatic, args);
     }
 
-    public void initialiseArgs(@NotNull VMValue[] args)
+    public void initialiseArgs(boolean isStatic, @NotNull VMValue[] args)
     {
-        int slot = 0;
+        int slot = isStatic ? 0 : 1; // 静的メソッドなら0から，インスタンスメソッドなら1からスタート。このとき，0は thisの参照が入る。
         for (VMValue arg : args)
         {
             this.setSlot(slot++, arg);

@@ -74,12 +74,19 @@ public class VMClass extends VMType<VMReferenceValue> implements RestrictedAcces
         return this.classObject;
     }
 
+    public VMObject createInstance(@NotNull VMObject owner)
+    {
+        if (this.superLink == null)
+            throw new IllegalStateException("Cannot create instance of class without super class link: " + this.reference.getFullQualifiedName());
+
+        return new VMObject(this, owner);
+    }
     public VMObject createInstance()
     {
         if (this.superLink == null)
             throw new IllegalStateException("Cannot create instance of class without super class link: " + this.reference.getFullQualifiedName());
 
-        return new VMObject(this);
+        return new VMObject(this, null);
     }
 
     public void injectMethod(@NotNull VMSystemClassLoader cl, @NotNull InjectedMethod method)
@@ -139,22 +146,20 @@ public class VMClass extends VMType<VMReferenceValue> implements RestrictedAcces
     {
         if (this.equals(maySuper))
             return true; // 同じクラスならtrue
-        if (this.superLink == null)
+        else if (this.superLink == null)
             return false; // スーパークラスがない場合はfalse
 
-        // 親をたどりながら探索
-        VMClass current = this.superLink;
+        VMClass current = this;
         while (current != null)
         {
             if (current.equals(maySuper))
-                return true;
-            if (current == current.superLink)
-                break; // 無限ループを防ぐためのチェック
-            current = current.superLink;
+                return true; // スーパークラスが見つかったらtrue
+            if (current.superLink == current)
+                break;
+            current = current.superLink; // 次のスーパークラスへ
         }
 
-        // 一致せず
-        return false;
+        return false; // スーパークラスが見つからなかったらfalse
     }
 
     public void initialiseClass(@NotNull VMSystemClassLoader cl)
@@ -163,12 +168,9 @@ public class VMClass extends VMType<VMReferenceValue> implements RestrictedAcces
         this.linkClass(cl);
         this.linkSuper(cl);
         this.linkMembers(cl);
-        // 静的初期化メソッドを呼び出す
-        VMThread currentThread = cl.getVm().getEngine().getCurrentThread();
-        this.invokeStaticInitaliser(currentThread);
     }
 
-    private void invokeStaticInitaliser(@NotNull VMThread callerThread)
+    public void invokeStaticInitaliser(@NotNull VMThread callerThread)
     {
         VMMethod staticInitMethod = this.findStaticInitialiser();
         if (staticInitMethod == null)
@@ -204,7 +206,7 @@ public class VMClass extends VMType<VMReferenceValue> implements RestrictedAcces
             String descString = fieldNode.desc;
             vmFields.add(new VMField(
                     this,
-                    VMType.ofTypeDescriptor(descString),
+                    VMType.of(descString),
                     fieldNode
             ));
         }
@@ -230,9 +232,9 @@ public class VMClass extends VMType<VMReferenceValue> implements RestrictedAcces
     }
 
     @Nullable
-    public VMMethod findConstructor(@Nullable VMClass caller, @NotNull VMType... args)
+    public VMMethod findConstructor(@Nullable VMClass caller, @NotNull VMClass owner, @NotNull VMType<?>... args)
     {
-        return this.findSuitableMethod(caller, "<init>", VMType.VOID, args);
+        return this.findSuitableMethod(caller, owner, "<init>", VMType.VOID, args);
     }
 
     public VMMethod findEntryPoint()
@@ -271,12 +273,18 @@ public class VMClass extends VMType<VMReferenceValue> implements RestrictedAcces
 
     @Nullable
     public VMMethod findSuitableMethod(@Nullable VMClass caller, @NotNull String methodName,
-                                       @Nullable VMType returnType, @NotNull VMType... args)
+                                       @Nullable VMType<?> returnType, @NotNull VMType<?>... args)
+    {
+        return this.findSuitableMethod(caller, this, methodName, returnType, args);
+    }
+    @Nullable
+    public VMMethod findSuitableMethod(@Nullable VMClass caller, @NotNull VMClass owner, @NotNull String methodName,
+                                       @Nullable VMType<?> returnType, @NotNull VMType<?>... args)
     {
         for (VMMethod method : this.methods)
         {
             // メソッド名が一致しない場合はスキップ
-            if (!method.getName().equals(methodName))
+            if (!(method.getName().equals(methodName) && owner.equals(method.getOwningClass())))
                 continue;
             // 戻り値の型が一致しない場合はスキップ
             if (!(returnType == null || returnType.isAssignableFrom(method.getReturnType())))
@@ -287,7 +295,7 @@ public class VMClass extends VMType<VMReferenceValue> implements RestrictedAcces
                 continue; // アクセスできないメソッドはスキップ
 
             // 引数の型が一致しない場合はスキップ
-            VMType[] parameterTypes = method.getParameterTypes();
+            VMType<?>[] parameterTypes = method.getParameterTypes();
             if (parameterTypes.length != args.length)
                 continue; // 引数の数が違う場合はスキップ
 
@@ -304,6 +312,11 @@ public class VMClass extends VMType<VMReferenceValue> implements RestrictedAcces
             if (allMatch)
                 return method; // 一致するメソッドを返す
         }
+
+        if (!(this.superLink == null || this.superLink == this)) // スーパークラスが存在し、かつ自身ではない場合
+            // スーパークラスに同名のメソッドがあるか再帰的に探す
+            return this.superLink.findSuitableMethod(caller, owner, methodName, returnType, args);
+
         return null; // 一致するメソッドが見つからなかった場合はnullを返す
     }
 

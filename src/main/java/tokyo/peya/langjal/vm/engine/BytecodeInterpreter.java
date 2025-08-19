@@ -138,7 +138,7 @@ public class BytecodeInterpreter implements VMInterpreter
         int index = 0;
         while (current != null)
         {
-            if (current instanceof LabelNode labelNode && labelNode.getLabel().getOffset() == labelID)
+            if (current instanceof LabelNode labelNode && labelNode.getLabel().hashCode() == labelID)
             {
                 this.labelToInstructionIndexMap.put(labelID, index);
                 return index;

@@ -5,23 +5,23 @@ import org.objectweb.asm.tree.JumpInsnNode;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
-import tokyo.peya.langjal.vm.values.VMNull;
-import tokyo.peya.langjal.vm.values.VMReferenceValue;
+import tokyo.peya.langjal.vm.values.VMInteger;
 import tokyo.peya.langjal.vm.values.VMType;
 
-public class OperatorIfNonNull extends AbstractInstructionOperator<JumpInsnNode>
+public class OperatorIfLT extends AbstractInstructionOperator<JumpInsnNode>
 {
 
-    public OperatorIfNonNull()
+    public OperatorIfLT()
     {
-        super(EOpcodes.IFNONNULL, "ifnonnull");
+        super(EOpcodes.IFLT, "iflt");
     }
 
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull JumpInsnNode operand)
     {
-        VMReferenceValue value = frame.getStack().popType(VMType.GENERIC_OBJECT);
-        if (!(value instanceof VMNull))
+        VMInteger value = frame.getStack().popType(VMType.INTEGER);
+        int intValue = value.asNumber().intValue();
+        if (intValue < 0)
             frame.jumpTo(operand.label.getLabel(), operand);
     }
 }

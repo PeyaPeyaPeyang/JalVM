@@ -93,7 +93,7 @@ public sealed class VMInteger extends AbstractVMPrimitive permits VMByte, VMChar
     }
 
     @Override
-    public VMValue conformValue(@NotNull VMType expectedType)
+    public VMValue conformValue(@NotNull VMType<?> expectedType)
     {
         if (this.type().equals(expectedType))
             return this;
@@ -130,6 +130,8 @@ public sealed class VMInteger extends AbstractVMPrimitive permits VMByte, VMChar
 
             return VMBoolean.of(value == 1);
         }
+        else if (expectedType.equals(VMType.INTEGER))
+            return new VMInteger(this.asNumber().intValue());  // そのまま返す
 
         return super.conformValue(expectedType);
     }

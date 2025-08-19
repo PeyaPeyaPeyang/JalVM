@@ -14,6 +14,7 @@ import tokyo.peya.langjal.vm.engine.stacking.VMStack;
 import tokyo.peya.langjal.vm.engine.stacking.VMStackMachine;
 import tokyo.peya.langjal.vm.engine.threads.VMThread;
 import tokyo.peya.langjal.vm.exceptions.VMPanic;
+import tokyo.peya.langjal.vm.tracing.FrameTracingEntry;
 import tokyo.peya.langjal.vm.tracing.VMValueTracer;
 import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
 import tokyo.peya.langjal.vm.values.VMType;
@@ -59,7 +60,11 @@ public class VMFrame
 
         checkArgumentTypes(method, args);
         this.stack = new VMStack(method.getMaxStackSize());
-        this.locals = new VMLocals(this, method.getMaxLocals(), args);
+        this.locals = new VMLocals(this,
+                                   method.getMaxLocals(),
+                                   method.getAccessAttributes().has(AccessAttribute.STATIC),
+                                   args
+        );
 
         this.bookArgumentsHistory(args);
     }
@@ -144,7 +149,7 @@ public class VMFrame
     @Override
     public String toString()
     {
-        return "Calling " + this.method.getMethodNode().name + " with " +
+        return "Calling " + this.method + " with " +
                 this.args.length + " arguments in frame of " + this.thread.getName() +
                 (this.isVMDecree ? " (VM Decree)" : "") +
                 (this.prevFrame != null ? ", previous frame: " + this.prevFrame.method.getMethodNode().name : "");
@@ -156,9 +161,6 @@ public class VMFrame
         int expectedArgs = parameterTypes.length;
         int actualArgs = args.length;
 
-        boolean needThis = !method.getAccessAttributes().has(AccessAttribute.STATIC);
-        if (needThis)
-            expectedArgs++;  // インスタンスメソッドの場合、this引数があるので1つ多い
         boolean canOmitLastArray = method.getAccessAttributes().has(AccessAttribute.VARARGS);
         if (canOmitLastArray && expectedArgs > 0)
         {
@@ -172,20 +174,25 @@ public class VMFrame
 
         if (expectedArgs != actualArgs)
             throw new VMPanic("Method " + method.getMethodNode().name + " expects " + expectedArgs +
-                                      " arguments, but got " + actualArgs + (needThis ? ", missing 'this' at first?": "."));
+                                      " arguments, but got " + actualArgs);
 
         for (int i = 0; i < parameterTypes.length; i++)
-            if (!args[i].type().isAssignableFrom(parameterTypes[i]))
+            if (!parameterTypes[i].isAssignableFrom(args[i].type()))
                 throw new VMPanic("Argument " + i + " of method " + method.getMethodNode().name +
                                           " is of type " + args[i].type() + ", but expected " + parameterTypes[i] + ".");
     }
 
-    public void jumpTo(@NotNull Label label)
+    public void jumpTo(@NotNull Label label, @NotNull AbstractInsnNode performer)
     {
         int labelIndex = this.interpreter.getLabelInstructionIndex(label);
         if (labelIndex < 0)
             throw new VMPanic("Label " + label + " not found in method " + this.method.getMethodNode().name);
 
+        this.thread.getTracer().pushHistory(FrameTracingEntry.insideJump(
+                this,
+                performer,
+                labelIndex
+        ));
         this.interpreter.setCurrent(labelIndex);
     }
 }

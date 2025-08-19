@@ -36,6 +36,7 @@ public class OperatorANewArray extends AbstractInstructionOperator<TypeInsnNode>
             throw new VMPanic("Array length cannot be negative: " + length);
 
         VMArray array = new VMArray(vmClass, length);
+        array.linkClass(frame.getVm().getClassLoader());
         frame.getTracer().pushHistory(
                 ValueTracingEntry.generation(
                         array,

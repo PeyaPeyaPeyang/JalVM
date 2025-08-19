@@ -58,8 +58,20 @@ public class VMEngine
             this.currentThread = thread;
             if (thread.isAlive())
             {
+                this.vm.getClassLoader().invokeInitialiserOnThreads(thread);
                 this.getVm().getEventManager().dispatchEvent(new VMThreadHeartbeatEvent(this.vm, thread));
-                thread.heartbeat();
+                try
+                {
+                    thread.heartbeat();
+                }
+                catch (Throwable e)
+                {
+                    System.err.println("Error in thread " + thread.getName() + ": " + e.getMessage());
+                    e.printStackTrace();
+                    thread.kill(); // エラーが発生した場合はスレッドを終了
+                    deadThreads.add(thread);
+                }
+
             }
             else
             {
@@ -98,7 +110,7 @@ public class VMEngine
         if (!this.threads.contains(thread))
             throw new IllegalStateException("Thread does not exist in the engine.");
         this.threads.remove(thread);
-        thread.onDestruction();
+        thread.kill();
         this.tracer.pushHistory(
                 new ThreadTracingEntry(
                         ThreadManipulationType.DESTRUCTION,

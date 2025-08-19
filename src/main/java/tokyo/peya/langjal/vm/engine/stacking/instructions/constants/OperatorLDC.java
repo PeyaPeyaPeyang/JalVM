@@ -58,17 +58,17 @@ public class OperatorLDC extends AbstractInstructionOperator<LdcInsnNode>
                 case Type.LONG: new VMClassObject(frame.getVm(), VMType.LONG);
                 case Type.DOUBLE: new VMClassObject(frame.getVm(), VMType.DOUBLE);
                 case Type.ARRAY, Type.OBJECT: {
-                    VMType vmType = new VMType(TypeDescriptor.parse(asmType.getDescriptor()));
+                    VMType<?> vmType = VMType.of(TypeDescriptor.parse(asmType.getDescriptor()));
                     yield new VMClassObject(frame.getVm(), vmType);
                 }
 
                 default:
                     throw new IllegalStateException("Unexpected value: " + asmType.getSort());
             };
-
             default -> throw new VMPanic("Unsupported constant type: " + value.getClass().getName());
         };
 
+        toValue.type().linkClass(frame.getVm().getClassLoader());
         frame.getTracer().pushHistory(
                 ValueTracingEntry.generation(toValue, frame.getMethod(), operand)
         );

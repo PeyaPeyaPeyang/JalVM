@@ -37,14 +37,15 @@ public class OperatorInvokeStatic extends AbstractInstructionOperator<MethodInsn
         TypeDescriptor[] parameterTypes = methodDescriptor.getParameterTypes();
         VMValue[] arguments = new VMValue[parameterTypes.length];
         VMType<?>[] vmTypes = new VMType[parameterTypes.length];
-        for (int i = 0; i < arguments.length; i++)
+        for (int i = arguments.length - 1; i >= 0; i--)  // スタックの順序は逆なので、最後からポップする
         {
-            VMValue arg = arguments[i] = frame.getStack().pop();
-            vmTypes[i] = arg.type();
+            arguments[i] = frame.getStack().pop();
+            vmTypes[i] = VMType.of(parameterTypes[i]);
         }
 
         VMMethod method = clazz.findSuitableMethod(
                 caller,
+                clazz,
                 name,
                 null,
                 vmTypes
@@ -59,7 +60,7 @@ public class OperatorInvokeStatic extends AbstractInstructionOperator<MethodInsn
                 operand,
                 frame.getThread(),
                 caller,
-                false,
+                frame.isVMDecree(),
                 arguments
         );
     }

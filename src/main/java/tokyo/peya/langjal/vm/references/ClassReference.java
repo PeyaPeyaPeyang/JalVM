@@ -13,7 +13,8 @@ import java.util.Objects;
 
 public class ClassReference
 {
-    private static final ClassReference EMPTY = new ClassReference(new String[0], "");
+    public static final ClassReference EMPTY = new ClassReference(new String[0], "");
+    public static final ClassReference OBJECT = new ClassReference(new String[]{"java", "lang"}, "Object");
 
     private final String[] packages;
     private final String className;
@@ -83,6 +84,11 @@ public class ClassReference
     public boolean isEqualPackage(@NotNull ClassReference otherClass)
     {
         return Objects.equals(this.getPackage(), otherClass.getPackage());
+    }
+
+    public boolean isEqualClass(@NotNull ClassReference otherClass)
+    {
+        return Objects.equals(this.getFullQualifiedName(), otherClass.getFullQualifiedName());
     }
 
     public boolean isEqualClass(@NotNull String fullQualifiedName)

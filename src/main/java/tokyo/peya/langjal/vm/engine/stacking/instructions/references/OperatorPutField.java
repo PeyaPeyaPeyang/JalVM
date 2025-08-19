@@ -20,16 +20,18 @@ public class OperatorPutField extends AbstractInstructionOperator<FieldInsnNode>
 
     public OperatorPutField()
     {
-        super(EOpcodes.PUTSTATIC, "putstatic");
+        super(EOpcodes.PUTFIELD, "putfield");
     }
 
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull FieldInsnNode operand)
     {
         String owner = operand.owner;
+        VMClass clazz = frame.getVm().getClassLoader().findClass(ClassReference.of(owner));
         String name = operand.name;
 
-        VMClass clazz = frame.getVm().getClassLoader().findClass(ClassReference.of(owner));
+        VMValue value = frame.getStack().pop();
+
         VMReferenceValue referenceValue = frame.getStack().popType(clazz);
         if (!(referenceValue instanceof VMObject object))
             throw new VMPanic("Expected an object to access field '" + name + "', but got " + referenceValue.getClass().getSimpleName());
@@ -37,16 +39,13 @@ public class OperatorPutField extends AbstractInstructionOperator<FieldInsnNode>
         VMField field = clazz.findField(name);
         if (!object.getObjectType().isSubclassOf(clazz))
             throw new VMPanic("Object type " + object.getObjectType().getReference().getFullQualifiedName()
-                    + " is not a subclass of " + clazz.getReference().getFullQualifiedName());
+                                      + " is not a subclass of " + clazz.getReference().getFullQualifiedName());
         if (!field.canAccessFrom(frame.getMethod().getClazz()))
             throw new VMPanic("Field " + name + " cannot be accessed from method "
-                    + frame.getMethod().getClazz().getReference().getFullQualifiedName());
+                                      + frame.getMethod().getClazz().getReference().getFullQualifiedName());
 
-        VMValue value = frame.getStack().pop();
         VMType<?> fieldType = field.getType();
         VMValue conformedValue = value.conformValue(fieldType);
-
-        object.setField(field, conformedValue);
 
         frame.getTracer().pushHistory(
                 ValueTracingEntry.fieldSet(
@@ -56,7 +55,6 @@ public class OperatorPutField extends AbstractInstructionOperator<FieldInsnNode>
                         field
                 )
         );
-
-        frame.getStack().push(conformedValue);
+        object.setField(field, conformedValue);
     }
 }

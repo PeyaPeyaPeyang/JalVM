@@ -27,9 +27,9 @@ public class VMType<T extends VMValue>
     public static final VMType<VMDouble> DOUBLE = new VMType<>(PrimitiveTypes.DOUBLE);
 
     // プリミティブではないが，よく使うため，
-    public static final VMType<VMReferenceValue> GENERIC_OBJECT = new VMType<>(TypeDescriptor.className("java/lang/Object"));
-    public static final VMType<VMArray> GENERIC_ARRAY = new VMType<>(TypeDescriptor.parse("[Ljava/lang/Object;"));
-    public static final VMType<VMObject> STRING = new VMType<>(TypeDescriptor.className("java/lang/String"));
+    public static final VMType<VMReferenceValue> GENERIC_OBJECT = VMType.of(TypeDescriptor.className("java/lang/Object"));
+    public static final VMType<VMArray> GENERIC_ARRAY = VMType.of(TypeDescriptor.parse("[Ljava/lang/Object;"));
+    public static final VMType<VMObject> STRING = VMType.of(TypeDescriptor.className("java/lang/String"));
 
     public static void initialiseWellKnownClasses(@NotNull VMSystemClassLoader classLoader)
     {
@@ -48,7 +48,7 @@ public class VMType<T extends VMValue>
 
     public VMType(@NotNull Type type, int arrayDimensions)
     {
-        if (type instanceof PrimitiveTypes)
+        if (type instanceof PrimitiveTypes && arrayDimensions == 0)
             throw new VMPanic("type can not be a PrimitiveTypes instance directly. Use VMType.PRIMITIVE_NAME instead.");
 
         this.type = type;
@@ -65,14 +65,30 @@ public class VMType<T extends VMValue>
 
     public VMType(@NotNull ClassReference reference)
     {
-        this(TypeDescriptor.className(reference.getFullQualifiedName()));
+        this.type = ClassReferenceType.parse(reference.getFullQualifiedName());
+        this.arrayDimensions = 0;
+        this.isPrimitive = false;
     }
 
-    public VMType(@NotNull TypeDescriptor desc)
+    @SuppressWarnings("unchecked")
+    public static <T extends VMValue> VMType<T> of(@NotNull TypeDescriptor desc)
     {
-        this.type = desc.getBaseType();
-        this.arrayDimensions = desc.getArrayDimensions();
-        this.isPrimitive = this.type.isPrimitive();
+        if (desc.getBaseType().isPrimitive() && !desc.isArray())
+            return switch (desc.getBaseType())
+            {
+                case PrimitiveTypes.BOOLEAN -> (VMType<T>) BOOLEAN;
+                case PrimitiveTypes.BYTE -> (VMType<T>) BYTE;
+                case PrimitiveTypes.CHAR -> (VMType<T>) CHAR;
+                case PrimitiveTypes.SHORT -> (VMType<T>) SHORT;
+                case PrimitiveTypes.INT -> (VMType<T>) INTEGER;
+                case PrimitiveTypes.LONG -> (VMType<T>) LONG;
+                case PrimitiveTypes.FLOAT -> (VMType<T>) FLOAT;
+                case PrimitiveTypes.DOUBLE -> (VMType<T>) DOUBLE;
+                case PrimitiveTypes.VOID -> (VMType<T>) VOID;
+                default -> throw new VMPanic("Unsupported primitive type: " + desc.getBaseType());
+            };
+
+        return new VMType<>(desc.getBaseType(), desc.getArrayDimensions());
     }
 
     public VMValue defaultValue()
@@ -132,6 +148,8 @@ public class VMType<T extends VMValue>
         // 同じ型なら代入可能
         if (this.equals(other))
             return true;
+        else if (other.equals(VMType.VOID))
+            return true;  // Void型はどんな型からも代入可能
 
         // プリミティブ型同士の互換性チェック
         boolean isBothPrimitive = this.isPrimitive && other.isPrimitive;
@@ -143,16 +161,16 @@ public class VMType<T extends VMValue>
             return this.isAssignableFromPrimitive((PrimitiveTypes) other.type);
         }
 
-        // 片方がプリミティブ型で他方が参照型の場合は互換性なし
+        // 片方がプリミティブ型で他方が参照型の場合は，これが Object 型であれば互換性あり
         if (this.isPrimitive || other.isPrimitive)
-            return false;
+            return this.linkedClass != null && this.linkedClass.getReference().equals(ClassReference.OBJECT);
 
         // 参照型同士の互換性チェック
         if (this.linkedClass == null || other.linkedClass == null)
             return false;
 
         // 参照型の互換性チェック
-        return this.linkedClass.isSubclassOf(other.linkedClass);
+        return other.linkedClass.isSubclassOf(this.linkedClass);
     }
 
     private boolean isAssignableFromPrimitive(@NotNull PrimitiveTypes other)
@@ -198,13 +216,13 @@ public class VMType<T extends VMValue>
         return this.linkedClass.createInstance();
     }
 
-    public static VMType<?> ofTypeDescriptor(@NotNull String typeDescriptor)
+    public static <T extends VMValue> VMType<T> of(@NotNull String typeDescriptor)
     {
-        return new VMType<>(TypeDescriptor.parse(typeDescriptor));
+        return of(TypeDescriptor.parse(typeDescriptor));
     }
 
     public static VMType<VMObject> ofClassName(@NotNull String className)
     {
-        return new VMType<>(TypeDescriptor.className(className));
+        return of(TypeDescriptor.className(className));
     }
 }

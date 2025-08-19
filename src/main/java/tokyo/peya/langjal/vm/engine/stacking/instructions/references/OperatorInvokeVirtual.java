@@ -42,10 +42,10 @@ public class OperatorInvokeVirtual extends AbstractInstructionOperator<MethodIns
         TypeDescriptor[] parameterTypes = methodDescriptor.getParameterTypes();
         VMValue[] arguments = new VMValue[parameterTypes.length];
         VMType<?>[] vmTypes = new VMType[parameterTypes.length];
-        for (int i = 0; i < arguments.length; i++)
+        for (int i = arguments.length - 1; i >= 0; i--)  // スタックの順序は逆なので、最後からポップする
         {
-            VMValue arg = arguments[i] = frame.getStack().pop();
-            vmTypes[i] = arg.type();
+            arguments[i] = frame.getStack().pop();
+            vmTypes[i] = VMType.of(parameterTypes[i]);
         }
 
         VMReferenceValue referenceValue = frame.getStack().popType(clazz);
@@ -55,14 +55,16 @@ public class OperatorInvokeVirtual extends AbstractInstructionOperator<MethodIns
         if (!instance.isInitialised())
             throw new LinkagePanic("Cannot invoke method on uninitialised instance: " + owner + "." + name + desc);
 
-        VMMethod method = clazz.findSuitableMethod(
+        VMMethod method = instance.getObjectType().findSuitableMethod(
                 caller,
                 name,
                 null,
                 vmTypes
         );
         if (method == null)
-            throw new LinkagePanic("No suitable static method found: " + owner + "." + name + desc);
+            throw new LinkagePanic("No suitable static method found: " + owner + "->" + name + desc);
+        else if (method.getAccessAttributes().has(AccessAttribute.ABSTRACT))
+            throw new LinkagePanic("Cannot invoke abstract method: " + method);
 
         if (method.getAccessAttributes().has(AccessAttribute.STATIC))
             throw new IllegalInvocationTypePanic(
@@ -75,7 +77,7 @@ public class OperatorInvokeVirtual extends AbstractInstructionOperator<MethodIns
                 frame.getThread(),
                 caller,
                 instance,
-                false,
+                frame.isVMDecree(),
                 arguments
         );
     }

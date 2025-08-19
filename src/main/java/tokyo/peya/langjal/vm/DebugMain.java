@@ -14,6 +14,7 @@ import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.api.VMEventHandler;
 import tokyo.peya.langjal.vm.api.VMListener;
 import tokyo.peya.langjal.vm.api.events.VMFrameInEvent;
+import tokyo.peya.langjal.vm.api.events.VMFrameOutEvent;
 import tokyo.peya.langjal.vm.api.events.VMStepInEvent;
 import tokyo.peya.langjal.vm.api.events.VMThreadDeathEvent;
 import tokyo.peya.langjal.vm.engine.VMClass;
@@ -298,7 +299,12 @@ public class DebugMain
         @VMEventHandler
         public void onFrameIn(@NotNull VMFrameInEvent e)
         {
-            System.out.printf("Frame in: %s%n", e.getFrame().toString());
+            System.out.printf("--[FRAME IN]->: %s%n", e.getFrame().toString());
+        }
+        @VMEventHandler
+        public void onFrameOut(@NotNull VMFrameOutEvent e)
+        {
+            System.out.printf("<-[FRAME OUT]--: %s%n", e.getFrame().toString());
         }
     }
 }

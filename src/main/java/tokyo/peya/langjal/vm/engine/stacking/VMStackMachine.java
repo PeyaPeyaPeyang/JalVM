@@ -4,6 +4,12 @@ import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorIfEQ;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorIfGE;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorIfGT;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorIfLE;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorIfLT;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorIfNE;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorIfNonNull;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorIfNull;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.constants.OperatorAConstNull;
@@ -28,6 +34,7 @@ import tokyo.peya.langjal.vm.engine.stacking.instructions.constants.OperatorSIPu
 import tokyo.peya.langjal.vm.engine.stacking.instructions.control.OperatorAReturn;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.control.OperatorDReturn;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.control.OperatorFReturn;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.control.OperatorGoTo;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.control.OperatorIReturn;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.control.OperatorLReturn;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.control.OperatorReturn;
@@ -82,6 +89,7 @@ import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorLSub;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorLUShr;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorLXor;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorANewArray;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorArrayLength;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorGetField;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorGetStatic;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorInvokeDynamic;
@@ -225,11 +233,19 @@ public class VMStackMachine
             // </editor-fold>
 
             // <editor-fold desc="Comparisons">
+            new OperatorIfEQ(), // 0x99 - 153
+            new OperatorIfNE(), // 0x9A - 154
+            new OperatorIfLT(), // 0x9B - 155
+            new OperatorIfGE(), // 0x9C - 156
+            new OperatorIfGT(), // 0x9D - 157
+            new OperatorIfLE(), // 0x9E - 158
+
             new OperatorIfNull(),  // 0xC6 - 198
             new OperatorIfNonNull(), // 0xC7 - 199
             // </editor-fold>
 
             // <editor-fold desc="Control">
+            new OperatorGoTo(), // 0xA7 - 167
             new OperatorIReturn(), // 0xAC - 172
             new OperatorLReturn(), // 0xAD - 173
             new OperatorFReturn(), // 0xAE - 174
@@ -250,6 +266,7 @@ public class VMStackMachine
 
             new OperatorNew(), // 0xBB - 187
             new OperatorANewArray(), // 0xBD - 189
+            new OperatorArrayLength(), // 0xBE - 190
             // </editor-fold>
     };
 

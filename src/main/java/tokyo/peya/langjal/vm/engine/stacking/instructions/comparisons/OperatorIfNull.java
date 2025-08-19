@@ -22,6 +22,6 @@ public class OperatorIfNull extends AbstractInstructionOperator<JumpInsnNode>
     {
         VMReferenceValue value = frame.getStack().popType(VMType.GENERIC_OBJECT);
         if (value instanceof VMNull)
-            frame.jumpTo(operand.label.getLabel());
+            frame.jumpTo(operand.label.getLabel(), operand);
     }
 }

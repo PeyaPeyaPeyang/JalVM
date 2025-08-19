@@ -7,7 +7,12 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.injections.InjectorManager;
+import tokyo.peya.langjal.vm.engine.threads.VMThread;
 import tokyo.peya.langjal.vm.references.ClassReference;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 public class VMSystemClassLoader
 {
@@ -16,11 +21,14 @@ public class VMSystemClassLoader
     private final VMHeap heap;
     private final InjectorManager injector;
 
+    private final List<ClassLoadEntry> classLoadQueue;
+
     public VMSystemClassLoader(@NotNull JalVM vm, @NotNull VMHeap heap)
     {
         this.vm = vm;
         this.heap = heap;
         this.injector = new InjectorManager();
+        this.classLoadQueue = new LinkedList<>();
     }
 
     @Nullable
@@ -61,6 +69,7 @@ public class VMSystemClassLoader
         this.heap.addClass(vmClass);
 
         vmClass.initialiseClass(this);
+        this.classLoadQueue.add(new ClassLoadEntry(this.vm.getEngine().getCurrentThread(), vmClass));
 
         // クラスにネイティブ等を注入
         this.injector.injectClass(this, vmClass);
@@ -84,4 +93,25 @@ public class VMSystemClassLoader
 
         return this.defineClass(classNode);
     }
+
+    public void invokeInitialiserOnThreads(@NotNull VMThread thread)
+    {
+        ArrayList<ClassLoadEntry> loaded = new ArrayList<>();
+        for (ClassLoadEntry entry : this.classLoadQueue)
+        {
+            if (entry.loader.equals(thread))
+            {
+                VMClass clazz = entry.clazz;
+                clazz.invokeStaticInitaliser(thread);
+                loaded.add(entry);
+            }
+        }
+
+        this.classLoadQueue.removeAll(loaded);
+    }
+
+    public record ClassLoadEntry(
+            @NotNull VMThread loader,
+            @NotNull VMClass clazz
+    ) {}
 }

@@ -48,6 +48,21 @@ import tokyo.peya.langjal.vm.engine.stacking.instructions.control.OperatorGoTo;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.control.OperatorIReturn;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.control.OperatorLReturn;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.control.OperatorReturn;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.conversions.OperatorD2F;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.conversions.OperatorD2I;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.conversions.OperatorD2L;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.conversions.OperatorF2D;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.conversions.OperatorF2I;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.conversions.OperatorF2L;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.conversions.OperatorI2B;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.conversions.OperatorI2C;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.conversions.OperatorI2D;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.conversions.OperatorI2F;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.conversions.OperatorI2L;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.conversions.OperatorI2S;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.conversions.OperatorL2D;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.conversions.OperatorL2F;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.conversions.OperatorL2I;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.loads.OperatorAALoad;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.loads.OperatorALoad;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.loads.OperatorBALoad;
@@ -243,6 +258,24 @@ public class VMStackMachine
             new OperatorIInc(), // 0x85 - 133
             // </editor-fold>
 
+            // <editor-fold desc="Conversions">
+            new OperatorI2L(), // 0x85 - 133
+            new OperatorI2F(), // 0x86 - 134
+            new OperatorI2D(), // 0x87 - 135
+            new OperatorL2I(), // 0x88 - 136
+            new OperatorL2F(), // 0x89 - 137
+            new OperatorL2D(), // 0x8A - 138
+            new OperatorF2I(), // 0x8B - 139
+            new OperatorF2L(), // 0x8C - 140
+            new OperatorF2D(), // 0x8D - 141
+            new OperatorD2I(), // 0x8E - 142
+            new OperatorD2L(), // 0x8F - 143
+            new OperatorD2F(), // 0x90 - 144
+            new OperatorI2B(), // 0x91 - 145
+            new OperatorI2C(), // 0x92 - 146
+            new OperatorI2S(), // 0x93 - 147
+            // </editor-fold>
+
             // <editor-fold desc="Comparisons">
             new OperatorFCmpL(), // 0x95 - 149
             new OperatorFCmpG(), // 0x96 - 150
@@ -265,6 +298,7 @@ public class VMStackMachine
             new OperatorIfNull(),  // 0xC6 - 198
             new OperatorIfNonNull(), // 0xC7 - 199
             // </editor-fold>
+
 
             // <editor-fold desc="Control">
             new OperatorGoTo(), // 0xA7 - 167

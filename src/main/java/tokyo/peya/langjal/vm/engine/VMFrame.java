@@ -113,6 +113,8 @@ public class VMFrame
                 AbstractInsnNode next = this.interpreter.feedNextInstruction();
                 if (next == null)
                     return;  // そういうこともある。
+
+                System.out.println("Executing instruction: " + next.getOpcode() + " in frame: " + this);
                 this.vm.getEventManager().dispatchEvent(new VMStepInEvent(
                         this,
                         next
@@ -197,6 +199,6 @@ public class VMFrame
                 performer,
                 labelIndex
         ));
-        this.interpreter.setCurrent(labelIndex - 1);  // 次は，進めてから見るため，-1する
+        this.interpreter.setCurrent(labelIndex );  // 次は，進めてから見るため，-1する
     }
 }

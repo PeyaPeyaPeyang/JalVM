@@ -11,160 +11,95 @@ import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.VMInterpreter;
 import tokyo.peya.langjal.vm.exceptions.VMPanic;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
 public class BytecodeInterpreter implements VMInterpreter
 {
     private final JalVM vm;
-
-    private final AbstractInsnNode first;
+    private final List<AbstractInsnNode> instructions;
     private final Map<Integer, Integer> labelToInstructionIndexMap;
 
-    private AbstractInsnNode current;
-    @Getter
-    private int currentInstructionIndex;
+    private int currentInstructionIndex = -1; // -1: 未開始
 
     public BytecodeInterpreter(@NotNull JalVM vm, @NotNull MethodNode method)
     {
         this.vm = vm;
+        this.instructions = new ArrayList<>();
         this.labelToInstructionIndexMap = new HashMap<>();
 
-        this.first = method.instructions.getFirst();
-        this.current = null;
+        int index = 0;
+        for (AbstractInsnNode insn : method.instructions)
+        {
+            // ラベル → 次の実際命令の index をマッピング
+            if (insn instanceof LabelNode ln)
+                this.labelToInstructionIndexMap.put(ln.getLabel().hashCode(), index);
+            else if (insn.getOpcode() != -1)
+            {
+                this.instructions.add(insn); // 実際の命令だけ追加
+                index++;
+            }
+            // フレームや LineNumberNode は無視
+        }
     }
 
     @Override
     public boolean hasNextInstruction()
     {
-        if (this.first == null) return false;
-        if (this.current == null) return true; // まだ開始してない → 最初の命令はある
-        AbstractInsnNode next = this.current.getNext();
-        while (next != null && next.getOpcode() == -1) // ラベルや
-        {
-            if (next instanceof LabelNode ln)
-                cacheLabel(ln);
-            next = next.getNext();
-        }
-        return next != null && next.getOpcode() != -1; // 次の命令が存在するか
+        return this.currentInstructionIndex + 1 < this.instructions.size();
     }
 
-    private void cacheLabel(@NotNull LabelNode label)
+    @Override
+    public AbstractInsnNode feedNextInstruction()
     {
-        // ラベルノードのオフセットを取得し、インデックスを記録する
-        int labelID = label.getLabel().hashCode();
-        if (!this.labelToInstructionIndexMap.containsKey(labelID))
-            this.labelToInstructionIndexMap.put(labelID, this.currentInstructionIndex);
-    }
+        if (!hasNextInstruction())
+            throw new VMPanic("No next instruction available.");
 
-
-    private void skipToNextInstruction(boolean forward)
-    {
-        AbstractInsnNode next = this.current;
-        while (true)
-        {
-            next = next == null ? this.first: (forward ? next.getNext() : next.getPrevious());
-
-            if (next == null)  // 終端
-            {
-                this.current = null;
-                if (!forward)
-                    this.currentInstructionIndex = 0;  // 戻るときは0に設定
-
-                return;
-            }
-
-            if (next.getOpcode() == -1)
-            {
-                if (next instanceof LabelNode ln)
-                    cacheLabel(ln);
-                continue; // ラベルやフレームは飛ばす
-            }
-
-            // 有効命令にヒット
-            this.current = next;
-            this.currentInstructionIndex += (forward ? 1 : -1);
-            return;
-        }
+        this.currentInstructionIndex++;
+        return this.instructions.get(this.currentInstructionIndex);
     }
 
     public void stepForward()
     {
-        if (this.first == null)
+        if (this.instructions.isEmpty())
             throw new VMPanic("No instructions available.");
-
-        if (this.current == null)
-        {
-            // 初回だけ特別扱い
-            this.current = this.first;
-            while (this.current != null && this.current.getOpcode() == -1)
-            {
-                if (this.current instanceof LabelNode ln)
-                    cacheLabel(ln);
-                this.current = this.current.getNext();
-            }
-            this.currentInstructionIndex = 0;
-            return;
-        }
-        skipToNextInstruction(true);
+        else if (!hasNextInstruction())
+            throw new VMPanic("No next instruction available.");
+        else
+            this.currentInstructionIndex++;
     }
 
     public void stepBackward()
     {
-        if (this.current == null) return;
-        skipToNextInstruction(false);
+        if (this.currentInstructionIndex < 0)
+            throw new VMPanic("Already at the first instruction.");
+        this.currentInstructionIndex--;
     }
 
     public void setCurrent(int instructionIndex)
     {
-        if (instructionIndex < 0)
-            throw new VMPanic("Instruction index cannot be negative.");
-        if (this.first == null)
-            throw new VMPanic("No instructions available to set.");
+        if (instructionIndex < 0 || instructionIndex >= this.instructions.size())
+            throw new VMPanic("Invalid instruction index: " + instructionIndex);
 
-        // 現在未設定なら先頭にジャンプ
-        if (this.current == null)
-            this.currentInstructionIndex = -1;
-
-        while (this.currentInstructionIndex < instructionIndex)
-            stepForward();
-        while (this.currentInstructionIndex > instructionIndex)
-            stepBackward();
-    }
-    @Override
-    public AbstractInsnNode feedNextInstruction()
-    {
-        if (!this.hasNextInstruction())
-            throw new VMPanic("No next instruction available.");
-
-        this.stepForward();
-        return this.current;
+        this.currentInstructionIndex = instructionIndex;
     }
 
     @Override
-    public int getLabelInstructionIndex(@NotNull Label node)
+    public int getCurrentInstructionIndex()
     {
-        int labelID = node.hashCode();
-        if (this.labelToInstructionIndexMap.containsKey(labelID))
-            return this.labelToInstructionIndexMap.get(labelID);
+        return this.currentInstructionIndex;
+    }
 
-        // キャッシュにない場合は，最初から探索
-        AbstractInsnNode current = this.first;
-        int index = 0;
-        while (current != null)
-        {
-            if (current instanceof LabelNode labelNode && labelNode.getLabel().hashCode() == labelID)
-            {
-                this.labelToInstructionIndexMap.put(labelID, index);
-                return index;
-            }
 
-            current = current.getNext();
-            if (current.getOpcode() != -1) // -1はラベルやフレーム
-                index++;
-        }
-
-        throw new VMPanic("Label with ID " + labelID + " not found in the method instructions.");
+    @Override
+    public int getLabelInstructionIndex(@NotNull Label label)
+    {
+        Integer idx = this.labelToInstructionIndexMap.get(label.hashCode());
+        if (idx == null)
+            throw new VMPanic("Label not found: " + label);
+        return idx -1; // -1 するのは、LabelNode の index が実際の命令の index より 1 つ大きいから
     }
 }

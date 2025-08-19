@@ -42,8 +42,8 @@ public record ValueTracingEntry(
                 ValueManipulationType.MANIPULATION,
                 method,
                 instruction,
-                null,
                 before,
+                null,
                 null
         );
     }

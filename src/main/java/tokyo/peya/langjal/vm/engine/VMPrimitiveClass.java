@@ -33,7 +33,8 @@ public class VMPrimitiveClass extends VMClass
     @Override
     public boolean isSubclassOf(@NotNull VMClass maySuper)
     {
-        return maySuper == this || maySuper == VMType.GENERIC_OBJECT.getLinkedClass();
+        return maySuper == this || maySuper == VMType.GENERIC_OBJECT.getLinkedClass()
+                || this.getReference().equals(maySuper.getReference());
     }
 
     private static ClassNode createClassNode(@NotNull String primitiveName)

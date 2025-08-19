@@ -153,7 +153,10 @@ public class VMType<T extends VMValue>
         if (this.type.equals(other.type))
             return true;
         else if (other.equals(VMType.VOID))
-            return true;  // Void型はどんな型からも代入可能
+            return true;  // Object/Void型はどんな型からも代入可能
+
+        if (this.getType() instanceof ClassReferenceType refType && refType.equals(ClassReferenceType.OBJECT))
+            return true;  // Object型はどんな型からも代入可能
 
         // プリミティブ型同士の互換性チェック
         boolean isBothPrimitive = this.isPrimitive && other.isPrimitive;

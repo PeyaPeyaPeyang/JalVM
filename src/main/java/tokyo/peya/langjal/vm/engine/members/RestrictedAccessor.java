@@ -59,7 +59,7 @@ public interface RestrictedAccessor
                 }
 
             default:
-                throw new IllegalStateException("Unexpected access level: " + targetAccessLevel);
+                return false; // その他のアクセスレベルはアクセス不可
         }
     }
 }

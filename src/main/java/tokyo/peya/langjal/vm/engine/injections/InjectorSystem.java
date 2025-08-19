@@ -14,6 +14,7 @@ import tokyo.peya.langjal.vm.engine.threads.VMThread;
 import tokyo.peya.langjal.vm.exceptions.VMPanic;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMArray;
+import tokyo.peya.langjal.vm.values.VMInteger;
 import tokyo.peya.langjal.vm.values.VMLong;
 import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMType;
@@ -149,10 +150,10 @@ public class InjectorSystem implements Injector
                             throw new IllegalArgumentException("arraycopy requires 5 arguments, got: " + args.length);
 
                         VMArray src = (VMArray) args[0];
-                        int srcPos = ((VMLong) args[1]).asNumber().intValue();
+                        int srcPos = ((VMInteger) args[1]).asNumber().intValue();
                         VMArray dest = (VMArray) args[2];
-                        int destPos = ((VMLong) args[3]).asNumber().intValue();
-                        int length = ((VMLong) args[4]).asNumber().intValue();
+                        int destPos = ((VMInteger) args[3]).asNumber().intValue();
+                        int length = ((VMInteger) args[4]).asNumber().intValue();
                         if (srcPos < 0 || destPos < 0 || length < 0)
                             throw new IndexOutOfBoundsException("Negative index in arraycopy");
 

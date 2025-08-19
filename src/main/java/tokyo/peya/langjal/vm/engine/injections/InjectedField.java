@@ -12,9 +12,23 @@ import tokyo.peya.langjal.vm.values.VMValue;
 public abstract class InjectedField extends VMField
 {
 
-    public InjectedField(@NotNull VMClass clazz, @NotNull VMType fieldType, @NotNull FieldNode fieldNode)
+    public InjectedField(@NotNull VMClass clazz, @NotNull VMType<?> fieldType, @NotNull FieldNode fieldNode)
     {
-        super(clazz, fieldType, fieldNode);
+        super(
+                retrieveOriginalID(clazz, fieldNode),
+              clazz,
+              fieldType,
+              fieldNode
+        );
+    }
+
+    private static long retrieveOriginalID(@NotNull VMClass clazz, @NotNull FieldNode node)
+    {
+        return clazz.getFields().stream()
+                .filter(f -> f.getName().equals(node.name))
+                .findFirst()
+                .map(VMField::getFieldID)
+                .orElseThrow(() -> new IllegalStateException("Original field ID not found for " + node.name));
     }
 
     public abstract VMValue get(

@@ -7,17 +7,18 @@ import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
 import tokyo.peya.langjal.vm.values.VMInteger;
 
-public class OperatorFCmpG extends AbstractInstructionOperator<InsnNode>
+public class OperatorLCmp extends AbstractInstructionOperator<InsnNode>
 {
 
-    public OperatorFCmpG()
+    public OperatorLCmp()
     {
-        super(EOpcodes.FCMPG, "fcmpg");
+        super(EOpcodes.LCMP, "lcmp");
     }
 
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand)
     {
-        NumericComparator.compareFloat(frame, VMInteger.ONE);
+        NumericComparator.compareLong(frame);
     }
+
 }

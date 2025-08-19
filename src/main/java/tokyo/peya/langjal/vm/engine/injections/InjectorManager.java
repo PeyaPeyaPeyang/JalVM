@@ -34,10 +34,12 @@ public class InjectorManager
                 new InjectorPrintStream(),
                 new InjectorRandomAccessFile(),
                 new InjectorReflection(),
+                new InjectorRuntime(),
                 new InjectorSystem(),
                 new InjectorSystemPropsRaw(),
                 new InjectorThread(),
-                new InjectorUnsafe()
+                new InjectorUnsafe(),
+                new InjectorVM()
         ));
     }
 

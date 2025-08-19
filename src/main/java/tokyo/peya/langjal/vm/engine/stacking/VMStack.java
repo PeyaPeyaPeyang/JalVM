@@ -54,18 +54,29 @@ public class VMStack
         return this.stack.peek();
     }
 
+
     @SuppressWarnings("unchecked")  // 型キャストのため
+    public <T extends VMValue> T peekType(@NotNull VMType<T> type)
+    {
+        if (this.isEmpty())
+            throw new StackUnderflowPanic("Stack is empty.");
+        VMValue value = this.stack.peek();
+
+        VMValue conformedValue = value.conformValue(type); // 値をフィールドの型に適合させる
+        if (conformedValue == null)
+            throw new IllegalOperandPanic("Expected type: " + type + ", but got: " + value.type());
+
+        return (T) conformedValue;
+    }
+
     public <T extends VMValue> T popType(@NotNull VMType<T> type)
     {
         if (this.isEmpty())
             throw new StackUnderflowPanic("Stack underflow.");
-        VMValue value = this.stack.pop();
+        T value = this.peekType(type);
+        this.stack.pop();  // Peekした後にポップする
 
-        VMValue conformedValue = value.conformValue(type); // 値をフィールドの型に適合させる
-        if (conformedValue == null)
-            throw new IllegalOperandPanic("Expected type: " + type + ", but got: " + type);
-
-        return (T) conformedValue; // 型キャスト
+        return value;
     }
 
     public int size()

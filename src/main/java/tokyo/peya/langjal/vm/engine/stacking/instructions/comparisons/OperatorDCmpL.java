@@ -18,6 +18,6 @@ public class OperatorDCmpL extends AbstractInstructionOperator<InsnNode>
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand)
     {
-        FloatingComparator.compareDouble(frame, VMInteger.M1);
+        NumericComparator.compareDouble(frame, VMInteger.M1);
     }
 }

@@ -151,7 +151,7 @@ public class VMObject implements VMValue, VMReferenceValue
         return Objects.requireNonNullElseGet(value, () -> new VMNull<>(field.getType()));
     }
 
-    public @Nullable VMValue getField(@NotNull String fieldName)
+    public @NotNull VMValue getField(@NotNull String fieldName)
     {
         VMField field = this.fields.keySet().stream()
                                    .filter(f -> f.getName().equals(fieldName))

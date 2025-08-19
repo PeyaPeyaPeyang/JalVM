@@ -17,6 +17,7 @@ import tokyo.peya.langjal.vm.tracing.VMFrameTracer;
 import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
+import tokyo.peya.langjal.vm.values.metaobjects.VMThreadObject;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -32,6 +33,7 @@ public class VMThread
     protected final int currentFrameIndex;
     private final JalVM vm;
     private final VMFrameTracer tracer;
+    private final VMThreadObject threadObject;
 
     @Getter
     protected VMFrame firstFrame;
@@ -44,6 +46,7 @@ public class VMThread
         this.vm = vm;
         this.tracer = new VMFrameTracer();
         this.name = name;
+        this.threadObject = new VMThreadObject(vm, this);
 
         this.firstFrame = null;
         this.currentFrameIndex = 0;

@@ -8,6 +8,8 @@ import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorDC
 import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorDCmpL;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorFCmpG;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorFCmpL;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorIfACmpEQ;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorIfACmpNE;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorIfEQ;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorIfGE;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorIfGT;
@@ -22,6 +24,9 @@ import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorIf
 import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorIfNE;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorIfNonNull;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorIfNull;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorLCmp;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorLookupSwitch;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorTableSwitch;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.constants.OperatorAConstNull;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.constants.OperatorBIPush;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.constants.OperatorDConst0;
@@ -115,9 +120,12 @@ import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorLUShr;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorLXor;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorANewArray;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorArrayLength;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorCheckCast;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorGetField;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorGetStatic;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorInstanceOf;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorInvokeDynamic;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorInvokeInterface;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorInvokeSpecial;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorInvokeStatic;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorInvokeVirtual;
@@ -277,6 +285,7 @@ public class VMStackMachine
             // </editor-fold>
 
             // <editor-fold desc="Comparisons">
+            new OperatorLCmp(), // 0x95 - 148
             new OperatorFCmpL(), // 0x95 - 149
             new OperatorFCmpG(), // 0x96 - 150
             new OperatorDCmpL(), // 0x97 - 151
@@ -293,15 +302,17 @@ public class VMStackMachine
             new OperatorIfICmpGE(),  // 0xA2 - 162
             new OperatorIfICmpGT(),  // 0xA3 - 163
             new OperatorIfICmpLE(),  // 0xA4 - 164
-
-
+            new OperatorIfACmpEQ(),  // 0xA5 - 165
+            new OperatorIfACmpNE(),  // 0xA6 - 166
+            new OperatorCheckCast(), // 0xC0 - 192
             new OperatorIfNull(),  // 0xC6 - 198
             new OperatorIfNonNull(), // 0xC7 - 199
             // </editor-fold>
 
-
             // <editor-fold desc="Control">
             new OperatorGoTo(), // 0xA7 - 167
+            new OperatorTableSwitch(), // 0xAA - 167
+            new OperatorLookupSwitch(), // 0xAB - 168
             new OperatorIReturn(), // 0xAC - 172
             new OperatorLReturn(), // 0xAD - 173
             new OperatorFReturn(), // 0xAE - 174
@@ -318,12 +329,14 @@ public class VMStackMachine
             new OperatorInvokeVirtual(), // 0xB6 - 182
             new OperatorInvokeSpecial(), // 0xB7 - 183
             new OperatorInvokeStatic(), // 0xB8 - 184
+            new OperatorInvokeInterface(), // 0xB9 - 185
             new OperatorInvokeDynamic(), // 0xBA - 186
 
             new OperatorNew(), // 0xBB - 187
             new OperatorNewArray(), // 0xBC - 188
             new OperatorANewArray(), // 0xBD - 189
             new OperatorArrayLength(), // 0xBE - 190
+            new OperatorInstanceOf(), // 0xC1 - 193
             // </editor-fold>
     };
 

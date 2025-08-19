@@ -191,9 +191,6 @@ public class VMFrame
     public void jumpTo(@NotNull Label label, @NotNull AbstractInsnNode performer)
     {
         int labelIndex = this.interpreter.getLabelInstructionIndex(label);
-        if (labelIndex < 0)
-            throw new VMPanic("Label " + label + " not found in method " + this.method.getMethodNode().name);
-
         this.thread.getTracer().pushHistory(FrameTracingEntry.insideJump(
                 this,
                 performer,

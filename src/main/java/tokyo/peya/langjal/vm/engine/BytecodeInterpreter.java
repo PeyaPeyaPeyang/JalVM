@@ -81,7 +81,7 @@ public class BytecodeInterpreter implements VMInterpreter
 
     public void setCurrent(int instructionIndex)
     {
-        if (instructionIndex < 0 || instructionIndex >= this.instructions.size())
+        if (instructionIndex >= this.instructions.size())
             throw new VMPanic("Invalid instruction index: " + instructionIndex);
 
         this.currentInstructionIndex = instructionIndex;

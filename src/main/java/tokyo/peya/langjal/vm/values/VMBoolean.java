@@ -9,7 +9,7 @@ public final class VMBoolean extends AbstractVMPrimitive
 
     private VMBoolean(final boolean value)
     {
-        super(VMType.BOOLEAN, value ? 0: 1);
+        super(VMType.BOOLEAN, value ? 1: 0);
     }
 
     @Override

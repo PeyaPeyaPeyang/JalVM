@@ -13,6 +13,7 @@ import tokyo.peya.langjal.vm.values.VMValue;
 @Getter
 public class VMField implements RestrictedAccessor
 {
+    private final long fieldID;
     private final VMClass clazz;
     private final FieldNode fieldNode;
 
@@ -22,8 +23,9 @@ public class VMField implements RestrictedAccessor
     private final VMType<?> type;
     private final String name;
 
-    public VMField(@NotNull VMClass clazz, @NotNull VMType<?> fieldType, @NotNull FieldNode fieldNode)
+    public VMField(long id, @NotNull VMClass clazz, @NotNull VMType<?> fieldType, @NotNull FieldNode fieldNode)
     {
+        this.fieldID = id;
         this.clazz = clazz;
         this.fieldNode = fieldNode;
 

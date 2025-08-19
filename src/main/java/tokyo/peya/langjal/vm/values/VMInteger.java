@@ -136,6 +136,12 @@ public sealed class VMInteger extends AbstractVMPrimitive permits VMByte, VMChar
 
             return VMBoolean.of(value == 1);
         }
+        else if (expectedType.equals(VMType.LONG))
+            return new VMLong(this.asNumber().longValue());  // 長整数に変換
+        else if (expectedType.equals(VMType.DOUBLE))
+            return new VMDouble(this.asNumber().doubleValue());  // 浮動小数点数に変換
+        else if (expectedType.equals(VMType.FLOAT))
+            return new VMFloat(this.asNumber().floatValue());  // 浮動小数点数に変換
         else if (expectedType.equals(VMType.INTEGER))
             return new VMInteger(this.asNumber().intValue());  // そのまま返す
 

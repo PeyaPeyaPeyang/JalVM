@@ -243,10 +243,12 @@ public class VMClass extends VMType<VMReferenceValue> implements RestrictedAcces
     {
         FieldNode[] fields = classNode.fields.toArray(new FieldNode[0]);
         List<VMField> vmFields = new ArrayList<>();
+        long id = 0; // フィールドIDの初期化
         for (FieldNode fieldNode : fields)
         {
             String descString = fieldNode.desc;
             vmFields.add(new VMField(
+                    id += 16, // フィールドIDをインクリメント
                     this,
                     VMType.of(descString),
                     fieldNode
@@ -329,7 +331,7 @@ public class VMClass extends VMType<VMReferenceValue> implements RestrictedAcces
                 continue;  // オーナークラスが一致しない場合はスキップ
             if (!method.getName().equals(methodName))
                 continue;  // メソッド名が一致しない場合はスキップ
-            if (!(returnType == null || returnType.isAssignableFrom(method.getReturnType())))
+            if (!(returnType == null || returnType.equals(method.getReturnType())))
                 continue;  // 戻り値の型が一致しない場合はスキップ
 
             // アクセスレベルが一致しない場合はスキップ
@@ -344,7 +346,7 @@ public class VMClass extends VMType<VMReferenceValue> implements RestrictedAcces
             boolean allMatch = true;
             for (int i = 0; i < parameterTypes.length; i++)
             {
-                if (!parameterTypes[i].isAssignableFrom(args[i]))
+                if (!parameterTypes[i].equals(args[i]))
                 {
                     allMatch = false; // 引数の型が一致しない場合はスキップ
                     break;
@@ -411,6 +413,16 @@ public class VMClass extends VMType<VMReferenceValue> implements RestrictedAcces
                 return field; // 一致するフィールドを返す
 
         throw new VMPanic("Field not found: " + fieldName + " in class " + this.reference.getFullQualifiedName());
+    }
+
+    @NotNull
+    public VMField findField(long id)
+    {
+        for (VMField field : this.fields)
+            if (field.getFieldID() == id)
+                return field; // 一致するフィールドを返す
+
+        throw new VMPanic("Field with ID " + id + " not found in class " + this.reference.getFullQualifiedName());
     }
 
     @Override

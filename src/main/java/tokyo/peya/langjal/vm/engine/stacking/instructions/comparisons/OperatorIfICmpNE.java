@@ -19,8 +19,8 @@ public class OperatorIfICmpNE extends AbstractInstructionOperator<JumpInsnNode>
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull JumpInsnNode operand)
     {
-        VMInteger value1 = frame.getStack().popType(VMType.INTEGER);
         VMInteger value2 = frame.getStack().popType(VMType.INTEGER);
+        VMInteger value1 = frame.getStack().popType(VMType.INTEGER);
         int intValue1 = value1.asNumber().intValue();
         int intValue2 = value2.asNumber().intValue();
         if (intValue1 != intValue2)

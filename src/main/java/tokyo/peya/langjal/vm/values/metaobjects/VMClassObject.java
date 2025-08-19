@@ -30,7 +30,7 @@ public class VMClassObject extends VMObject
 
     public VMClassObject(@NotNull JalVM vm, @NotNull VMType<?> typeOf)
     {
-        this(vm.getClassLoader(), null, typeOf);
+        this(vm.getClassLoader(), typeOf.getLinkedClass(), typeOf);
     }
 
     public VMClassObject(@NotNull VMSystemClassLoader cl, @NotNull VMType<?> typeOf)

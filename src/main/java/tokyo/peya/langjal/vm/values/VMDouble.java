@@ -6,6 +6,10 @@ import tokyo.peya.langjal.vm.exceptions.IllegalOperandPanic;
 public final class VMDouble extends AbstractVMPrimitive
 {
     public static final VMDouble ZERO = new VMDouble(0d);
+    public static final VMDouble NAN = new VMDouble(Double.NaN);
+    public static final VMDouble POSITIVE_INFINITY = new VMDouble(Double.POSITIVE_INFINITY);
+    public static final VMDouble NEGATIVE_INFINITY = new VMDouble(Double.NEGATIVE_INFINITY);
+
 
     public VMDouble(final double value)
     {
@@ -22,6 +26,16 @@ public final class VMDouble extends AbstractVMPrimitive
     public String toString()
     {
         return String.format("%f", this.asNumber().doubleValue()) + "d";
+    }
+
+    public boolean isNaN()
+    {
+        return Double.isNaN(this.asNumber().doubleValue());
+    }
+
+    public boolean isInfinite()
+    {
+        return Double.isInfinite(this.asNumber().doubleValue());
     }
 
     public @NotNull VMDouble add(@NotNull VMDouble l2)

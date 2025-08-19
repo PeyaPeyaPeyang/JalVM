@@ -25,6 +25,12 @@ public class VMPrimitiveClass extends VMClass
     }
 
     @Override
+    public String getTypeDescriptor()
+    {
+        return this.primitiveType.getTypeDescriptor();
+    }
+
+    @Override
     public boolean isSubclassOf(@NotNull VMClass maySuper)
     {
         return maySuper == this || maySuper == VMType.GENERIC_OBJECT.getLinkedClass();

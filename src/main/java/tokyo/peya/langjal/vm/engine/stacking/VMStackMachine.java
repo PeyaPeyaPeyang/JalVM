@@ -4,6 +4,10 @@ import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorDCmpG;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorDCmpL;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorFCmpG;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorFCmpL;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorIfEQ;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorIfGE;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons.OperatorIfGT;
@@ -240,6 +244,10 @@ public class VMStackMachine
             // </editor-fold>
 
             // <editor-fold desc="Comparisons">
+            new OperatorFCmpL(), // 0x95 - 149
+            new OperatorFCmpG(), // 0x96 - 150
+            new OperatorDCmpL(), // 0x97 - 151
+            new OperatorDCmpG(), // 0x98 - 152
             new OperatorIfEQ(), // 0x99 - 153
             new OperatorIfNE(), // 0x9A - 154
             new OperatorIfLT(), // 0x9B - 155

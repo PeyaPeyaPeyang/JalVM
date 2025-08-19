@@ -222,6 +222,7 @@ public class VMType<T extends VMValue>
         };
     }
 
+    @NotNull
     public String getTypeDescriptor()
     {
         return "[".repeat(Math.max(0, this.arrayDimensions)) +

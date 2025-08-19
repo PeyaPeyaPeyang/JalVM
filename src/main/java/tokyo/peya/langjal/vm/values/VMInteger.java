@@ -6,8 +6,14 @@ import tokyo.peya.langjal.vm.exceptions.IllegalOperandPanic;
 public sealed class VMInteger extends AbstractVMPrimitive permits VMByte, VMChar, VMShort
 {
     public static final VMInteger ZERO = new VMInteger(0);
+    public static final VMInteger M1 = new VMInteger(-1);
+    public static final VMInteger ONE = new VMInteger(1);
+    public static final VMInteger TWO = new VMInteger(2);
+    public static final VMInteger THREE = new VMInteger(3);
+    public static final VMInteger FOUR = new VMInteger(4);
+    public static final VMInteger FIVE = new VMInteger(5);
 
-    protected VMInteger(VMType type, final int value)
+    protected VMInteger(VMType<?> type, final int value)
     {
         super(type, value);
     }

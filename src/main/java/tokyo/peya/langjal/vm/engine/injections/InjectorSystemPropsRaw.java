@@ -4,10 +4,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.tree.MethodNode;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
-import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
-import tokyo.peya.langjal.vm.engine.threads.VMThread;
+import tokyo.peya.langjal.vm.engine.threading.VMThread;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMArray;
 import tokyo.peya.langjal.vm.values.VMObject;
@@ -123,8 +122,8 @@ public class InjectorSystemPropsRaw implements Injector
         VMValue[] platformProps = VMStringCreator.createStringArray( cl,platformProperties);
         VMValue[] vmProps = VMStringCreator.createStringArray(cl, vmProperties);
 
-        VMArray platformPropsArray = new VMArray(VMType.STRING, platformProps);
-        VMArray vmPropsArray = new VMArray(VMType.STRING, vmProps);
+        VMArray platformPropsArray = new VMArray(cl, VMType.STRING, platformProps);
+        VMArray vmPropsArray = new VMArray(cl, VMType.STRING, vmProps);
 
         clazz.injectMethod(
                 cl,

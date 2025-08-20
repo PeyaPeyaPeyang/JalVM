@@ -11,9 +11,9 @@ import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMValue;
 
-public class InjectorInet6Address implements Injector
+public class InjectorFileInputStream implements Injector
 {
-    public static final ClassReference CLAZZ = ClassReference.of("java/net/Inet6Address");
+    public static final ClassReference CLAZZ = ClassReference.of("java/io/FileInputStream");
 
     @Override
     public ClassReference suitableClass()
@@ -29,7 +29,7 @@ public class InjectorInet6Address implements Injector
                 new InjectedMethod(
                         clazz, new MethodNode(
                         EOpcodes.ACC_PRIVATE | EOpcodes.ACC_STATIC | EOpcodes.ACC_NATIVE,
-                        "init",
+                        "initIDs",
                         "()V",
                         null,
                         null

@@ -26,6 +26,7 @@ public class InjectorManager
                 new InjectorClass(),
                 new InjectorConsole(),
                 new InjectorFileDescriptor(),
+                new InjectorFileInputStream(),
                 new InjectorInet4Address(),
                 new InjectorInet6Address(),
                 new InjectorNativeEntryPoint(),

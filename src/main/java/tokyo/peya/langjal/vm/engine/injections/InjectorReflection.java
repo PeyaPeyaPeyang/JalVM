@@ -6,7 +6,7 @@ import org.objectweb.asm.tree.MethodNode;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
-import tokyo.peya.langjal.vm.engine.threads.VMThread;
+import tokyo.peya.langjal.vm.engine.threading.VMThread;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.metaobjects.VMClassObject;
 import tokyo.peya.langjal.vm.values.VMObject;

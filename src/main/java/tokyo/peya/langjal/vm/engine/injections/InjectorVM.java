@@ -6,13 +6,9 @@ import org.objectweb.asm.tree.MethodNode;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
-import tokyo.peya.langjal.vm.engine.threads.VMThread;
+import tokyo.peya.langjal.vm.engine.threading.VMThread;
 import tokyo.peya.langjal.vm.references.ClassReference;
-import tokyo.peya.langjal.vm.values.VMBoolean;
-import tokyo.peya.langjal.vm.values.VMLong;
 import tokyo.peya.langjal.vm.values.VMObject;
-import tokyo.peya.langjal.vm.values.VMStringCreator;
-import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
 
 public class InjectorVM implements Injector

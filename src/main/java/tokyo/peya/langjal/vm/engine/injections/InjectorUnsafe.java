@@ -7,7 +7,7 @@ import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.members.VMField;
-import tokyo.peya.langjal.vm.engine.threads.VMThread;
+import tokyo.peya.langjal.vm.engine.threading.VMThread;
 import tokyo.peya.langjal.vm.exceptions.VMPanic;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMArray;
@@ -19,7 +19,6 @@ import tokyo.peya.langjal.vm.values.VMReferenceValue;
 import tokyo.peya.langjal.vm.values.VMStringCreator;
 import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
-import tokyo.peya.langjal.vm.engine.members.VMField;
 import tokyo.peya.langjal.vm.values.metaobjects.VMClassObject;
 
 public class InjectorUnsafe implements Injector
@@ -160,15 +159,7 @@ public class InjectorUnsafe implements Injector
                         VMReferenceValue newValue = (VMReferenceValue) args[3];
 
                         boolean success;
-                        if (object instanceof VMObject obj)
-                        {
-                            VMField field = obj.getObjectType().findField(offset);
-                            VMValue currentValue = obj.getField(field.getName());
-                            success = currentValue.equals(expected);
-                            if (success)
-                                obj.setField(field, newValue);
-                        }
-                        else if (object instanceof VMArray array)
+                        if (object instanceof VMArray array)
                         {
                             // 配列の場合は、配列の要素を取得
                             int index = (int) (offset - getArrayBaseOffset()) / getArrayScale(array.getObjectType());
@@ -178,6 +169,14 @@ public class InjectorUnsafe implements Injector
                             success = value.equals(expected);
                             if (success)
                                 array.set(index, newValue);
+                        }
+                        else if (object instanceof VMObject obj)
+                        {
+                            VMField field = obj.getObjectType().findField(offset);
+                            VMValue currentValue = obj.getField(field.getName());
+                            success = currentValue.equals(expected);
+                            if (success)
+                                obj.setField(field, newValue);
                         }
                         else
                             throw new VMPanic("Unsupported object type for compareAndSet: " + object.getClass().getName());
@@ -490,19 +489,19 @@ public class InjectorUnsafe implements Injector
             {
                 VMReferenceValue object = (VMReferenceValue) args[0];
                 long offset = ((VMLong) args[1]).asNumber().longValue();
-                if (object instanceof VMObject vmObject)
-                {
-                    VMField field = vmObject.getObjectType().findField(offset);
-                    VMValue value = vmObject.getField(field.getName());
-                    return value.conformValue(returnType);
-                }
-                else if (object instanceof VMArray array)
+                if (object instanceof VMArray array)
                 {
                     // 配列の場合は、配列の要素を取得
                     int index = (int) (offset - getArrayBaseOffset()) / getArrayScale(array.getObjectType());
                     if (index < 0 || index >= array.length())
                         throw new VMPanic("Array index out of bounds: " + index);
                     VMValue value = array.get(index);
+                    return value.conformValue(returnType);
+                }
+                else if (object instanceof VMObject vmObject)
+                {
+                    VMField field = vmObject.getObjectType().findField(offset);
+                    VMValue value = vmObject.getField(field.getName());
                     return value.conformValue(returnType);
                 }
 

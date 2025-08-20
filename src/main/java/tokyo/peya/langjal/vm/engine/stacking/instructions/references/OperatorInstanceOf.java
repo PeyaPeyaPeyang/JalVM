@@ -2,18 +2,15 @@ package tokyo.peya.langjal.vm.engine.stacking.instructions.references;
 
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.TypeInsnNode;
-import tokyo.peya.langjal.compiler.jvm.ClassReferenceType;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
-import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
 import tokyo.peya.langjal.vm.values.VMArray;
 import tokyo.peya.langjal.vm.values.VMInteger;
-import tokyo.peya.langjal.vm.values.VMNull;
 import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMReferenceValue;
 import tokyo.peya.langjal.vm.values.VMType;
@@ -82,12 +79,7 @@ public class OperatorInstanceOf extends AbstractInstructionOperator<TypeInsnNode
         VMClass typeClass = type.getLinkedClass();
         int arrayDimensions = type.getArrayDimensions();
 
-        if (obj instanceof VMObject vmObj)
-        {
-            VMClass objClass = vmObj.getObjectType();
-            return objClass.isSubclassOf(typeClass) ? 1 : 0;
-        }
-        else if (obj instanceof VMArray vmArray)
+        if (obj instanceof VMArray vmArray)
         {
             VMType<?> arrayType = vmArray.getArrayType();
             VMClass arrayClass = arrayType.getLinkedClass();
@@ -98,6 +90,11 @@ public class OperatorInstanceOf extends AbstractInstructionOperator<TypeInsnNode
                 return 0;  // 次元が違う場合はダメ
 
             return arrayType.getLinkedClass().isSubclassOf(typeClass) ? 1 : 0;
+        }
+        else if (obj instanceof VMObject vmObj)
+        {
+            VMClass objClass = vmObj.getObjectType();
+            return objClass.isSubclassOf(typeClass) ? 1 : 0;
         }
 
         return 0;  // VMNull とかは 0

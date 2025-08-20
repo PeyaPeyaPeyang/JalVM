@@ -84,7 +84,7 @@ public class InjectorFileDescriptor implements Injector
                         clazz, new MethodNode(
                         EOpcodes.ACC_PRIVATE | EOpcodes.ACC_STATIC | EOpcodes.ACC_NATIVE,
                         "getHandle",
-                        "(I)Ljava/io/FileDescriptor;",
+                        "(I)J",
                         null,
                         null
                 )

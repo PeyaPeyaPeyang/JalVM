@@ -75,6 +75,7 @@ public class InjectorSystem implements Injector
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         assert caller != null : "Caller class cannot be null";
+
                         VMClass systemClass = caller.getLinkedClass();
                         VMMethod method = systemClass.findMethod("initPhase1", MethodDescriptor.parse("()V"));
                         if (method == null)
@@ -164,6 +165,69 @@ public class InjectorSystem implements Injector
                             dest.set(destPos + i, value);
                         }
 
+                        return null;
+                    }
+                }
+        );
+        clazz.injectMethod(
+                cl,
+                new InjectedMethod(
+                        clazz, new MethodNode(
+                        EOpcodes.ACC_PRIVATE | EOpcodes.ACC_STATIC | EOpcodes.ACC_NATIVE,
+                        "setIn0",
+                        "(Ljava/io/InputStream;)V",
+                        null,
+                        null
+                )
+                )
+                {
+                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
+                    {
+                        VMObject inputStream = (VMObject) args[0];
+                        clazz.setStaticField("in", inputStream);
+                        return null;
+                    }
+                }
+        );
+        clazz.injectMethod(
+                cl,
+                new InjectedMethod(
+                        clazz, new MethodNode(
+                        EOpcodes.ACC_PRIVATE | EOpcodes.ACC_STATIC | EOpcodes.ACC_NATIVE,
+                        "setOut0",
+                        "(Ljava/io/PrintStream;)V",
+                        null,
+                        null
+                )
+                )
+                {
+                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
+                    {
+                        VMObject printStream = (VMObject) args[0];
+                        clazz.setStaticField("out", printStream);
+                        return null;
+                    }
+                }
+        );
+        clazz.injectMethod(
+                cl,
+                new InjectedMethod(
+                        clazz, new MethodNode(
+                        EOpcodes.ACC_PRIVATE | EOpcodes.ACC_STATIC | EOpcodes.ACC_NATIVE,
+                        "setErr0",
+                        "(Ljava/io/PrintStream;)V",
+                        null,
+                        null
+                )
+                )
+                {
+                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
+                    {
+                        VMObject printStream = (VMObject) args[0];
+                        clazz.setStaticField("err", printStream);
                         return null;
                     }
                 }

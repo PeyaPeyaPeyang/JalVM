@@ -203,10 +203,13 @@ public class VMClass extends VMType<VMReferenceValue> implements RestrictedAcces
         if (this.isInitialised)
             return; // 既に初期化済みなら何もしない
 
-        this.isInitialised = true; // 初期化済みフラグを立てる
-        if (this.superLink != null && this.superLink != this)
+        if (!(this.superLink == null || this.superLink == this || this.superLink.isInitialised))
+        {
             this.superLink.initialise(callerThread); // スーパークラスがある場合は再帰的に初期化
+            return; // スーパークラスの初期化が完了するまで待つ
+        }
 
+        this.isInitialised = true; // 初期化済みフラグを立てる
         this.initialiseStaticFields();
         VMMethod staticInitMethod = this.findStaticInitialiser();
         if (staticInitMethod == null)

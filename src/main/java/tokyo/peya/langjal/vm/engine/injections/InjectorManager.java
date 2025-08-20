@@ -23,10 +23,14 @@ public class InjectorManager
     private void initialiseDefaultInjectors()
     {
         this.injectors.addAll(Arrays.asList(
+                new InjectorCDS(),
                 new InjectorClass(),
                 new InjectorConsole(),
+                new InjectorDouble(),
                 new InjectorFileDescriptor(),
                 new InjectorFileInputStream(),
+                new InjectorFileOutputStream(),
+                new InjectorFloat(),
                 new InjectorInet4Address(),
                 new InjectorInet6Address(),
                 new InjectorNativeEntryPoint(),
@@ -36,11 +40,14 @@ public class InjectorManager
                 new InjectorRandomAccessFile(),
                 new InjectorReflection(),
                 new InjectorRuntime(),
+                new InjectorScopedMemoryAccess(),
+                new InjectorSignal(),
                 new InjectorSystem(),
                 new InjectorSystemPropsRaw(),
                 new InjectorThread(),
                 new InjectorUnsafe(),
-                new InjectorVM()
+                new InjectorVM(),
+                new InjectorWin32ErrorMode()
         ));
     }
 

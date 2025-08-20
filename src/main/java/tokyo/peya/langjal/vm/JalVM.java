@@ -40,6 +40,7 @@ public class JalVM
         this.pluginLoader.loadPlugins();
     }
 
+
     public void startJVM()
     {
         System.out.println("Starting J(al)VM...");

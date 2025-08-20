@@ -24,7 +24,13 @@ public class VMVoid implements VMPrimitive
     }
 
     @Override
-    public String toString()
+    public @NotNull VMVoid cloneValue()
+    {
+        return INSTANCE; // VMVoidはシングルトンなので、常に同じインスタンスを返す
+    }
+
+    @Override
+    public @NotNull String toString()
     {
         return "VOID";
     }

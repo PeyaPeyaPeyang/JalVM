@@ -23,9 +23,15 @@ public final class VMDouble extends AbstractVMPrimitive
     }
 
     @Override
-    public String toString()
+    public @NotNull String toString()
     {
         return String.format("%f", this.asNumber().doubleValue()) + "d";
+    }
+
+    @Override
+    public @NotNull VMDouble cloneValue()
+    {
+        return new VMDouble(this.asNumber().doubleValue());
     }
 
     public boolean isNaN()

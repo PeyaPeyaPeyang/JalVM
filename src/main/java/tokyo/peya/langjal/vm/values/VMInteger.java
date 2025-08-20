@@ -23,6 +23,7 @@ public sealed class VMInteger extends AbstractVMPrimitive permits VMByte, VMChar
         super(VMType.INTEGER, value);
     }
 
+
     @NotNull
     public VMInteger add(@NotNull VMInteger other)
     {
@@ -36,7 +37,13 @@ public sealed class VMInteger extends AbstractVMPrimitive permits VMByte, VMChar
     }
 
     @Override
-    public String toString()
+    public @NotNull VMInteger cloneValue()
+    {
+        return new VMInteger(this.asNumber().intValue());
+    }
+
+    @Override
+    public @NotNull String toString()
     {
         return String.valueOf(this.asNumber().intValue());
     }

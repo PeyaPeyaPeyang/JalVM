@@ -129,6 +129,8 @@ import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorInv
 import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorInvokeSpecial;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorInvokeStatic;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorInvokeVirtual;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorMonitorEnter;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorMonitorExit;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorNew;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorNewArray;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorPutField;
@@ -337,6 +339,8 @@ public class VMStackMachine
             new OperatorANewArray(), // 0xBD - 189
             new OperatorArrayLength(), // 0xBE - 190
             new OperatorInstanceOf(), // 0xC1 - 193
+            new OperatorMonitorEnter(), // 0xC2 - 194
+            new OperatorMonitorExit(), // 0xC3 - 195
             // </editor-fold>
     };
 

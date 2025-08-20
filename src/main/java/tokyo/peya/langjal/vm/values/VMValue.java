@@ -20,7 +20,8 @@ public interface VMValue
         return this.type().getType().getCategory() == 2;
     }
 
-    String toString();
+    @NotNull
+    VMValue cloneValue();
 
     default Object toJavaObject()
     {

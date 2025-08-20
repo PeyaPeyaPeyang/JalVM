@@ -27,7 +27,13 @@ public final class VMChar extends VMInteger
     }
 
     @Override
-    public String toString()
+    public @NotNull VMChar cloneValue()
+    {
+        return new VMChar((char) this.asNumber().intValue());
+    }
+
+    @Override
+    public @NotNull String toString()
     {
         return "'" + (char) this.asNumber().intValue() + "'";
     }

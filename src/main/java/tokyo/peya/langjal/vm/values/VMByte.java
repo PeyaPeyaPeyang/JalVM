@@ -27,7 +27,13 @@ public final class VMByte extends VMInteger
     }
 
     @Override
-    public String toString()
+    public @NotNull VMByte cloneValue()
+    {
+        return new VMByte(this.asNumber().byteValue());
+    }
+
+    @Override
+    public @NotNull String toString()
     {
         return String.format("0x%02X", this.asNumber().byteValue());
     }

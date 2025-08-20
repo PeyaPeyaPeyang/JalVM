@@ -14,7 +14,7 @@ import tokyo.peya.langjal.vm.VMInterpreter;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.BytecodeInterpreter;
 import tokyo.peya.langjal.vm.engine.VMClass;
-import tokyo.peya.langjal.vm.engine.threads.VMThread;
+import tokyo.peya.langjal.vm.engine.threading.VMThread;
 import tokyo.peya.langjal.vm.exceptions.AccessRestrictedPanic;
 import tokyo.peya.langjal.vm.exceptions.invocation.NonStaticInvocationPanic;
 import tokyo.peya.langjal.vm.values.VMObject;

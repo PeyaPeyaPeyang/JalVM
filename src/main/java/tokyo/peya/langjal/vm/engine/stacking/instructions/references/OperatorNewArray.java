@@ -2,18 +2,13 @@ package tokyo.peya.langjal.vm.engine.stacking.instructions.references;
 
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.IntInsnNode;
-import org.objectweb.asm.tree.TypeInsnNode;
-import tokyo.peya.langjal.compiler.jvm.ClassReferenceType;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
-import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
 import tokyo.peya.langjal.vm.exceptions.VMPanic;
-import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
 import tokyo.peya.langjal.vm.values.VMArray;
 import tokyo.peya.langjal.vm.values.VMInteger;
-import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMType;
 
 public class OperatorNewArray extends AbstractInstructionOperator<IntInsnNode>
@@ -34,7 +29,7 @@ public class OperatorNewArray extends AbstractInstructionOperator<IntInsnNode>
             throw new VMPanic("Array size cannot be negative: " + size);
 
         VMType<?> arrayType = getArrayType(typeCode);
-        VMArray array = new VMArray(arrayType, size);
+        VMArray array = new VMArray(frame.getVm().getClassLoader(), arrayType, size);
         frame.getTracer().pushHistory(
                 ValueTracingEntry.generation(array, frame.getMethod(), operand)
         );

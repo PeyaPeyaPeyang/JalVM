@@ -2,52 +2,87 @@ package tokyo.peya.langjal.vm.values;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
+import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.exceptions.VMPanic;
+import tokyo.peya.langjal.vm.references.ClassReference;
 
 @Getter
-public class VMArray implements VMValue, VMReferenceValue
+public class VMArray extends VMObject implements VMValue, VMReferenceValue
 {
-
-    private final VMType<?> objectType;
+    private final VMType<?> elementType;
     private final VMValue[] elements;
 
     private final VMType<?> arrayType;
 
-    public VMArray(@NotNull VMType<?> objectType, int size)
+    public VMArray(@NotNull VMSystemClassLoader classLoader, @NotNull VMType<?> elementType, int size)
     {
+        super(classLoader.findClass(ClassReference.of("java/util/Collection")));
+
         if (size < 0)
             throw new VMPanic("Size cannot be negative: " + size);
-        else if (objectType.getArrayDimensions() > 0)
-            throw new VMPanic("Cannot create an array of arrays: " + objectType.getTypeDescriptor());
+        else if (elementType.getArrayDimensions() > 0)
+            throw new VMPanic("Cannot create an array of arrays: " + elementType.getTypeDescriptor());
 
-        this.objectType = objectType;
+        this.elementType = elementType;
         this.elements = new VMValue[size];
 
-        this.arrayType = VMType.of("[" + objectType.getTypeDescriptor());
+        this.arrayType = VMType.of("[" + elementType.getTypeDescriptor());
+
+        this.forceInitialise();
+    }
+
+    public VMArray(@NotNull VMClass objectType, VMType<?> elementType, VMValue[] elements, @NotNull VMType<?> arrayType)
+    {
+        super(objectType);
+        this.elementType = elementType;
+        this.elements = elements;
+        this.arrayType = arrayType;
+
+        this.forceInitialise();
     }
 
     public void linkClass(@NotNull VMSystemClassLoader cl)
     {
-        if (this.objectType.getArrayDimensions() > 0)
-            throw new VMPanic("Cannot link an array of arrays: " + this.objectType.getTypeDescriptor());
+        if (this.elementType.getArrayDimensions() > 0)
+            throw new VMPanic("Cannot link an array of arrays: " + this.elementType.getTypeDescriptor());
 
         // 配列の型をリンクする
         this.arrayType.linkClass(cl);
 
         // 要素の型をリンクする
-        this.objectType.linkClass(cl);
+        this.elementType.linkClass(cl);
     }
 
-    public VMArray(@NotNull VMType<?> objectType, @NotNull VMValue[] values)
+    @Override
+    public @NotNull VMObject cloneValue()
     {
+        VMValue[] clonedElements = new VMValue[this.elements.length];
+        for (int i = 0; i < this.elements.length; i++)
+        {
+            VMValue value = this.elements[i];
+            if (value != null)
+                clonedElements[i] = value.cloneValue();
+            else
+                clonedElements[i] = null; // nullはそのままコピー
+        }
+
+        return new VMArray(this.getObjectType(), this.elementType, clonedElements, this.arrayType);
+
+    }
+
+    public VMArray(@NotNull VMSystemClassLoader classLoader, @NotNull VMType<?> objectType, @NotNull VMValue[] values)
+    {
+        super(classLoader.findClass(ClassReference.of("java/util/Collection")));
+
         // 値チェック
         for (VMValue value : values)
             if (!objectType.isAssignableFrom(value.type()))
                 throw new VMPanic("VM BUG!!! Incompatible type in array: " + value.type()
                                                                                   .getTypeDescriptor() + " for " + objectType.getTypeDescriptor());
 
-        this.objectType = objectType;
+        this.elementType = objectType;
         this.elements = values;
 
         this.arrayType = VMType.of("[" + objectType.getTypeDescriptor());
@@ -61,7 +96,7 @@ public class VMArray implements VMValue, VMReferenceValue
 
         VMValue value = this.elements[index];
         if (value == null)
-            return new VMNull<>(this.objectType);
+            return new VMNull<>(this.elementType);
 
         return value;
     }
@@ -88,7 +123,7 @@ public class VMArray implements VMValue, VMReferenceValue
     public boolean isCompatibleTo(@NotNull VMValue other)
     {
         if (other instanceof VMArray otherArray)
-            return this.objectType.isAssignableFrom(otherArray.getObjectType());
+            return this.elementType.isAssignableFrom(otherArray.getObjectType());
         return other.type().equals(VMType.GENERIC_OBJECT) || other instanceof VMNull;
     }
 
@@ -103,9 +138,9 @@ public class VMArray implements VMValue, VMReferenceValue
     }
 
     @Override
-    public String toString()
+    public @NotNull String toString()
     {
-        StringBuilder sb = new StringBuilder("[" + this.objectType.getTypeDescriptor() + "{");
+        StringBuilder sb = new StringBuilder("[" + this.elementType.getTypeDescriptor() + "{");
         for (int i = 0; i < this.elements.length; i++)
         {
             if (i > 0) sb.append(", ");

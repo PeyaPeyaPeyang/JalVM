@@ -27,7 +27,13 @@ public final class VMShort extends VMInteger
     }
 
     @Override
-    public String toString()
+    public @NotNull VMShort cloneValue()
+    {
+        return new VMShort(this.asNumber().shortValue());
+    }
+
+    @Override
+    public @NotNull String toString()
     {
         return String.valueOf(this.asNumber().shortValue()) + "s";
     }

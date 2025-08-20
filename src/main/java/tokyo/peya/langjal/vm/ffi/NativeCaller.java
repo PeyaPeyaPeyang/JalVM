@@ -1,7 +1,7 @@
 package tokyo.peya.langjal.vm.ffi;
 
 import org.jetbrains.annotations.NotNull;
-import tokyo.peya.langjal.vm.engine.threads.VMThread;
+import tokyo.peya.langjal.vm.engine.threading.VMThread;
 import tokyo.peya.langjal.vm.exceptions.LinkagePanic;
 import tokyo.peya.langjal.vm.exceptions.VMPanic;
 import tokyo.peya.langjal.vm.references.ClassReference;

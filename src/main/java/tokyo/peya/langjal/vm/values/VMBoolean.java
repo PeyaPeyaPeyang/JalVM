@@ -28,7 +28,13 @@ public final class VMBoolean extends AbstractVMPrimitive
     }
 
     @Override
-    public String toString()
+    public @NotNull VMBoolean cloneValue()
+    {
+        return this == TRUE ? TRUE : FALSE;
+    }
+
+    @Override
+    public @NotNull String toString()
     {
         return this.asNumber().intValue() == 0 ? "true": "false";
     }

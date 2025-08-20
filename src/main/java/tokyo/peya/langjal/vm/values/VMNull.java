@@ -22,13 +22,19 @@ public record VMNull<T extends VMValue>(VMType<T> type) implements VMValue, VMRe
     }
 
     @Override
+    public @NotNull VMValue cloneValue()
+    {
+        return new VMNull<>(this.type);
+    }
+
+    @Override
     public boolean equals(Object obj)
     {
         return obj instanceof VMNull<?>;  // 型は区別しない。
     }
 
     @Override
-    public String toString()
+    public @NotNull String toString()
     {
         return "NULL";
     }

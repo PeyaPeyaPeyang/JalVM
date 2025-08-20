@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMFrame;
-import tokyo.peya.langjal.vm.engine.threads.VMThread;
+import tokyo.peya.langjal.vm.engine.threading.VMThread;
 import tokyo.peya.langjal.vm.exceptions.VMPanic;
 
 import java.util.HashMap;
@@ -37,11 +37,11 @@ public class VMStringCreator
 
         int hash = value.hashCode();
         boolean hashIsZero = hash == 0;
-        byte coder = 0; // Default coder for UTF-16
+        byte coder = 1; // Default coder for UTF-16
 
         stringObject.setField(
                 "value",
-                new VMArray(VMType.BYTE, vmChars)
+                new VMArray(stringObject.getObjectType().getClassLoader(), VMType.BYTE, vmChars)
         );
         stringObject.setField(
                 "hash",

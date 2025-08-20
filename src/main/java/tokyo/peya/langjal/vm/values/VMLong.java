@@ -19,7 +19,14 @@ public final class VMLong extends AbstractVMPrimitive
     }
 
     @Override
-    public String toString()
+    public @NotNull VMLong cloneValue()
+    {
+        return new VMLong(this.asNumber().longValue());
+    }
+
+
+    @Override
+    public @NotNull String toString()
     {
         return String.valueOf(this.asNumber().longValue());
     }

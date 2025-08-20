@@ -21,6 +21,12 @@ public final class VMFloat extends AbstractVMPrimitive
         return other instanceof VMFloat;
     }
 
+    @Override
+    public @NotNull VMFloat cloneValue()
+    {
+        return new VMFloat(this.asNumber().floatValue());
+    }
+
     public boolean isNaN()
     {
         return Float.isNaN(this.asNumber().floatValue());
@@ -32,7 +38,7 @@ public final class VMFloat extends AbstractVMPrimitive
     }
 
     @Override
-    public String toString()
+    public @NotNull String toString()
     {
         float v = this.asNumber().floatValue();
         if (Float.isNaN(v))

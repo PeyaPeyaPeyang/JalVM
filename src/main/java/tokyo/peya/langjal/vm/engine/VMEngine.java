@@ -7,8 +7,9 @@ import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.api.events.VMThreadDeathEvent;
 import tokyo.peya.langjal.vm.api.events.VMThreadHeartbeatEvent;
 import tokyo.peya.langjal.vm.api.events.VMThreadStartEvent;
-import tokyo.peya.langjal.vm.engine.threads.VMMainThread;
-import tokyo.peya.langjal.vm.engine.threads.VMThread;
+import tokyo.peya.langjal.vm.engine.threading.VMMainThread;
+import tokyo.peya.langjal.vm.engine.threading.VMThread;
+import tokyo.peya.langjal.vm.engine.threading.VMThreadState;
 import tokyo.peya.langjal.vm.tracing.ThreadManipulationType;
 import tokyo.peya.langjal.vm.tracing.ThreadTracingEntry;
 import tokyo.peya.langjal.vm.tracing.VMThreadTracer;
@@ -56,25 +57,24 @@ public class VMEngine
         for (VMThread thread : this.threads)
         {
             this.currentThread = thread;
-            if (thread.isAlive())
-            {
-                this.getVm().getEventManager().dispatchEvent(new VMThreadHeartbeatEvent(this.vm, thread));
-                try
-                {
-                    thread.heartbeat();
-                }
-                catch (Throwable e)
-                {
-                    System.err.println("Error in thread " + thread.getName() + ": " + e.getMessage());
-                    e.printStackTrace();
-                    thread.kill(); // エラーが発生した場合はスレッドを終了
-                    deadThreads.add(thread);
-                }
-
-            }
-            else
+            if (thread.getState() == VMThreadState.TERMINATED)
             {
                 System.out.println("Thread " + thread.getName() + " is dead, marking for removal.");
+                deadThreads.add(thread);
+                continue; // スレッドが終了している場合はスキップ
+            }
+
+            // その他状態の更新は，heartbeat内で行う
+            this.getVm().getEventManager().dispatchEvent(new VMThreadHeartbeatEvent(this.vm, thread));
+            try
+            {
+                thread.heartbeat();
+            }
+            catch (Throwable e)
+            {
+                System.err.println("Error in thread " + thread.getName() + ": " + e.getMessage());
+                e.printStackTrace();
+                thread.kill(); // エラーが発生した場合はスレッドを終了
                 deadThreads.add(thread);
             }
         }

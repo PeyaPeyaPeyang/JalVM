@@ -60,17 +60,17 @@ public class DebugMain
         );
         methodNode.visitCode();
         // System.out.println("Hello, World!");
-        //helloWorld(methodNode);
+        helloWorld(methodNode);
         // comparisons(methodNode);
-        getProp(methodNode);
+        // getProp(methodNode);
         methodNode.visitInsn(Opcodes.RETURN); // Return instruction
         methodNode.visitMaxs(-1, -1); // Max stack and local variables
         methodNode.visitEnd();
         classNode.methods.add(methodNode);
-
         VMClass clazz = jalVM.getClassLoader().defineClass(classNode);
+/*
         System.out.println(jalVM.getHeap().getLoadedClasses().size());
-
+*/
         jalVM.executeMain(clazz, new String[]{});
     }
 

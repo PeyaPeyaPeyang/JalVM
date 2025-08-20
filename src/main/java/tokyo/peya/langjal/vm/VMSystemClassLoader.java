@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
+import tokyo.peya.langjal.vm.api.events.VMDefineClassEvent;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.injections.InjectorManager;
 import tokyo.peya.langjal.vm.references.ClassReference;
@@ -54,8 +55,9 @@ public class VMSystemClassLoader
         if (this.heap.getLoadedClass(name) != null)
             throw new IllegalStateException("Class " + name + " is already defined!");
 
-        if (this.vm.isDebugging())
-            System.out.println("Defining class: " + name);
+        ClassReference ref = ClassReference.of(name);
+        VMDefineClassEvent event = new VMDefineClassEvent(this.vm, ref, classNode);
+        this.vm.getEventManager().dispatchEvent(event);
 
         VMClass vmClass = new VMClass(this, classNode);
         this.heap.addClass(vmClass);

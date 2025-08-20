@@ -74,18 +74,6 @@ public class InjectorSystem implements Injector
                     @Nullable VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
-                        assert caller != null : "Caller class cannot be null";
-
-                        VMClass systemClass = caller.getLinkedClass();
-                        VMMethod method = systemClass.findMethod("initPhase1", MethodDescriptor.parse("()V"));
-                        if (method == null)
-                            throw new VMPanic("System class does not have initPhase1 method");
-                        VMFrame f = thread.createFrame(
-                                method,
-                                true
-                        );
-                        f.activate();
-
                         return null;
                     }
                 }

@@ -2,13 +2,17 @@ package tokyo.peya.langjal.vm;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
+import tokyo.peya.langjal.compiler.jvm.MethodDescriptor;
 import tokyo.peya.langjal.vm.api.VMEventManager;
 import tokyo.peya.langjal.vm.api.VMPluginLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMEngine;
+import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
+import tokyo.peya.langjal.vm.exceptions.VMPanic;
 import tokyo.peya.langjal.vm.ffi.NativeCaller;
 import tokyo.peya.langjal.vm.references.ClassReference;
+import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMType;
 
 @Getter
@@ -41,11 +45,33 @@ public class JalVM
     }
 
 
-    public void startJVM()
+    public void startJVM(@NotNull VMMethod mainMethod, @NotNull String[] args)
     {
-        System.out.println("Starting J(al)VM...");
+        System.out.println("Starting J(al)VM, please wait...");
+        this.engine.getMainThread().startMainThread(mainMethod, args);
+        System.out.println("OK");
+
+        System.out.println("Initialising J(al)VM...");
+        this.initialiseVM();
+        System.out.println("OK");
+
+        System.out.println("Starting.");
         this.engine.startEngine();
         System.out.println("J(al)VM has stopped successfully.");
+    }
+
+    public void initialiseVM()
+    {
+        VMClass systemClass = this.classLoader.findClass(ClassReference.of("java/lang/System"));
+        VMMethod method = systemClass.findMethod("initPhase1", MethodDescriptor.parse("()V"));
+        if (method == null)
+            throw new VMPanic("System class does not have initPhase1 method");
+        VMFrame f = this.engine.getMainThread().createFrame(
+                method,
+                true
+        );
+        f.activate();
+
     }
 
     public void executeMain(@NotNull ClassReference clazz, @NotNull String[] args)
@@ -65,8 +91,6 @@ public class JalVM
             throw new IllegalStateException("There is no main method in class:  "
                                                     + clazz.getReference().getFullQualifiedName());
 
-        this.engine.getMainThread().startMainThread(mainMethod, args);
-
-        this.startJVM();
+        this.startJVM(mainMethod, args);
     }
 }

@@ -115,7 +115,7 @@ public class VMFrame
                 if (next == null)
                     return;  // そういうこともある。
 
-                System.out.println("Executing instruction: " + EOpcodes.getName(next.getOpcode()) + " in frame: " + this);
+                // System.out.println("Executing instruction: " + EOpcodes.getName(next.getOpcode()) + " in frame: " + this);
                 this.vm.getEventManager().dispatchEvent(new VMStepInEvent(
                         this,
                         next

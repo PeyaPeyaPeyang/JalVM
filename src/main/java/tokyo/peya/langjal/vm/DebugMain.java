@@ -11,6 +11,7 @@ import org.objectweb.asm.util.TraceMethodVisitor;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.api.VMEventHandler;
 import tokyo.peya.langjal.vm.api.VMListener;
+import tokyo.peya.langjal.vm.api.events.VMDefineClassEvent;
 import tokyo.peya.langjal.vm.api.events.VMFrameInEvent;
 import tokyo.peya.langjal.vm.api.events.VMFrameOutEvent;
 import tokyo.peya.langjal.vm.api.events.VMStepInEvent;
@@ -37,7 +38,7 @@ public class DebugMain
     {
         JalVM jalVM = new JalVM();
 
-        // jalVM.getEventManager().registerListener(new EventListeners());
+         jalVM.getEventManager().registerListener(new EventListeners());
 
         ClassNode classNode = new ClassNode();
         classNode.visit(
@@ -187,7 +188,7 @@ public class DebugMain
             this.debugOptions(event);
         }
 
-        @VMEventHandler
+        // @VMEventHandler
         public void onThreadDestroy(@NotNull VMThreadDeathEvent event)
         {
             VMEngine engine = event.getVm().getEngine();
@@ -294,15 +295,20 @@ public class DebugMain
             System.out.printf("    [v%d] %s: %s, by %s%n", index, type, value, instr);
         }
 
-        @VMEventHandler
+        // @VMEventHandler
         public void onFrameIn(@NotNull VMFrameInEvent e)
         {
-            System.out.printf("--[FRAME IN]->: %s%n", e.getFrame().toString());
+            System.out.printf("--[FRAME  IN]->: %s%n", e.getFrame().toString());
         }
-        @VMEventHandler
+        // @VMEventHandler
         public void onFrameOut(@NotNull VMFrameOutEvent e)
         {
             System.out.printf("<-[FRAME OUT]--: %s%n", e.getFrame().toString());
+        }
+        @VMEventHandler
+        public void onClassDefine(@NotNull VMDefineClassEvent e)
+        {
+            System.out.printf("Defining class: %s%n", e.getReference().getFullQualifiedName());
         }
     }
 }

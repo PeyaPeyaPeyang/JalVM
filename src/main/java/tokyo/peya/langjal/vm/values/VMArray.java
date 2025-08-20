@@ -8,6 +8,8 @@ import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.exceptions.VMPanic;
 import tokyo.peya.langjal.vm.references.ClassReference;
 
+import java.lang.reflect.Array;
+
 @Getter
 public class VMArray extends VMObject implements VMValue, VMReferenceValue
 {
@@ -152,5 +154,42 @@ public class VMArray extends VMObject implements VMValue, VMReferenceValue
         }
         sb.append("}");
         return sb.toString();
+    }
+
+    public <T> T[] toArray(@NotNull Class<? extends T> type)
+    {
+        if (type.isPrimitive())
+            throw new VMPanic("Cannot convert VMArray to primitive array: " + type.getName());
+
+        @SuppressWarnings("unchecked")
+        T[] array = (T[]) Array.newInstance(type, this.elements.length);
+        for (int i = 0; i < this.elements.length; i++)
+        {
+            VMValue value = this.elements[i];
+            if (value != null)
+                array[i] = type.cast(value);
+            else
+                array[i] = null; // nullはそのままコピー
+        }
+        return array;
+    }
+
+    public byte[] toByteArray()
+    {
+        if (this.elementType != VMType.BYTE)
+            throw new VMPanic("Cannot convert VMArray to byte array: " + this.elementType.getTypeDescriptor());
+
+        byte[] array = new byte[this.elements.length];
+        for (int i = 0; i < this.elements.length; i++)
+        {
+            VMValue value = this.elements[i];
+            if (value instanceof VMInteger integer)
+                array[i] = integer.asNumber().byteValue();
+            else if (value == null)
+                array[i] = 0x00;
+            else
+                throw new VMPanic("Expected byte value at index " + i + ", but got: " + value);
+        }
+        return array;
     }
 }

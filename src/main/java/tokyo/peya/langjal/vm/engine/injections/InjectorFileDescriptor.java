@@ -18,6 +18,7 @@ import tokyo.peya.langjal.vm.values.VMValue;
 
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.SyncFailedException;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,6 +27,10 @@ public class InjectorFileDescriptor implements Injector
 {
     public static final ClassReference CLAZZ = ClassReference.of("java/io/FileDescriptor");
 
+    private long currentID;
+
+    private final Map<Long, FileOutputStream> outStreams;
+    private final Map<Long, FileInputStream> inStreams;
     private final Map<Long, FileDescriptor> handles;
     private final Map<Integer, Boolean> appends;
     private final Map<Integer, Long> fdToHandleNums;
@@ -38,6 +43,14 @@ public class InjectorFileDescriptor implements Injector
 
     public InjectorFileDescriptor()
     {
+        this.outStreams = new HashMap<>();
+        this.outStreams.put(1L, new FileOutputStream(FileDescriptor.out));
+        this.outStreams.put(2L, new FileOutputStream(FileDescriptor.err));
+
+        this.inStreams = new HashMap<>();
+        this.inStreams.put(0L, new FileInputStream(FileDescriptor.in));
+
+
         this.handles = new HashMap<>();
 
         this.handles.put(0L, FileDescriptor.in);
@@ -53,6 +66,46 @@ public class InjectorFileDescriptor implements Injector
         this.fdToHandleNums.put(0, 0L);
         this.fdToHandleNums.put(1, 1L);
         this.fdToHandleNums.put(2, 2L);
+
+        this.currentID = 3L; // 0, 1, 2 は標準入力，出力，エラー用に予約されている
+    }
+
+    public long open(@NotNull String name, boolean append)
+    {
+        FileDescriptor fd;
+        try
+        {
+            if (append)
+            {
+                FileOutputStream fos = new FileOutputStream(name, true);
+                fd = fos.getFD();
+                this.outStreams.put(this.currentID, fos);
+            }
+            else
+            {
+                FileInputStream fis = new FileInputStream(name);
+                fd = fis.getFD();
+                this.inStreams.put(this.currentID, fis);
+            }
+        }
+        catch (Exception e)
+        {
+            throw new VMPanic("Failed to open file: " + name, e);
+        }
+
+        this.handles.put(this.currentID, fd);
+        this.appends.put((int) this.currentID, append);
+        this.fdToHandleNums.put((int) this.currentID, this.currentID);
+
+        return this.currentID++;
+    }
+
+    public FileOutputStream getStream(long handleValue)
+    {
+        FileOutputStream stream = this.outStreams.get(handleValue);
+        if (stream == null)
+            throw new VMPanic("No output stream found for handle: " + handleValue);
+        return stream;
     }
 
     @Override
@@ -146,6 +199,8 @@ public class InjectorFileDescriptor implements Injector
                         InjectorFileDescriptor.this.handles.remove(handleNum);
                         InjectorFileDescriptor.this.fdToHandleNums.remove(fd);
                         InjectorFileDescriptor.this.appends.remove(fd);
+                        InjectorFileDescriptor.this.outStreams.remove(handleNum);
+                        InjectorFileDescriptor.this.inStreams.remove(handleNum);
 
                         return null;
                     }
@@ -183,5 +238,4 @@ public class InjectorFileDescriptor implements Injector
                 }
         );
     }
-
 }

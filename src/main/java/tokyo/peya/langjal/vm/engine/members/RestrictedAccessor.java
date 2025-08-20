@@ -46,18 +46,33 @@ public interface RestrictedAccessor
                 if (callerClass.equals(target))
                     return true; // privateは同じクラスからのみアクセス可能
 
-                // インナー・クラスの場合，呼び出し元がその外側のクラスであればアクセス可能
+                // インナー・クラスの場合，呼び出し元と対象が内外関係ならアクセス可能
                 String targetName = target.getReference().getFullQualifiedName();
                 String callerName = callerClass.getReference().getFullQualifiedName();
-                ClassNode callerClassNode = callerClass.getClazz();
-                List<InnerClassNode> callerInnerClasses = callerClassNode.innerClasses;
-                for (InnerClassNode innerClass : callerInnerClasses)
+
+                // 呼び出し元の innerClasses を確認
+                for (InnerClassNode inner : callerClass.getClazz().innerClasses)
                 {
-                    // 呼び出し元が内部クラスで、対象クラスがその外側のクラスならアクセス可能
-                    if (innerClass.name.equals(targetName))
-                        return innerClass.outerName != null && innerClass.outerName.equals(callerName);
+                    if (inner.outerName == null)
+                        inner.outerName = inner.name.substring(0, inner.name.lastIndexOf('$'));
+
+                    if ((callerName.equals(inner.name) && targetName.equals(inner.outerName))
+                            || callerName.equals(inner.outerName) && targetName.equals(inner.name))
+                        return true;
                 }
 
+                // 呼び出し先（target）の innerClasses も確認（逆の関係用）
+                for (InnerClassNode inner : target.getClazz().innerClasses)
+                {
+                    if (inner.outerName == null)
+                        inner.outerName = inner.name.substring(0, inner.name.lastIndexOf('$'));
+
+                    if ((targetName.equals(inner.name) && callerName.equals(inner.outerName))
+                            || (targetName.equals(inner.outerName) && callerName.equals(inner.name)))
+                        return true;
+                }
+
+                /* fall-through */
             default:
                 return false; // その他のアクセスレベルはアクセス不可
         }

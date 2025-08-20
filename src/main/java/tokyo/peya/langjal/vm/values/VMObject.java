@@ -162,13 +162,10 @@ public class VMObject implements VMValue, VMReferenceValue
 
     public void setField(@NotNull String fieldName, @NotNull VMValue value)
     {
-        VMField field = this.fields.keySet().stream()
-                                   .filter(f -> f.getName().equals(fieldName))
-                                   .findFirst()
-                                   .orElseThrow(() -> new VMPanic("Field not found: " + fieldName + " in " + this.objectType.getReference()
-                                                                                                                            .getFullQualifiedName()));
+        VMField field = this.getObjectType().findField(fieldName);
         this.setField(field, value);
     }
+
 
     public @NotNull VMValue getField(@NotNull VMField field)
     {
@@ -186,10 +183,7 @@ public class VMObject implements VMValue, VMReferenceValue
 
     public @NotNull VMValue getField(@NotNull String fieldName)
     {
-        VMField field = this.fields.keySet().stream()
-                                   .filter(f -> f.getName().equals(fieldName))
-                                   .findFirst()
-                                   .orElseThrow(() -> new VMPanic("Field not found: " + fieldName + " in " + this.objectType.getReference()));
+        VMField field = this.getObjectType().findField(fieldName);
         return this.getField(field);
     }
 

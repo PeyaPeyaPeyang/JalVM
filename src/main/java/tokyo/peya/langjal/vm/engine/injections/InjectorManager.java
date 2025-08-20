@@ -5,18 +5,19 @@ import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.references.ClassReference;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
 public class InjectorManager
 {
+    private final InjectorFileDescriptor fdInjector;
     private final @NotNull List<Injector> injectors;
 
     public InjectorManager()
     {
         this.injectors = new LinkedList<>();
+        this.fdInjector = new InjectorFileDescriptor();
         this.initialiseDefaultInjectors();
     }
 
@@ -27,16 +28,16 @@ public class InjectorManager
                 new InjectorClass(),
                 new InjectorConsole(),
                 new InjectorDouble(),
+                this.fdInjector,
                 new InjectorFileDescriptor(),
                 new InjectorFileInputStream(),
-                new InjectorFileOutputStream(),
+                new InjectorFileOutputStream(this.fdInjector),
                 new InjectorFloat(),
                 new InjectorInet4Address(),
                 new InjectorInet6Address(),
                 new InjectorNativeEntryPoint(),
                 new InjectorObject(),
                 new InjectorPerf(),
-                new InjectorPrintStream(),
                 new InjectorRandomAccessFile(),
                 new InjectorReflection(),
                 new InjectorRuntime(),

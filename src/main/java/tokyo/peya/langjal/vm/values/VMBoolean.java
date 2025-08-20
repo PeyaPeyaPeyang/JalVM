@@ -54,4 +54,9 @@ public final class VMBoolean extends AbstractVMPrimitive
 
         return super.conformValue(expectedType);
     }
+
+    public boolean asBoolean()
+    {
+        return this.asNumber().intValue() != 0;
+    }
 }

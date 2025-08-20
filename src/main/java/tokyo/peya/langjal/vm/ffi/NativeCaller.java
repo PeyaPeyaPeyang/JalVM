@@ -1,6 +1,7 @@
 package tokyo.peya.langjal.vm.ffi;
 
 import org.jetbrains.annotations.NotNull;
+import tokyo.peya.langjal.vm.engine.threads.VMThread;
 import tokyo.peya.langjal.vm.exceptions.LinkagePanic;
 import tokyo.peya.langjal.vm.exceptions.VMPanic;
 import tokyo.peya.langjal.vm.references.ClassReference;
@@ -116,7 +117,7 @@ public class NativeCaller
         return methodHandle;
     }
 
-    public VMValue callFFI(@NotNull ClassReference owner, @NotNull String name,
+    public VMValue callFFI(@NotNull VMThread order, @NotNull ClassReference owner, @NotNull String name,
                            @NotNull VMType<?> returningType, @NotNull VMValue... args)
     {
         List<VMValue> results = new ArrayList<>();
@@ -132,7 +133,7 @@ public class NativeCaller
         try
         {
             Object result = methodHandle.invokeExact(convertedArgs);
-            return VMValue.fromJavaObject(result);  // TODO: cast
+            return VMValue.fromJavaObject(order.getVm().getClassLoader(), result);  // TODO: cast
         }
         catch (Throwable e)
         {

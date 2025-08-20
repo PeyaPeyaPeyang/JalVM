@@ -34,40 +34,7 @@ public class OperatorLDC extends AbstractInstructionOperator<LdcInsnNode>
     public void execute(@NotNull VMFrame frame, @NotNull LdcInsnNode operand)
     {
         Object value = operand.cst;
-        VMValue toValue = switch (value)
-        {
-            case Integer intValue -> new VMInteger(intValue);
-            case Long longValue -> new VMLong(longValue);
-            case Float floatValue -> new VMFloat(floatValue);
-            case String strValue -> VMStringCreator.createString(strValue);
-            case Double doubleValue -> new VMDouble(doubleValue);
-            case Character charValue -> new VMChar(charValue);
-            case Byte byteValue -> new VMByte(byteValue);
-            case Short shortValue -> new VMShort(shortValue);
-            case Boolean boolValue -> VMBoolean.of(boolValue);
-            case Type asmType  -> switch (asmType.getSort())
-            {
-                case Type.VOID: new VMClassObject(frame.getVm(), VMType.VOID);
-                case Type.BOOLEAN: new VMClassObject(frame.getVm(), VMType.BOOLEAN);
-                case Type.BYTE: new VMClassObject(frame.getVm(), VMType.BYTE);
-                case Type.CHAR: new VMClassObject(frame.getVm(), VMType.CHAR);
-                case Type.SHORT: new VMClassObject(frame.getVm(), VMType.SHORT);
-                case Type.INT: new VMClassObject(frame.getVm(), VMType.INTEGER);
-                case Type.FLOAT: new VMClassObject(frame.getVm(), VMType.FLOAT);
-                case Type.LONG: new VMClassObject(frame.getVm(), VMType.LONG);
-                case Type.DOUBLE: new VMClassObject(frame.getVm(), VMType.DOUBLE);
-                case Type.ARRAY, Type.OBJECT: {
-                    VMType<?> vmType = VMType.of(TypeDescriptor.parse(asmType.getDescriptor()));
-                    yield new VMClassObject(frame.getVm(), vmType);
-                }
-
-                default:
-                    throw new IllegalStateException("Unexpected value: " + asmType.getSort());
-            };
-            default -> throw new VMPanic("Unsupported constant type: " + value.getClass().getName());
-        };
-
-        toValue.type().linkClass(frame.getVm().getClassLoader());
+        VMValue toValue = VMValue.fromJavaObject(frame.getVm().getClassLoader(), value);
         frame.getTracer().pushHistory(
                 ValueTracingEntry.generation(toValue, frame.getMethod(), operand)
         );

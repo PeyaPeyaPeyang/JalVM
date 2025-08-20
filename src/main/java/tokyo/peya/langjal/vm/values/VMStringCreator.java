@@ -3,6 +3,9 @@ package tokyo.peya.langjal.vm.values;
 import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import tokyo.peya.langjal.vm.VMSystemClassLoader;
+import tokyo.peya.langjal.vm.engine.VMFrame;
+import tokyo.peya.langjal.vm.engine.threads.VMThread;
 import tokyo.peya.langjal.vm.exceptions.VMPanic;
 
 import java.util.HashMap;
@@ -18,7 +21,7 @@ public class VMStringCreator
          EMPTY = createString0("");
     }
 
-    public static VMValue createString0(@NotNull String value)
+    private static VMValue createString0(@NotNull String value)
     {
         VMObject stringObject = VMType.STRING.createInstance();
 
@@ -57,7 +60,17 @@ public class VMStringCreator
         return stringObject;
     }
 
-    public static VMValue createString(@Nullable String value)
+    public static VMValue createString(@NotNull VMThread thread, @Nullable String value)
+    {
+        return createString(thread.getVm().getClassLoader(), value);
+    }
+
+    public static VMValue createString(@NotNull VMFrame frame, @Nullable String value)
+    {
+        return createString(frame.getVm().getClassLoader(), value);
+    }
+
+    public static VMValue createString(@NotNull VMSystemClassLoader cl, @Nullable String value)
     {
         if (value == null)
             return new VMNull<>(VMType.STRING);
@@ -72,11 +85,11 @@ public class VMStringCreator
         return stringValue;
     }
 
-    public static VMValue[] createStringArray(@NotNull String[] values)
+    public static VMValue[] createStringArray(@NotNull VMSystemClassLoader cl, @NotNull String[] values)
     {
         VMValue[] stringArray = new VMValue[values.length];
         for (int i = 0; i < values.length; i++)
-            stringArray[i] = createString(values[i]);
+            stringArray[i] = createString(cl, values[i]);
         return stringArray;
     }
 
@@ -86,8 +99,6 @@ public class VMStringCreator
             throw new VMPanic("Expected a VMObject of type String, but got: " + stringObj.type());
 
         VMArray valueArray = (VMArray) stringObj.getField("value");
-        if (valueArray == null)
-            throw new VMPanic("String value is null in VMObject: " + stringObj);
 
         StringBuilder sb = new StringBuilder(valueArray.length() / 2);
 

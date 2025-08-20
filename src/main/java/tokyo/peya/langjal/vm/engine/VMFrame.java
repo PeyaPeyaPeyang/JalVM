@@ -6,6 +6,7 @@ import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import tokyo.peya.langjal.compiler.jvm.AccessAttribute;
+import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.VMInterpreter;
 import tokyo.peya.langjal.vm.api.events.VMStepInEvent;
@@ -114,7 +115,7 @@ public class VMFrame
                 if (next == null)
                     return;  // そういうこともある。
 
-                System.out.println("Executing instruction: " + next.getOpcode() + " in frame: " + this);
+                System.out.println("Executing instruction: " + EOpcodes.getName(next.getOpcode()) + " in frame: " + this);
                 this.vm.getEventManager().dispatchEvent(new VMStepInEvent(
                         this,
                         next

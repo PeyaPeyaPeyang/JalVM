@@ -13,6 +13,8 @@ import tokyo.peya.langjal.vm.values.VMValue;
 @Getter
 public class VMField implements RestrictedAccessor
 {
+    private final VMSystemClassLoader classLoader;
+
     private final long fieldID;
     private final VMClass clazz;
     private final FieldNode fieldNode;
@@ -23,9 +25,10 @@ public class VMField implements RestrictedAccessor
     private final VMType<?> type;
     private final String name;
 
-    public VMField(long id, @NotNull VMClass clazz, @NotNull VMType<?> fieldType, @NotNull FieldNode fieldNode)
+    public VMField(long id, @NotNull VMSystemClassLoader classLoader, @NotNull VMClass clazz, @NotNull VMType<?> fieldType, @NotNull FieldNode fieldNode)
     {
         this.fieldID = id;
+        this.classLoader = classLoader;
         this.clazz = clazz;
         this.fieldNode = fieldNode;
 
@@ -38,7 +41,12 @@ public class VMField implements RestrictedAccessor
 
     public VMValue defaultValue()
     {
-        return this.type.defaultValue();
+        Object fieldDefaultValue = this.fieldNode.value;
+        if (fieldDefaultValue == null)
+            return this.type.defaultValue();
+
+        VMValue value = VMValue.fromJavaObject(this.classLoader, fieldDefaultValue);
+        return value.conformValue(this.type);
     }
 
     public void linkType(@NotNull VMSystemClassLoader cl)

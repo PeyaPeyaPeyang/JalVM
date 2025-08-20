@@ -31,13 +31,13 @@ public class JalVM
         this.pluginLoader = new VMPluginLoader();
 
         this.heap = new VMHeap();
-        this.classPaths = new ClassPaths();
         this.classLoader = new VMSystemClassLoader(this, this.heap);
+        this.classPaths = new ClassPaths();
+        VMType.initialiseWellKnownClasses(this.classLoader);
         this.engine = new VMEngine(this);
         this.nativeCaller = new NativeCaller();
 
         this.pluginLoader.loadPlugins();
-        VMType.initialiseWellKnownClasses(this.classLoader);
     }
 
     public void startJVM()

@@ -22,6 +22,7 @@ public class VMPrimitiveClass extends VMClass
     @Override
     public void linkClass(@NotNull VMSystemClassLoader cl)
     {
+        this.setClassLoader(cl);
     }
 
     @Override
@@ -35,6 +36,12 @@ public class VMPrimitiveClass extends VMClass
     {
         return maySuper == this || maySuper == VMType.GENERIC_OBJECT.getLinkedClass()
                 || this.getReference().equals(maySuper.getReference());
+    }
+
+    @Override
+    public boolean isPrimitive()
+    {
+        return true;
     }
 
     private static ClassNode createClassNode(@NotNull String primitiveName)

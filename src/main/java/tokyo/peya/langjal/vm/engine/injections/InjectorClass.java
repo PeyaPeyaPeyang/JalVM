@@ -14,6 +14,7 @@ import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMStringCreator;
 import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
+import tokyo.peya.langjal.vm.values.metaobjects.VMClassObject;
 
 public class InjectorClass implements Injector
 {
@@ -108,7 +109,8 @@ public class InjectorClass implements Injector
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         assert instance != null: "Instance must be a VMObject";
-                        return VMBoolean.of(instance.getObjectType().isPrimitive());
+                        VMClassObject instanceClass = (VMClassObject) instance;
+                        return VMBoolean.of(instanceClass.getTypeOf().isPrimitive());
                     }
                 }
         );

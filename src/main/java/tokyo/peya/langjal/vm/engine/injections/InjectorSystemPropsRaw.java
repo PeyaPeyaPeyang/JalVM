@@ -120,8 +120,8 @@ public class InjectorSystemPropsRaw implements Injector
         String[] platformProperties = createPlatformProperties();
         String[] vmProperties = createVMProperties();
 
-        VMValue[] platformProps = VMStringCreator.createStringArray(platformProperties);
-        VMValue[] vmProps = VMStringCreator.createStringArray(vmProperties);
+        VMValue[] platformProps = VMStringCreator.createStringArray( cl,platformProperties);
+        VMValue[] vmProps = VMStringCreator.createStringArray(cl, vmProperties);
 
         VMArray platformPropsArray = new VMArray(VMType.STRING, platformProps);
         VMArray vmPropsArray = new VMArray(VMType.STRING, vmProps);

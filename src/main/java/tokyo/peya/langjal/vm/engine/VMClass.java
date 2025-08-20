@@ -1,6 +1,7 @@
 package tokyo.peya.langjal.vm.engine;
 
 import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Opcodes;
@@ -36,8 +37,6 @@ import java.util.stream.Collectors;
 @Getter
 public class VMClass extends VMType<VMReferenceValue> implements RestrictedAccessor
 {
-    @Nullable
-    private final VMSystemClassLoader classLoader;
     private final ClassReference reference;
     private final ClassNode clazz;
 
@@ -59,6 +58,10 @@ public class VMClass extends VMType<VMReferenceValue> implements RestrictedAcces
     private VMClassObject classObject;
     private VMClass superLink;
 
+    // Primitive は static final で持っておきたい。
+    @Setter
+    private VMSystemClassLoader classLoader;
+
     public VMClass(@Nullable VMSystemClassLoader classLoader, @NotNull ClassNode clazz)
     {
         super(ClassReference.of(clazz));
@@ -72,8 +75,7 @@ public class VMClass extends VMType<VMReferenceValue> implements RestrictedAcces
         this.methods = extractMethods(clazz);
         this.fields = extractFields(clazz);
         this.interfaceLinks = new ArrayList<>();
-
-        this.staticFields = this.initialiseStaticFields();
+        this.staticFields = new HashMap<>();
     }
 
     public VMClassObject getClassObject(@NotNull VMSystemClassLoader cl)
@@ -205,6 +207,7 @@ public class VMClass extends VMType<VMReferenceValue> implements RestrictedAcces
         if (this.superLink != null && this.superLink != this)
             this.superLink.initialise(callerThread); // スーパークラスがある場合は再帰的に初期化
 
+        this.initialiseStaticFields();
         VMMethod staticInitMethod = this.findStaticInitialiser();
         if (staticInitMethod == null)
             return;  // 静的初期化メソッドがない場合は何もしない
@@ -249,6 +252,7 @@ public class VMClass extends VMType<VMReferenceValue> implements RestrictedAcces
             String descString = fieldNode.desc;
             vmFields.add(new VMField(
                     id += 16, // フィールドIDをインクリメント
+                    this.classLoader,
                     this,
                     VMType.of(descString),
                     fieldNode
@@ -258,14 +262,11 @@ public class VMClass extends VMType<VMReferenceValue> implements RestrictedAcces
         return vmFields;
     }
 
-    private Map<VMField, VMValue> initialiseStaticFields()
+    private void initialiseStaticFields()
     {
-        Map<VMField, VMValue> staticFields = new HashMap<>();
         for (VMField field : this.fields)
             if (field.getAccessAttributes().has(AccessAttribute.STATIC))
-                staticFields.put(field, field.getType().defaultValue());
-
-        return staticFields;
+                this.staticFields.put(field, field.defaultValue());
     }
 
     private List<VMMethod> extractMethods(@NotNull ClassNode classNode)

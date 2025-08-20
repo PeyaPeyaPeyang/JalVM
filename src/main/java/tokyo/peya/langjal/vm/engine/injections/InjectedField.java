@@ -16,6 +16,7 @@ public abstract class InjectedField extends VMField
     {
         super(
                 retrieveOriginalID(clazz, fieldNode),
+              clazz.getClassLoader(),
               clazz,
               fieldType,
               fieldNode

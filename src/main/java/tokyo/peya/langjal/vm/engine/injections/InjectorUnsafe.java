@@ -8,11 +8,14 @@ import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.members.VMField;
 import tokyo.peya.langjal.vm.engine.threads.VMThread;
+import tokyo.peya.langjal.vm.exceptions.VMPanic;
 import tokyo.peya.langjal.vm.references.ClassReference;
+import tokyo.peya.langjal.vm.values.VMArray;
 import tokyo.peya.langjal.vm.values.VMBoolean;
 import tokyo.peya.langjal.vm.values.VMInteger;
 import tokyo.peya.langjal.vm.values.VMLong;
 import tokyo.peya.langjal.vm.values.VMObject;
+import tokyo.peya.langjal.vm.values.VMReferenceValue;
 import tokyo.peya.langjal.vm.values.VMStringCreator;
 import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
@@ -67,7 +70,7 @@ public class InjectorUnsafe implements Injector
                     @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
-                        return new VMInteger(16);
+                        return new VMInteger(getArrayBaseOffset());
                     }
                 }
         );
@@ -87,27 +90,8 @@ public class InjectorUnsafe implements Injector
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMClassObject clazzObject = (VMClassObject) args[0];
-                        VMClass type = clazzObject.getClazz();
-                        if (type == null)
-                            return new VMInteger(8);  // 多分 Object
-                        String descriptor = type.getTypeDescriptor();
-                        if (descriptor.startsWith("L"))
-                            return new VMInteger(8);
-                        switch (descriptor.charAt(0)) {
-                            case 'Z', 'B' -> {
-                                return new VMInteger(1);
-                            }
-                            case 'C', 'S' -> {
-                                return new VMInteger(2);
-                            }
-                            case 'I', 'F' -> {
-                                return new VMInteger(4);
-                            }
-                            case 'J', 'D' -> {
-                                return new VMInteger(8);
-                            }
-                        }
-                        return new VMInteger(4); // Default to 4 for unknown types
+                        int scale = getArrayScale(clazzObject.getClazz());
+                        return new VMInteger(scale);
                     }
                 }
         );
@@ -151,6 +135,82 @@ public class InjectorUnsafe implements Injector
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         return null;
+                    }
+                }
+        );
+        clazz.injectMethod(
+                cl,
+                new InjectedMethod(
+                        clazz, new MethodNode(
+                        EOpcodes.ACC_PUBLIC | EOpcodes.ACC_NATIVE,
+                        "compareAndSetReference",
+                        "(Ljava/lang/Object;JLjava/lang/Object;Ljava/lang/Object;)Z",
+                        null,
+                        null
+                )
+                )
+                {
+                    @Override
+                    @Nullable VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
+                    {
+                        VMReferenceValue object = (VMReferenceValue) args[0];
+                        long offset = ((VMLong) args[1]).asNumber().longValue();
+                        VMReferenceValue expected = (VMReferenceValue) args[2];
+                        VMReferenceValue newValue = (VMReferenceValue) args[3];
+
+                        boolean success;
+                        if (object instanceof VMObject obj)
+                        {
+                            VMField field = obj.getObjectType().findField(offset);
+                            VMValue currentValue = obj.getField(field.getName());
+                            success = currentValue.equals(expected);
+                            if (success)
+                                obj.setField(field, newValue);
+                        }
+                        else if (object instanceof VMArray array)
+                        {
+                            // 配列の場合は、配列の要素を取得
+                            int index = (int) (offset - getArrayBaseOffset()) / getArrayScale(array.getObjectType());
+                            if (index < 0 || index >= array.length())
+                                throw new VMPanic("Array index out of bounds: " + index);
+                            VMValue value = array.get(index);
+                            success = value.equals(expected);
+                            if (success)
+                                array.set(index, newValue);
+                        }
+                        else
+                            throw new VMPanic("Unsupported object type for compareAndSet: " + object.getClass().getName());
+
+                        return VMBoolean.of(success);
+                    }
+                }
+        );
+        clazz.injectMethod(
+                cl,
+                new InjectedMethod(
+                        clazz, new MethodNode(
+                        EOpcodes.ACC_PUBLIC | EOpcodes.ACC_NATIVE,
+                        "compareAndExchangReference",
+                        "(Ljava/lang/Object;JLjava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;",
+                        null,
+                        null
+                )
+                )
+                {
+                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
+                    {
+                        VMObject object = (VMObject) args[0];
+                        long offset = ((VMLong) args[1]).asNumber().longValue();
+                        VMReferenceValue expected = (VMReferenceValue) args[2];
+                        VMReferenceValue newValue = (VMReferenceValue) args[3];
+                        VMField field = object.getObjectType().findField(offset);
+                        VMValue currentValue = object.getField(field.getName());
+                        boolean success = currentValue.equals(expected);
+                        if (success)
+                            object.setField(field, newValue);
+                        return success ? currentValue : expected;
                     }
                 }
         );
@@ -258,7 +318,7 @@ public class InjectorUnsafe implements Injector
                         clazz, new MethodNode(
                         EOpcodes.ACC_PUBLIC | EOpcodes.ACC_NATIVE,
                         "compareAndExchangeLong",
-                        "(Ljava/lang/Object;JJJ)I",
+                        "(Ljava/lang/Object;JJJ)J",
                         null,
                         null
                 )
@@ -284,6 +344,222 @@ public class InjectorUnsafe implements Injector
                     }
                 }
         );
+        clazz.injectMethod(
+                cl,
+                new InjectedMethod(
+                        clazz, new MethodNode(
+                        EOpcodes.ACC_PUBLIC | EOpcodes.ACC_NATIVE,
+                        "getReferenceVolatile",
+                        "(Ljava/lang/Object;J)Ljava/lang/Object;",
+                        null,
+                        null
+                )
+                )
+                {
+                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
+                    {
+                        VMObject object = (VMObject) args[0];
+                        long offset = ((VMLong) args[1]).asNumber().longValue();
+                        VMField field = object.getObjectType().findField(offset);
+                        return object.getField(field.getName());
+                    }
+                }
+        );
+        clazz.injectMethod(
+                cl,
+                new InjectedMethod(
+                        clazz, new MethodNode(
+                        EOpcodes.ACC_PUBLIC | EOpcodes.ACC_NATIVE,
+                        "putReferenceVolatile",
+                        "(Ljava/lang/Object;JLjava/lang/Object;)V",
+                        null,
+                        null
+                )
+                )
+                {
+                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
+                    {
+                        VMObject object = (VMObject) args[0];
+                        long offset = ((VMLong) args[1]).asNumber().longValue();
+                        VMObject value = (VMObject) args[2];
+                        VMField field = object.getObjectType().findField(offset);
+                        object.setField(field, value);
+                        return null;
+                    }
+                }
+        );
+        clazz.injectMethod(
+                cl,
+                new InjectedMethod(
+                        clazz, new MethodNode(
+                        EOpcodes.ACC_PUBLIC | EOpcodes.ACC_NATIVE,
+                        "getInt",
+                        "(Ljava/lang/Object;J)I",
+                        null,
+                        null
+                )
+                )
+                {
+                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
+                    {
+                        VMObject object = (VMObject) args[0];
+                        long offset = ((VMLong) args[1]).asNumber().longValue();
+                        VMField field = object.getObjectType().findField(offset);
+                        VMValue value = object.getField(field.getName());
+                        return value.conformValue(VMType.INTEGER);
+                    }
+                }
+        );
+
+        clazz.injectMethod(cl, createUnsafeGetVolatileMethod(
+                clazz, "getReferenceVolatile", "(Ljava/lang/Object;J)Ljava/lang/Object;", VMType.GENERIC_OBJECT
+        ));
+        clazz.injectMethod(cl, createUnsafePutVolatileMethod(
+                clazz, "putReferenceVolatile", "(Ljava/lang/Object;JLjava/lang/Object;)V", VMType.GENERIC_OBJECT
+        ));
+        clazz.injectMethod(cl, createUnsafeGetVolatileMethod(
+                clazz, "getIntVolatile", "(Ljava/lang/Object;J)I", VMType.INTEGER
+        ));
+        clazz.injectMethod(cl, createUnsafeGetVolatileMethod(
+                        clazz, "setIntVolatile", "(Ljava/lang/Object;J)I", VMType.INTEGER
+        ));
+        clazz.injectMethod(cl, createUnsafeGetVolatileMethod(
+                clazz, "getBooleanVolatile", "(Ljava/lang/Object;J)Z", VMType.BOOLEAN
+        ));
+        clazz.injectMethod(cl, createUnsafePutVolatileMethod(
+                clazz, "putBooleanVolatile", "(Ljava/lang/Object;JZ)V", VMType.BOOLEAN
+        ));
+        clazz.injectMethod(cl, createUnsafeGetVolatileMethod(
+                clazz, "getByteVolatile", "(Ljava/lang/Object;J)B", VMType.BYTE
+        ));
+        clazz.injectMethod(cl, createUnsafePutVolatileMethod(
+                clazz, "putByteVolatile", "(Ljava/lang/Object;JB)V", VMType.BYTE
+        ));
+        clazz.injectMethod(cl, createUnsafeGetVolatileMethod(
+                clazz, "getShortVolatile", "(Ljava/lang/Object;J)S", VMType.SHORT
+        ));
+        clazz.injectMethod(cl, createUnsafePutVolatileMethod(
+                clazz, "putShortVolatile", "(Ljava/lang/Object;JS)V", VMType.SHORT
+        ));
+        clazz.injectMethod(cl, createUnsafeGetVolatileMethod(
+                clazz, "getCharVolatile", "(Ljava/lang/Object;J)C", VMType.CHAR
+        ));
+        clazz.injectMethod(cl, createUnsafePutVolatileMethod(
+                clazz, "putCharVolatile", "(Ljava/lang/Object;JC)V", VMType.CHAR
+        ));
+        clazz.injectMethod(cl, createUnsafeGetVolatileMethod(
+                clazz, "getLongVolatile", "(Ljava/lang/Object;J)J", VMType.LONG
+        ));
+        clazz.injectMethod(cl, createUnsafePutVolatileMethod(
+                clazz, "putLongVolatile", "(Ljava/lang/Object;JJ)V", VMType.LONG
+        ));
+        clazz.injectMethod(cl, createUnsafeGetVolatileMethod(
+                clazz, "getFloatVolatile", "(Ljava/lang/Object;J)F", VMType.FLOAT
+        ));
+        clazz.injectMethod(cl, createUnsafePutVolatileMethod(
+                clazz, "putFloatVolatile", "(Ljava/lang/Object;JF)V", VMType.FLOAT
+        ));
+        clazz.injectMethod(cl, createUnsafeGetVolatileMethod(
+                clazz, "getDoubleVolatile", "(Ljava/lang/Object;J)D", VMType.DOUBLE
+        ));
+        clazz.injectMethod(cl, createUnsafePutVolatileMethod(
+                clazz, "putDoubleVolatile", "(Ljava/lang/Object;JD)V", VMType.DOUBLE
+        ));
     }
 
+    private static InjectedMethod createUnsafeGetVolatileMethod(
+            @NotNull VMClass clazz, @NotNull String methodName, @NotNull String descriptor, @NotNull VMType<?> returnType
+    )
+    {
+        return new InjectedMethod(
+                clazz, new MethodNode(
+                EOpcodes.ACC_PUBLIC | EOpcodes.ACC_NATIVE,
+                methodName,
+                descriptor,
+                null,
+                null
+        )
+        )
+        {
+            @Override
+            public @Nullable VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                                            @Nullable VMObject instance, @NotNull VMValue[] args)
+            {
+                VMReferenceValue object = (VMReferenceValue) args[0];
+                long offset = ((VMLong) args[1]).asNumber().longValue();
+                if (object instanceof VMObject vmObject)
+                {
+                    VMField field = vmObject.getObjectType().findField(offset);
+                    VMValue value = vmObject.getField(field.getName());
+                    return value.conformValue(returnType);
+                }
+                else if (object instanceof VMArray array)
+                {
+                    // 配列の場合は、配列の要素を取得
+                    int index = (int) (offset - getArrayBaseOffset()) / getArrayScale(array.getObjectType());
+                    if (index < 0 || index >= array.length())
+                        throw new VMPanic("Array index out of bounds: " + index);
+                    VMValue value = array.get(index);
+                    return value.conformValue(returnType);
+                }
+
+                throw new VMPanic("Unsupported object type for getVolatile: " + object.getClass().getName());
+            }
+        };
+    }
+
+    public static InjectedMethod createUnsafePutVolatileMethod(
+            @NotNull VMClass clazz, @NotNull String methodName, @NotNull String descriptor, @NotNull VMType<?> valueType
+    )
+    {
+        return new InjectedMethod(
+                clazz, new MethodNode(
+                EOpcodes.ACC_PUBLIC | EOpcodes.ACC_NATIVE,
+                methodName,
+                descriptor,
+                null,
+                null
+        )
+        )
+        {
+            @Override
+            public @Nullable VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                                            @Nullable VMObject instance, @NotNull VMValue[] args)
+            {
+                VMObject object = (VMObject) args[0];
+                long offset = ((VMLong) args[1]).asNumber().longValue();
+                VMValue value = args[2].conformValue(valueType);
+                VMField field = object.getObjectType().findField(offset);
+                object.setField(field, value);
+                return null;
+            }
+        };
+    }
+
+    private static int getArrayBaseOffset()
+    {
+        return 16;  // とりあえず
+    }
+
+    private static int getArrayScale(VMType<?> clazz)
+    {
+        if (clazz == null)
+            return 8; // Object と同等としてデフォルト
+
+        String descriptor = clazz.getTypeDescriptor();
+        if (descriptor.startsWith("L"))
+            return 8; // Object 型
+
+        return switch (descriptor.charAt(0))
+        {
+            case 'Z', 'B' -> 1;
+            case 'C', 'S' -> 2;
+            case 'I', 'F' -> 4;
+            case 'J', 'D' -> 8;
+            default -> 4; // その他はとりあえず 4
+        };
+    }
 }

@@ -18,5 +18,7 @@ public class VMThreadObject extends VMObject
         super(vm.getClassLoader().findClass(ClassReference.of("java/lang/Thread")));
         this.vm = vm;
         this.thread = thread;
+
+        this.forceInitialise();
     }
 }

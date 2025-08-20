@@ -74,6 +74,7 @@ public class VMThread
         {
             VMType<?> returningType = VMType.of(method.getDescriptor().getReturnType());
             VMValue respond = this.vm.getNativeCaller().callFFI(
+                    this,
                     method.getClazz().getReference(),
                     method.getName(),
                     returningType,

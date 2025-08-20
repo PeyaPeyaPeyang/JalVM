@@ -1,9 +1,10 @@
 package tokyo.peya.langjal.vm.api.events;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.api.VMEventHandlerList;
-import tokyo.peya.langjal.vm.engine.threads.VMThread;
+import tokyo.peya.langjal.vm.engine.threading.VMThread;
 
 public class VMThreadStartEvent extends VMThreadEvent
 {

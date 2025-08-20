@@ -1,12 +1,16 @@
-package tokyo.peya.langjal.vm.engine.threads;
+package tokyo.peya.langjal.vm.engine.threading;
 
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import tokyo.peya.langjal.compiler.jvm.AccessAttribute;
 import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.api.events.VMFrameInEvent;
 import tokyo.peya.langjal.vm.api.events.VMFrameOutEvent;
+import tokyo.peya.langjal.vm.api.events.VMThreadChangeStateEvent;
+import tokyo.peya.langjal.vm.api.events.VMThreadWaitingEvent;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.VMInterruptingFrame;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
@@ -19,9 +23,8 @@ import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
 import tokyo.peya.langjal.vm.values.metaobjects.VMThreadObject;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -35,10 +38,11 @@ public class VMThread
     private final VMFrameTracer tracer;
     private final VMThreadObject threadObject;
 
-    @Getter
     protected VMFrame firstFrame;
-    @Getter
     protected VMFrame currentFrame;
+
+    protected VMThreadState state;
+    protected VMMonitor acquiringMonitor;
 
 
     public VMThread(@NotNull JalVM vm, @NotNull String name)
@@ -48,6 +52,7 @@ public class VMThread
         this.name = name;
         this.threadObject = new VMThreadObject(vm, this);
 
+        this.state = VMThreadState.NEW;
         this.firstFrame = null;
         this.currentFrameIndex = 0;
         this.currentFrame = null;
@@ -64,7 +69,30 @@ public class VMThread
 
     public void heartbeat()
     {
-        this.currentFrame.heartbeat();
+        boolean isRunnable = !(this.firstFrame == null || !this.firstFrame.isRunning());
+        switch (this.state)
+        {
+            case TERMINATED:
+                return;
+            case NEW:
+                if (isRunnable)
+                    this.setState(VMThreadState.RUNNABLE);
+                else
+                {
+                    this.setState(VMThreadState.TERMINATED);
+                    return;
+                }
+                /* fall-through */
+            case RUNNABLE:
+                if (!isRunnable)
+                {
+                    this.setState(VMThreadState.TERMINATED);
+                    break;
+                }
+
+                this.currentFrame.heartbeat();
+                break;
+        }
     }
 
     public void invokeMethod(@NotNull VMMethod method, boolean isVMDecree, @Nullable VMObject thisObject, @NotNull VMValue... args)
@@ -168,13 +196,21 @@ public class VMThread
 
     public void kill()
     {
+        this.setState(VMThreadState.TERMINATED);
         this.firstFrame = null;
         this.currentFrame = null;
     }
 
-    public boolean isAlive()
+    public void setState(@NotNull VMThreadState state)
     {
-        return !(this.firstFrame == null || !this.firstFrame.isRunning());
+        VMThreadChangeStateEvent stateChangeEvent = new VMThreadChangeStateEvent(
+                this.vm,
+                this,
+                this.state,
+                state
+        );
+        this.vm.getEventManager().dispatchEvent(stateChangeEvent);
+        this.state = state;
     }
 
     public Stream<VMFrame> getFrames()

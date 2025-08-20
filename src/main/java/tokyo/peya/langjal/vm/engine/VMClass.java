@@ -378,14 +378,16 @@ public class VMClass extends VMType<VMReferenceValue> implements RestrictedAcces
 
     public void setStaticField(@NotNull VMField field, @NotNull VMValue value)
     {
+        VMClass owner = findFieldOwner(field, this);
+
         VMValue conformedValue = value.conformValue(field.getType()); // 値をフィールドの型に適合させる
         if (!field.getType().isAssignableFrom(conformedValue.type()))
             throw new VMPanic("Cannot assign value of type " + value.type() + " to field " + field.getName() + " of type " + field.getType());
 
         if (field instanceof InjectedField)
-            ((InjectedField) field).set(this, null, conformedValue); // InjectedFieldの場合は特別な処理を行う
+            ((InjectedField) field).set(owner, null, conformedValue); // InjectedFieldの場合は特別な処理を行う
         else
-            this.staticFields.put(field, conformedValue); // 静的フィールドに値を設定
+            owner.staticFields.put(field, conformedValue); // 静的フィールドに値を設定
     }
     public void setStaticField(@NotNull String fieldName, @NotNull VMValue value)
     {
@@ -396,10 +398,12 @@ public class VMClass extends VMType<VMReferenceValue> implements RestrictedAcces
     @NotNull
     public VMValue getStaticFieldValue(@NotNull VMField field)
     {
-        if (field instanceof InjectedField)
-            return ((InjectedField) field).get(this, null);
+        VMClass owner = findFieldOwner(field, this);
 
-        VMValue value = this.staticFields.get(field);
+        if (field instanceof InjectedField)
+            return ((InjectedField) field).get(owner, null);
+
+        VMValue value = owner.staticFields.get(field);
         if (value == null)
             throw new VMPanic("Static field " + field.getName() + " is not initialized in class " + this.reference.getFullQualifiedName());
 
@@ -409,9 +413,15 @@ public class VMClass extends VMType<VMReferenceValue> implements RestrictedAcces
     @NotNull
     public VMField findField(@NotNull String fieldName)
     {
-        for (VMField field : this.fields)
-            if (field.getName().equals(fieldName))
-                return field; // 一致するフィールドを返す
+        VMClass current = this;
+        do
+        {
+            for (VMField field : current.fields)
+                if (field.getName().equals(fieldName))
+                    return field; // 一致するフィールドを返す
+
+            current = current.superLink; // スーパークラスに移動
+        } while (!(current == null || current == this)); // スーパークラスが存在し、かつ自身ではない場合
 
         throw new VMPanic("Field not found: " + fieldName + " in class " + this.reference.getFullQualifiedName());
     }
@@ -419,11 +429,33 @@ public class VMClass extends VMType<VMReferenceValue> implements RestrictedAcces
     @NotNull
     public VMField findField(long id)
     {
-        for (VMField field : this.fields)
-            if (field.getFieldID() == id)
-                return field; // 一致するフィールドを返す
+        VMClass current = this;
+        do
+        {
+            for (VMField field : current.fields)
+                if (field.getFieldID() == id)
+                    return field; // 一致するフィールドを返す
+
+            current = current.superLink; // スーパークラスに移動
+        } while (!(current == null || current == this)); // スーパークラスが存在し、かつ自身ではない場合
 
         throw new VMPanic("Field with ID " + id + " not found in class " + this.reference.getFullQualifiedName());
+    }
+
+    private static VMClass findFieldOwner(@NotNull VMField field, @NotNull VMClass apex)
+    {
+        VMClass current = apex;
+        do
+        {
+            for (VMField f : current.fields)
+            {
+                if (f.equals(field))
+                    return current; // フィールドが見つかったらそのクラスを返す
+            }
+            current = current.superLink; // スーパークラスに移動
+        } while (!(current == null || current == apex)); // スーパークラスが存在し、かつ自身ではない場合
+
+        throw new VMPanic("Field " + field.getName() + " not found in class hierarchy of " + apex.reference.getFullQualifiedName());
     }
 
     @Override

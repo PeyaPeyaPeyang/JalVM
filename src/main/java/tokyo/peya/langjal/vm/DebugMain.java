@@ -1,6 +1,7 @@
 package tokyo.peya.langjal.vm;
 
 import org.jetbrains.annotations.NotNull;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
@@ -31,6 +32,7 @@ import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
 
 import java.util.List;
 import java.util.Scanner;
+import java.util.regex.Pattern;
 
 public class DebugMain
 {
@@ -61,7 +63,9 @@ public class DebugMain
         );
         methodNode.visitCode();
         // System.out.println("Hello, World!");
-        helloWorld(methodNode);
+        // helloWorld(methodNode);
+        parrotInput(methodNode);
+        // a(methodNode);
         // comparisons(methodNode);
         // getProp(methodNode);
         methodNode.visitInsn(Opcodes.RETURN); // Return instruction
@@ -84,6 +88,69 @@ public class DebugMain
         node.visitInsn(EOpcodes.ISUB);
     }
 
+    public static void a(MethodNode node) {
+         // Pattern.compile("test")
+        // node.visitTypeInsn(Opcodes.NEW, "java/util/regex/Pattern");
+        // node.visitInsn(Opcodes.DUP);
+        node.visitLdcInsn("test"); // パターン文字列
+        node.visitMethodInsn(
+                Opcodes.INVOKESTATIC,
+                "java/util/regex/Pattern",
+                "compile",
+                "(Ljava/lang/String;)Ljava/util/regex/Pattern;",
+                false // Is interface
+        );
+    }
+
+    private static void parrotInput(MethodNode node)
+    {
+        // new java.util.Scanner(System.in)
+        node.visitTypeInsn(Opcodes.NEW, "java/util/Scanner");
+        node.visitInsn(Opcodes.DUP);
+        node.visitFieldInsn(
+                Opcodes.GETSTATIC,
+                "java/lang/System",
+                "in",
+                "Ljava/io/InputStream;"
+        );
+        node.visitMethodInsn(
+                Opcodes.INVOKESPECIAL,
+                "java/util/Scanner",
+                "<init>",
+                "(Ljava/io/InputStream;)V",
+                false
+        );
+
+        // ローカル変数1に Scanner を保存
+        node.visitVarInsn(Opcodes.ASTORE, 1);
+
+        // System.out
+        node.visitFieldInsn(
+                Opcodes.GETSTATIC,
+                "java/lang/System",
+                "out",
+                "Ljava/io/PrintStream;"
+        );
+
+        // scanner.nextLine()
+        node.visitVarInsn(Opcodes.ALOAD, 1);
+        node.visitMethodInsn(
+                Opcodes.INVOKEVIRTUAL,
+                "java/util/Scanner",
+                "nextLine",
+                "()Ljava/lang/String;",
+                false
+        );
+
+        // PrintStream.println(String)
+        node.visitMethodInsn(
+                Opcodes.INVOKEVIRTUAL,
+                "java/io/PrintStream",
+                "println",
+                "(Ljava/lang/String;)V",
+                false
+        );
+    }
     private static void helloWorld(MethodNode node)
     {
         node.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");

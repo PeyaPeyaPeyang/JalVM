@@ -2,7 +2,7 @@ package tokyo.peya.langjal.vm.values.metaobjects;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import tokyo.peya.langjal.compiler.JALClassCompiler;
 import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
@@ -13,15 +13,15 @@ import tokyo.peya.langjal.vm.values.VMType;
 @Getter
 public class VMClassObject extends VMObject
 {
-    @Nullable
-    private final VMClass clazz;
+    @NotNull
+    private final VMClass representingClass;
     @NotNull
     private final VMType<?> typeOf;
 
-    public VMClassObject(@NotNull VMSystemClassLoader cl, @Nullable VMClass clazz, @NotNull VMType<?> typeOf)
+    public VMClassObject(@NotNull VMSystemClassLoader cl, @NotNull VMClass representingClass, @NotNull VMType<?> typeOf)
     {
         super(cl.findClass(ClassReference.of("java/lang/Class")));
-        this.clazz = clazz;
+        this.representingClass = representingClass;
         this.typeOf = typeOf;
 
         typeOf.linkClass(cl);
@@ -35,11 +35,12 @@ public class VMClassObject extends VMObject
 
     public VMClassObject(@NotNull VMSystemClassLoader cl, @NotNull VMType<?> typeOf)
     {
-        this(cl, null, typeOf);
+        this(cl, typeOf.getLinkedClass(), typeOf);
     }
+
 
     public boolean isPrimitive()
     {
-        return this.clazz != null && this.clazz.isPrimitive();
+        return this.representingClass != null && this.representingClass.isPrimitive();
     }
 }

@@ -115,7 +115,7 @@ public class VMFrame
                 if (next == null)
                     return;  // そういうこともある。
 
-                // System.out.println("Executing instruction: " + EOpcodes.getName(next.getOpcode()) + " in frame: " + this);
+                System.out.println("Executing instruction: " + EOpcodes.getName(next.getOpcode()) + " in frame: " + this);
                 this.vm.getEventManager().dispatchEvent(new VMStepInEvent(
                         this,
                         next
@@ -149,9 +149,15 @@ public class VMFrame
                 ValueTracingEntry.returning(value, this.method, returnInsn)
         );
 
+        this.returnFromMethod();
+    }
+
+    public void returnFromMethod()
+    {
         this.isRunning = false;
         this.thread.restoreFrame();
     }
+
 
     @Override
     public String toString()

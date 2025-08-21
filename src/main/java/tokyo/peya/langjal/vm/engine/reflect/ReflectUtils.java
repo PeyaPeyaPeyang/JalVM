@@ -38,7 +38,7 @@ public class ReflectUtils
         VMClass currentClass = clazz;
         while (currentClass != null)
         {
-            lookupChain.add(clazz.getClassObject(frame.getVm().getClassLoader()));
+            lookupChain.add(clazz.getClassObject());
             VMFrame prev = currentFrame.getPrevFrame();
             if (prev == null)
                 break;

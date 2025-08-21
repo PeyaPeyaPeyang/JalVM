@@ -19,7 +19,6 @@ import tokyo.peya.langjal.vm.values.VMFloat;
 import tokyo.peya.langjal.vm.values.VMInteger;
 import tokyo.peya.langjal.vm.values.VMLong;
 import tokyo.peya.langjal.vm.values.VMShort;
-import tokyo.peya.langjal.vm.values.VMStringCreator;
 import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
 

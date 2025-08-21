@@ -26,6 +26,7 @@ import tokyo.peya.langjal.vm.values.VMReferenceValue;
 import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
 import tokyo.peya.langjal.vm.values.metaobjects.VMClassObject;
+import tokyo.peya.langjal.vm.values.metaobjects.VMStringObject;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -78,11 +79,11 @@ public class VMClass extends VMType<VMReferenceValue> implements RestrictedAcces
         this.staticFields = new HashMap<>();
     }
 
-    public VMClassObject getClassObject(@NotNull VMSystemClassLoader cl)
+    public VMClassObject getClassObject()
     {
         // 遅延評価しないと，ロード時に StackOverflowError が発生する可能性がある
         if (this.classObject == null)
-            this.classObject = new VMClassObject(cl, this, this);
+            this.classObject = new VMClassObject(this.classLoader, this, this);
         return this.classObject;
     }
 
@@ -98,7 +99,10 @@ public class VMClass extends VMType<VMReferenceValue> implements RestrictedAcces
         if (this.superLink == null)
             throw new IllegalStateException("Cannot create instance of class without super class link: " + this.reference.getFullQualifiedName());
 
-        return new VMObject(this, null);
+        if (this.clazz.name.equals("java/lang/String"))
+            return new VMStringObject(this.classLoader);
+        else
+            return new VMObject(this, null);
     }
 
     public void injectMethod(@NotNull VMSystemClassLoader cl, @NotNull InjectedMethod method)

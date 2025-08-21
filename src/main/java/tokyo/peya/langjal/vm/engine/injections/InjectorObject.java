@@ -46,7 +46,7 @@ public class InjectorObject implements Injector
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         assert instance != null : "Instance must not be null";
-                        return instance.getObjectType().getClassObject(thread.getVm().getClassLoader());
+                        return instance.getObjectType().getClassObject();
                     }
                 }
         );

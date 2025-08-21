@@ -10,9 +10,9 @@ import tokyo.peya.langjal.vm.engine.threading.VMThread;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMArray;
 import tokyo.peya.langjal.vm.values.VMObject;
-import tokyo.peya.langjal.vm.values.VMStringCreator;
 import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
+import tokyo.peya.langjal.vm.values.metaobjects.VMStringObject;
 
 import java.util.Locale;
 import java.util.Properties;
@@ -119,11 +119,8 @@ public class InjectorSystemPropsRaw implements Injector
         String[] platformProperties = createPlatformProperties();
         String[] vmProperties = createVMProperties();
 
-        VMValue[] platformProps = VMStringCreator.createStringArray( cl,platformProperties);
-        VMValue[] vmProps = VMStringCreator.createStringArray(cl, vmProperties);
-
-        VMArray platformPropsArray = new VMArray(cl, VMType.STRING, platformProps);
-        VMArray vmPropsArray = new VMArray(cl, VMType.STRING, vmProps);
+        VMArray platformPropsArray = VMStringObject.createStringArray(cl, platformProperties);
+        VMArray vmPropsArray = VMStringObject.createStringArray(cl, vmProperties);
 
         clazz.injectMethod(
                 cl,

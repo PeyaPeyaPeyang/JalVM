@@ -16,6 +16,6 @@ public class OperatorReturn extends AbstractInstructionOperator<InsnNode>
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand)
     {
-        // Do nothing.
+        frame.returnFromMethod();
     }
 }

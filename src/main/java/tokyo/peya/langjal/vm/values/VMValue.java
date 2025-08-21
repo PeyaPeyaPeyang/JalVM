@@ -7,6 +7,7 @@ import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.exceptions.VMPanic;
 import tokyo.peya.langjal.vm.values.metaobjects.VMClassObject;
+import tokyo.peya.langjal.vm.values.metaobjects.VMStringObject;
 
 public interface VMValue
 {
@@ -38,7 +39,7 @@ public interface VMValue
             case Integer intValue -> new VMInteger(intValue);
             case Long longValue -> new VMLong(longValue);
             case Float floatValue -> new VMFloat(floatValue);
-            case String strValue -> VMStringCreator.createString(cl, strValue);
+            case String strValue -> VMStringObject.createString(cl, strValue);
             case Double doubleValue -> new VMDouble(doubleValue);
             case Character charValue -> new VMChar(charValue);
             case Byte byteValue -> new VMByte(byteValue);
@@ -57,6 +58,7 @@ public interface VMValue
                 case Type.DOUBLE: new VMClassObject(cl, VMType.DOUBLE);
                 case Type.ARRAY, Type.OBJECT: {
                     VMType<?> vmType = VMType.of(TypeDescriptor.parse(asmType.getDescriptor()));
+                    vmType.linkClass(cl);
                     yield new VMClassObject(cl, vmType);
                 }
 

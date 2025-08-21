@@ -13,8 +13,8 @@ import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMInteger;
 import tokyo.peya.langjal.vm.values.VMLong;
 import tokyo.peya.langjal.vm.values.VMObject;
-import tokyo.peya.langjal.vm.values.VMStringCreator;
 import tokyo.peya.langjal.vm.values.VMValue;
+import tokyo.peya.langjal.vm.values.metaobjects.VMStringObject;
 
 import java.time.Duration;
 import java.util.HashMap;
@@ -103,8 +103,8 @@ public class InjectorSignal implements Injector
                     @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
-                        VMObject signalNameObj = (VMObject) args[0];
-                        String signalName = VMStringCreator.getString(signalNameObj);
+                        VMStringObject signalNameObject = (VMStringObject) args[0];
+                        String signalName = signalNameObject.getString();
                         int handle = InjectorSignal.this.getSignalOrCreateHandle(signalName);
                         return new VMInteger(handle);
                     }

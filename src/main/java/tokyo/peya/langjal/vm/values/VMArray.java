@@ -29,6 +29,7 @@ public class VMArray extends VMObject implements VMValue, VMReferenceValue
 
         this.elementType = elementType;
         this.elements = new VMValue[size];
+        this.fillDefaults();
 
         this.arrayType = VMType.of("[" + elementType.getTypeDescriptor());
 
@@ -43,6 +44,12 @@ public class VMArray extends VMObject implements VMValue, VMReferenceValue
         this.arrayType = arrayType;
 
         this.forceInitialise();
+    }
+
+    private void fillDefaults()
+    {
+        for (int i = 0; i < this.elements.length; i++)
+            this.elements[i] = this.elementType.defaultValue();
     }
 
     public void linkClass(@NotNull VMSystemClassLoader cl)

@@ -16,10 +16,10 @@ import tokyo.peya.langjal.vm.values.VMInteger;
 import tokyo.peya.langjal.vm.values.VMLong;
 import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMReferenceValue;
-import tokyo.peya.langjal.vm.values.VMStringCreator;
 import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
 import tokyo.peya.langjal.vm.values.metaobjects.VMClassObject;
+import tokyo.peya.langjal.vm.values.metaobjects.VMStringObject;
 
 public class InjectorUnsafe implements Injector
 {
@@ -89,7 +89,7 @@ public class InjectorUnsafe implements Injector
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMClassObject clazzObject = (VMClassObject) args[0];
-                        int scale = getArrayScale(clazzObject.getClazz());
+                        int scale = getArrayScale(clazzObject.getRepresentingClass());
                         return new VMInteger(scale);
                     }
                 }
@@ -110,8 +110,8 @@ public class InjectorUnsafe implements Injector
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMClassObject clazzObject = (VMClassObject) args[0];
-                        VMObject fieldName = (VMObject) args[1];
-                        String fieldNameStr = VMStringCreator.getString(fieldName);
+                        VMStringObject fieldNameObject = (VMStringObject) args[1];
+                        String fieldNameStr = fieldNameObject.getString();
                         VMField field = clazzObject.getTypeOf().getLinkedClass().findField(fieldNameStr);
                         return new VMLong(field.getFieldID());
                     }

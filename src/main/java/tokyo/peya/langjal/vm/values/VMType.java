@@ -35,6 +35,16 @@ public class VMType<T extends VMValue>
     public static void initialiseWellKnownClasses(@NotNull VMSystemClassLoader classLoader)
     {
         // ここでよく使うクラスをリンクしておく
+        VOID.linkClass(classLoader);
+        BOOLEAN.linkClass(classLoader);
+        BYTE.linkClass(classLoader);
+        CHAR.linkClass(classLoader);
+        SHORT.linkClass(classLoader);
+        INTEGER.linkClass(classLoader);
+        LONG.linkClass(classLoader);
+        FLOAT.linkClass(classLoader);
+        DOUBLE.linkClass(classLoader);
+        // 参照型のクラスもリンクしておく
         GENERIC_OBJECT.linkClass(classLoader);
         STRING.linkClass(classLoader);
         GENERIC_ARRAY.linkClass(classLoader);
@@ -119,7 +129,10 @@ public class VMType<T extends VMValue>
     public void linkClass(@NotNull VMSystemClassLoader cl)
     {
         if (this.isPrimitive)
-            return;  // プリミティブ型はリンク不要
+        {
+            this.linkedClass.link(cl);
+            return;  // プリミティブ型はリンク不要だが，クラスローダを設定する必要がある。
+        }
 
         if (this.linkedClass == null)
         {

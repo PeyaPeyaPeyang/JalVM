@@ -264,6 +264,46 @@ public class InjectorClass implements Injector
                 new InjectedMethod(
                         clazz, new MethodNode(
                         EOpcodes.ACC_PRIVATE | EOpcodes.ACC_NATIVE,
+                        "getDeclaredConstructors0",
+                        "(Z)[Ljava/lang/reflect/Constructor;",
+                        null,
+                        null
+                ))
+                {
+                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
+                    {
+                        VMClassObject instanceClass = (VMClassObject) instance;
+                        assert instanceClass != null;
+                        VMBoolean publicOnly = (VMBoolean) args[0];
+                        VMClass representingClass = instanceClass.getRepresentingClass();
+
+                        VMMethodObject[] methodObjects;
+                        if (publicOnly.asBoolean())
+                            methodObjects = representingClass.getMethods().stream()
+                                                             .filter(m -> m.getAccessLevel() == AccessLevel.PUBLIC)
+                                                             .filter(m -> m.getName().equals("<init>"))
+                                                             .map(VMMethod::getMethodObject)
+                                                             .toArray(VMMethodObject[]::new);
+                        else
+                            methodObjects = representingClass.getMethods().stream()
+                                                             .filter(m -> m.getName().equals("<init>"))
+                                                             .map(VMMethod::getMethodObject)
+                                                             .toArray(VMMethodObject[]::new);
+
+                        return new VMArray(
+                                cl,
+                                cl.findClass(ClassReference.of("java/lang/reflect/Constructor")),
+                                methodObjects
+                        );
+                    }
+                }
+        );
+        clazz.injectMethod(
+                cl,
+                new InjectedMethod(
+                        clazz, new MethodNode(
+                        EOpcodes.ACC_PRIVATE | EOpcodes.ACC_NATIVE,
                         "getDeclaredClasses0",
                         "()[Ljava/lang/Class;",
                         null,

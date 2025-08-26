@@ -10,6 +10,9 @@ import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.injections.InjectorManager;
 import tokyo.peya.langjal.vm.references.ClassReference;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+
 public class VMSystemClassLoader
 {
     @Getter
@@ -17,11 +20,14 @@ public class VMSystemClassLoader
     private final VMHeap heap;
     private final InjectorManager injector;
 
+    private final Deque<VMClass> linkingQueue;
+
     public VMSystemClassLoader(@NotNull JalVM vm, @NotNull VMHeap heap)
     {
         this.vm = vm;
         this.heap = heap;
         this.injector = new InjectorManager();
+        this.linkingQueue = new ArrayDeque<>();
     }
 
     @Nullable

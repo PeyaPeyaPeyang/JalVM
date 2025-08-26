@@ -15,9 +15,10 @@ public abstract class InjectedField extends VMField
     public InjectedField(@NotNull VMClass clazz, @NotNull VMType<?> fieldType, @NotNull FieldNode fieldNode)
     {
         super(
-                retrieveOriginalID(clazz, fieldNode),
               clazz.getClassLoader(),
               clazz,
+              retrieveOriginalSlot(clazz, fieldNode),
+              retrieveOriginalID(clazz, fieldNode),
               fieldType,
               fieldNode
         );
@@ -30,6 +31,15 @@ public abstract class InjectedField extends VMField
                 .findFirst()
                 .map(VMField::getFieldID)
                 .orElseThrow(() -> new IllegalStateException("Original field ID not found for " + node.name));
+    }
+
+    private static int retrieveOriginalSlot(@NotNull VMClass clazz, @NotNull FieldNode node)
+    {
+        return clazz.getFields().stream()
+                    .filter(f -> f.getName().equals(node.name))
+                    .findFirst()
+                    .map(VMField::getFieldSlot)
+                    .orElseThrow(() -> new IllegalStateException("Original field ID not found for " + node.name));
     }
 
     public abstract VMValue get(

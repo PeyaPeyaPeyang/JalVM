@@ -2,7 +2,6 @@ package tokyo.peya.langjal.vm.values;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.exceptions.VMPanic;
@@ -35,6 +34,11 @@ public class VMArray extends VMObject implements VMValue, VMReferenceValue
 
         this.forceInitialise();
     }
+    public VMArray(@NotNull VMSystemClassLoader classLoader, @NotNull VMType<?> elementType)
+    {
+        this(classLoader, elementType, 0);
+    }
+
 
     public VMArray(@NotNull VMClass objectType, VMType<?> elementType, VMValue[] elements, @NotNull VMType<?> arrayType)
     {

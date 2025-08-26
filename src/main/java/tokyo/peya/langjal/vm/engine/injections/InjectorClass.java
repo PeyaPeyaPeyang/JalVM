@@ -4,16 +4,22 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.tree.MethodNode;
 import tokyo.peya.langjal.compiler.jvm.AccessAttribute;
+import tokyo.peya.langjal.compiler.jvm.AccessLevel;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
+import tokyo.peya.langjal.vm.engine.members.VMField;
+import tokyo.peya.langjal.vm.engine.members.VMMethod;
 import tokyo.peya.langjal.vm.engine.threading.VMThread;
 import tokyo.peya.langjal.vm.references.ClassReference;
+import tokyo.peya.langjal.vm.values.VMArray;
 import tokyo.peya.langjal.vm.values.VMBoolean;
 import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
 import tokyo.peya.langjal.vm.values.metaobjects.VMClassObject;
+import tokyo.peya.langjal.vm.values.metaobjects.VMFieldObject;
+import tokyo.peya.langjal.vm.values.metaobjects.VMMethodObject;
 import tokyo.peya.langjal.vm.values.metaobjects.VMStringObject;
 
 public class InjectorClass implements Injector
@@ -174,6 +180,113 @@ public class InjectorClass implements Injector
 
                         VMClass representingClass = instanceClass.getRepresentingClass();
                         return VMBoolean.of(representingClass.getArrayDimensions() > 0);
+                    }
+                }
+        );
+        clazz.injectMethod(
+                cl,
+                new InjectedMethod(
+                        clazz, new MethodNode(
+                        EOpcodes.ACC_PRIVATE | EOpcodes.ACC_NATIVE,
+                        "getDeclaredFields0",
+                        "(Z)[Ljava/lang/reflect/Field;",
+                        null,
+                        null
+                ))
+                {
+                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
+                    {
+                        VMClassObject instanceClass = (VMClassObject) instance;
+                        assert instanceClass != null;
+                        VMBoolean publicOnly = (VMBoolean) args[0];
+                        VMClass representingClass = instanceClass.getRepresentingClass();
+
+                        VMFieldObject[] fieldObjects;
+                        if (publicOnly.asBoolean())
+                            fieldObjects = representingClass.getFields().stream()
+                                                        .filter(f -> f.getAccessLevel() == AccessLevel.PUBLIC)
+                                                        .map(VMField::getFieldObject)
+                                                        .toArray(VMFieldObject[]::new);
+                        else
+                            fieldObjects = representingClass.getFields().stream()
+                                                        .map(VMField::getFieldObject)
+                                                        .toArray(VMFieldObject[]::new);
+
+                        return new VMArray(
+                                cl,
+                                cl.findClass(ClassReference.of("java/lang/reflect/Field")),
+                                fieldObjects
+                        );
+                    }
+                }
+        );
+        clazz.injectMethod(
+                cl,
+                new InjectedMethod(
+                        clazz, new MethodNode(
+                        EOpcodes.ACC_PRIVATE | EOpcodes.ACC_NATIVE,
+                        "getDeclaredMethods0",
+                        "(Z)[Ljava/lang/reflect/Method;",
+                        null,
+                        null
+                ))
+                {
+                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
+                    {
+                        VMClassObject instanceClass = (VMClassObject) instance;
+                        assert instanceClass != null;
+                        VMBoolean publicOnly = (VMBoolean) args[0];
+                        VMClass representingClass = instanceClass.getRepresentingClass();
+
+                        VMMethodObject[] methodObjects;
+                        if (publicOnly.asBoolean())
+                            methodObjects = representingClass.getMethods().stream()
+                                                            .filter(m -> m.getAccessLevel() == AccessLevel.PUBLIC)
+                                                            .map(VMMethod::getMethodObject)
+                                                            .toArray(VMMethodObject[]::new);
+                        else
+                            methodObjects = representingClass.getMethods().stream()
+                                                            .map(VMMethod::getMethodObject)
+                                                            .toArray(VMMethodObject[]::new);
+
+                        return new VMArray(
+                                cl,
+                                cl.findClass(ClassReference.of("java/lang/reflect/Method")),
+                                methodObjects
+                        );
+                    }
+                }
+        );
+        clazz.injectMethod(
+                cl,
+                new InjectedMethod(
+                        clazz, new MethodNode(
+                        EOpcodes.ACC_PRIVATE | EOpcodes.ACC_NATIVE,
+                        "getDeclaredClasses0",
+                        "()[Ljava/lang/Class;",
+                        null,
+                        null
+                ))
+                {
+                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
+                    {
+                        VMClassObject instanceClass = (VMClassObject) instance;
+                        assert instanceClass != null;
+                        VMBoolean publicOnly = (VMBoolean) args[0];
+                        VMClass representingClass = instanceClass.getRepresentingClass();
+
+                        VMClassObject[] classObjects = representingClass.getInnerLinks().stream()
+                                                                        .map(VMClass::getClassObject)
+                                                                        .toArray(VMClassObject[]::new);
+
+                        return new VMArray(
+                                cl,
+                                cl.findClass(ClassReference.of("java/lang/Class")),
+                                classObjects
+                        );
                     }
                 }
         );

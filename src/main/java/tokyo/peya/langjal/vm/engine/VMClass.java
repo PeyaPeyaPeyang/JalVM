@@ -45,6 +45,8 @@ public class VMClass extends VMType<VMReferenceValue> implements RestrictedAcces
     private final AccessLevel accessLevel;
 
     @Getter(lombok.AccessLevel.NONE)
+    private final List<VMClass> innerLinks;
+    @Getter(lombok.AccessLevel.NONE)
     private final List<VMClass> interfaceLinks;
     @Getter(lombok.AccessLevel.NONE)
     private final List<VMMethod> methods;
@@ -54,6 +56,7 @@ public class VMClass extends VMType<VMReferenceValue> implements RestrictedAcces
     @Getter(lombok.AccessLevel.NONE)
     private final Map<VMField, VMValue> staticFields;
 
+    private boolean isLinked;
     private boolean isInitialised;
     @Getter(lombok.AccessLevel.NONE)
     private VMClassObject classObject;
@@ -76,6 +79,7 @@ public class VMClass extends VMType<VMReferenceValue> implements RestrictedAcces
         this.methods = extractMethods(clazz);
         this.fields = extractFields(clazz);
         this.interfaceLinks = new ArrayList<>();
+        this.innerLinks = new ArrayList<>();
         this.staticFields = new HashMap<>();
     }
 
@@ -195,11 +199,31 @@ public class VMClass extends VMType<VMReferenceValue> implements RestrictedAcces
     }
     public void link(@NotNull VMSystemClassLoader cl)
     {
+        if (this.isLinked)
+            return; // 既にリンク済みなら何もしない
+
         // リンク処理 -> クラスのスーパクラスやメンバの参照を解決
         this.linkClass(cl);
+        this.linkInner(cl);
         this.linkSuper(cl);
-        this.linkMembers(cl);
         this.linkInterfaces(cl);
+        this.linkMembers(cl);
+
+        this.isLinked = true; // リンク済みフラグを立てる
+    }
+
+    private void linkInner(@NotNull VMSystemClassLoader cl)
+    {
+        List<String> innerClassNames = this.clazz.innerClasses.stream()
+                // .filter(inner -> inner.outerName != null && inner.outerName.equals(this.clazz.name))
+                .map(inner -> inner.name)
+                .toList();
+
+        for (String innerName : innerClassNames)
+        {
+            VMClass innerClass = cl.findClass(ClassReference.of(innerName));
+            this.innerLinks.add(innerClass); // インナークラスをリンク
+        }
     }
 
     public void initialise(@NotNull VMThread callerThread)
@@ -254,13 +278,15 @@ public class VMClass extends VMType<VMReferenceValue> implements RestrictedAcces
         FieldNode[] fields = classNode.fields.toArray(new FieldNode[0]);
         List<VMField> vmFields = new ArrayList<>();
         long id = 0; // フィールドIDの初期化
-        for (FieldNode fieldNode : fields)
+        for (int i = 0; i < fields.length; i++)
         {
+            FieldNode fieldNode = fields[i];
             String descString = fieldNode.desc;
             vmFields.add(new VMField(
-                    id += 16, // フィールドIDをインクリメント
                     this.classLoader,
                     this,
+                    i,
+                    id += 16, // フィールドIDをインクリメント
                     VMType.of(descString),
                     fieldNode
             ));
@@ -278,9 +304,14 @@ public class VMClass extends VMType<VMReferenceValue> implements RestrictedAcces
 
     private List<VMMethod> extractMethods(@NotNull ClassNode classNode)
     {
-        return classNode.methods.stream()
-                                .map(methodNode -> new VMMethod(this, methodNode))
-                                .collect(Collectors.toList());
+        List<VMMethod> vmMethods = new ArrayList<>();
+        for (int i = 0; i < classNode.methods.size(); i++)
+        {
+            MethodNode methodNode = classNode.methods.get(i);
+            vmMethods.add(new VMMethod(this, i, methodNode));
+        }
+
+        return vmMethods;
     }
 
     @Nullable
@@ -420,15 +451,9 @@ public class VMClass extends VMType<VMReferenceValue> implements RestrictedAcces
     @NotNull
     public VMField findField(@NotNull String fieldName)
     {
-        VMClass current = this;
-        do
-        {
-            for (VMField field : current.fields)
-                if (field.getName().equals(fieldName))
-                    return field; // 一致するフィールドを返す
-
-            current = current.superLink; // スーパークラスに移動
-        } while (!(current == null || current == this)); // スーパークラスが存在し、かつ自身ではない場合
+        VMField field = this.findFieldSafe(fieldName);
+        if (field != null)
+            return field;
 
         throw new VMPanic("Field not found: " + fieldName + " in class " + this.reference.getFullQualifiedName());
     }
@@ -447,6 +472,22 @@ public class VMClass extends VMType<VMReferenceValue> implements RestrictedAcces
         } while (!(current == null || current == this)); // スーパークラスが存在し、かつ自身ではない場合
 
         throw new VMPanic("Field with ID " + id + " not found in class " + this.reference.getFullQualifiedName());
+    }
+
+    @Nullable
+    public VMField findFieldSafe(@NotNull String fieldName)
+    {
+        VMClass current = this;
+        do
+        {
+            for (VMField field : current.fields)
+                if (field.getName().equals(fieldName))
+                    return field; // 一致するフィールドを返す
+
+            current = current.superLink; // スーパークラスに移動
+        } while (!(current == null || current == this)); // スーパークラスが存在し、かつ自身ではない場合
+
+        return null;
     }
 
     private static VMClass findFieldOwner(@NotNull VMField field, @NotNull VMClass apex)
@@ -486,6 +527,11 @@ public class VMClass extends VMType<VMReferenceValue> implements RestrictedAcces
     public VMClass getOwningClass()
     {
         return this; // VMClassは常に自身がオーナクラス
+    }
+
+    public List<VMClass> getInnerLinks()
+    {
+        return Collections.unmodifiableList(this.innerLinks);
     }
 
     public List<VMField> getFields()

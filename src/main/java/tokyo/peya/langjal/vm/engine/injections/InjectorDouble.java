@@ -56,7 +56,7 @@ public class InjectorDouble implements Injector
                         clazz, new MethodNode(
                         EOpcodes.ACC_PUBLIC | EOpcodes.ACC_STATIC | EOpcodes.ACC_NATIVE,
                         "longBitsToDouble",
-                        "(I)F",
+                        "(J)D",
                         null,
                         null
                 )

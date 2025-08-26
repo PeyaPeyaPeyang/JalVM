@@ -41,6 +41,6 @@ public class VMClassObject extends VMObject
 
     public boolean isPrimitive()
     {
-        return this.representingClass != null && this.representingClass.isPrimitive();
+        return this.representingClass.isPrimitive();
     }
 }

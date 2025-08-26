@@ -20,6 +20,8 @@ import tokyo.peya.langjal.vm.exceptions.invocation.NonStaticInvocationPanic;
 import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
+import tokyo.peya.langjal.vm.values.metaobjects.VMConstructorObject;
+import tokyo.peya.langjal.vm.values.metaobjects.VMMethodObject;
 
 import java.util.Arrays;
 
@@ -27,6 +29,7 @@ import java.util.Arrays;
 public class VMMethod implements RestrictedAccessor
 {
     private final VMClass clazz;
+    private final int slot;
     private final MethodNode methodNode;
 
     private final AccessLevel accessLevel;
@@ -36,9 +39,13 @@ public class VMMethod implements RestrictedAccessor
     private final VMType<?> returnType;
     private final VMType<?>[] parameterTypes;
 
-    public VMMethod(@NotNull VMClass clazz, @NotNull MethodNode methodNode)
+    @Getter(lombok.AccessLevel.NONE)
+    private VMMethodObject methodObject;
+
+    public VMMethod(@NotNull VMClass clazz, int slot, @NotNull MethodNode methodNode)
     {
         this.clazz = clazz;
+        this.slot = slot;
         this.methodNode = methodNode;
 
         this.accessLevel = AccessLevel.fromAccess(methodNode.access);
@@ -49,6 +56,20 @@ public class VMMethod implements RestrictedAccessor
         this.parameterTypes = Arrays.stream(this.descriptor.getParameterTypes())
                                     .map(VMType::of)
                                     .toArray(VMType[]::new);
+
+    }
+
+    public VMMethodObject getMethodObject()
+    {
+        if (this.methodNode != null)
+        {
+            if (this.methodNode.name.equals("<init>"))
+                this.methodObject = new VMConstructorObject(this.clazz.getClassLoader(), this);
+            else
+                this.methodObject = new VMMethodObject(this.clazz.getClassLoader(), this);
+        }
+
+        return this.methodObject;
     }
 
     public VMInterpreter createInterpreter(

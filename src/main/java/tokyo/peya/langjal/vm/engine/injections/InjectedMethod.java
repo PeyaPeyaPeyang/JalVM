@@ -2,9 +2,11 @@ package tokyo.peya.langjal.vm.engine.injections;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import tokyo.peya.langjal.vm.engine.VMClass;
+import tokyo.peya.langjal.vm.engine.members.VMField;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
 import tokyo.peya.langjal.vm.engine.threading.VMThread;
 import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
@@ -15,7 +17,20 @@ public abstract class InjectedMethod extends VMMethod
 {
     public InjectedMethod(@NotNull VMClass clazz, @NotNull MethodNode methodNode)
     {
-        super(clazz, methodNode);
+        super(
+                clazz,
+                retrieveOriginalSlot(clazz, methodNode),
+                methodNode
+        );
+    }
+
+    private static int retrieveOriginalSlot(@NotNull VMClass clazz, @NotNull MethodNode node)
+    {
+        return clazz.getMethods().stream()
+                    .filter(f -> f.getName().equals(node.name) && f.getDescriptor().equals(node.desc))
+                    .findFirst()
+                    .map(VMMethod::getSlot)
+                    .orElseThrow(() -> new IllegalStateException("Original method ID not found for " + node.name));
     }
 
     @Override

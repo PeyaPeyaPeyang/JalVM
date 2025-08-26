@@ -9,14 +9,16 @@ import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
+import tokyo.peya.langjal.vm.values.metaobjects.VMFieldObject;
 
 @Getter
 public class VMField implements RestrictedAccessor
 {
     private final VMSystemClassLoader classLoader;
 
-    private final long fieldID;
     private final VMClass clazz;
+    private final int fieldSlot;
+    private final long fieldID;
     private final FieldNode fieldNode;
 
     private final AccessLevel accessLevel;
@@ -25,8 +27,13 @@ public class VMField implements RestrictedAccessor
     private final VMType<?> type;
     private final String name;
 
-    public VMField(long id, @NotNull VMSystemClassLoader classLoader, @NotNull VMClass clazz, @NotNull VMType<?> fieldType, @NotNull FieldNode fieldNode)
+    @Getter(lombok.AccessLevel.NONE)
+    private VMFieldObject fieldObject;
+
+    public VMField(@NotNull VMSystemClassLoader classLoader, @NotNull VMClass clazz, int fieldSlot, long id,
+                   @NotNull VMType<?> fieldType, @NotNull FieldNode fieldNode)
     {
+        this.fieldSlot = fieldSlot;
         this.fieldID = id;
         this.classLoader = classLoader;
         this.clazz = clazz;
@@ -37,6 +44,13 @@ public class VMField implements RestrictedAccessor
 
         this.type = fieldType;
         this.name = fieldNode.name;
+    }
+
+    public VMFieldObject getFieldObject()
+    {
+        if (this.fieldObject == null)
+            this.fieldObject = new VMFieldObject(this.classLoader, this);
+        return this.fieldObject;
     }
 
     public VMValue defaultValue()

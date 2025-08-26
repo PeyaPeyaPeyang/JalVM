@@ -166,7 +166,12 @@ public class VMObject implements VMValue, VMReferenceValue
         this.setField(field, value);
     }
 
-
+    public void setFieldIfExists(@NotNull String fieldName, @NotNull VMValue value)
+    {
+        VMField field = this.getObjectType().findFieldSafe(fieldName);
+        if (field != null)
+            this.setField(field, value);
+    }
     public @NotNull VMValue getField(@NotNull VMField field)
     {
         VMObject suitableTarget = findSuitableTarget(field.getClazz(), this.owner);

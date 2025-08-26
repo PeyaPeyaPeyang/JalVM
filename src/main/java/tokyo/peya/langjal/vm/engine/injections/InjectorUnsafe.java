@@ -190,7 +190,7 @@ public class InjectorUnsafe implements Injector
                 new InjectedMethod(
                         clazz, new MethodNode(
                         EOpcodes.ACC_PUBLIC | EOpcodes.ACC_NATIVE,
-                        "compareAndExchangReference",
+                        "compareAndExchangeReference",
                         "(Ljava/lang/Object;JLjava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;",
                         null,
                         null
@@ -422,8 +422,8 @@ public class InjectorUnsafe implements Injector
         clazz.injectMethod(cl, createUnsafeGetVolatileMethod(
                 clazz, "getIntVolatile", "(Ljava/lang/Object;J)I", VMType.INTEGER
         ));
-        clazz.injectMethod(cl, createUnsafeGetVolatileMethod(
-                        clazz, "setIntVolatile", "(Ljava/lang/Object;J)I", VMType.INTEGER
+        clazz.injectMethod(cl, createUnsafePutVolatileMethod(
+                        clazz, "putIntVolatile", "(Ljava/lang/Object;JI)V", VMType.INTEGER
         ));
         clazz.injectMethod(cl, createUnsafeGetVolatileMethod(
                 clazz, "getBooleanVolatile", "(Ljava/lang/Object;J)Z", VMType.BOOLEAN

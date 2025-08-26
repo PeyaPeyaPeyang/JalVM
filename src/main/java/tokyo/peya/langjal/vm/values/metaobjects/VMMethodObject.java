@@ -30,13 +30,13 @@ public class VMMethodObject extends VMObject
         this.setFieldIfExists("name", VMStringObject.createString(classLoader, method.getName()));
         this.setFieldIfExists("parameterTypes", new VMArray(
                 classLoader,
-                VMType.of("java/lang/Class"),
+                VMType.ofClassName("java/lang/Class"),
                 Arrays.stream(method.getParameterTypes())
                         .map(t -> t.getLinkedClass().getClassObject())
                         .toArray(VMObject[]::new)
         ));
         this.setFieldIfExists("returnType", method.getReturnType().getLinkedClass().getClassObject());
-        this.setFieldIfExists("exceptionTypes", new VMArray(classLoader, VMType.of("java/lang/Class")));
+        this.setFieldIfExists("exceptionTypes", new VMArray(classLoader, VMType.ofClassName("java/lang/Class")));
         this.setFieldIfExists("modifiers", new VMInteger(method.getMethodNode().access));
         this.setFieldIfExists("signature", VMStringObject.createString(classLoader, method.getMethodNode().signature));
         this.setFieldIfExists("annotations", new VMArray(classLoader, VMType.BYTE));

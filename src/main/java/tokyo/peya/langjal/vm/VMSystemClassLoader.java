@@ -20,6 +20,7 @@ public class VMSystemClassLoader
     private final VMHeap heap;
     private final InjectorManager injector;
 
+    private boolean isLinking;
     private final Deque<VMClass> linkingQueue;
 
     public VMSystemClassLoader(@NotNull JalVM vm, @NotNull VMHeap heap)
@@ -68,12 +69,26 @@ public class VMSystemClassLoader
         VMClass vmClass = new VMClass(this, classNode);
         this.heap.addClass(vmClass);
 
-        vmClass.link(this);
-
-        // クラスにネイティブ等を注入
-        this.injector.injectClass(this, vmClass);
+        this.linkingQueue.add(vmClass);
+        this.resumeLinking();
 
         return vmClass;
+    }
+
+    public void resumeLinking()
+    {
+        if (this.isLinking || !this.vm.isRunning())
+            return;
+
+        this.isLinking = true;
+        while (!this.linkingQueue.isEmpty())
+        {
+            VMClass vmClass = this.linkingQueue.pollFirst();
+            vmClass.link(this);
+            // クラスにネイティブ等を注入
+            this.injector.injectClass(this, vmClass);
+        }
+        this.isLinking = false;
     }
 
     @NotNull

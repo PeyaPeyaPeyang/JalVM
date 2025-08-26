@@ -25,7 +25,10 @@ public class JalVM
     private final NativeCaller nativeCaller;
     private final VMEventManager eventManager;
     private final VMPluginLoader pluginLoader;
+
     private final boolean debugging = true;
+
+    private boolean isRunning;
 
     public JalVM()
     {
@@ -47,6 +50,9 @@ public class JalVM
 
     public void startJVM(@NotNull VMMethod mainMethod, @NotNull String[] args)
     {
+        this.isRunning = true;
+        this.classLoader.resumeLinking();
+
         System.out.println("Starting J(al)VM, please wait...");
         this.engine.getMainThread().startMainThread(mainMethod, args);
         System.out.println("OK");
@@ -57,7 +63,9 @@ public class JalVM
 
         System.out.println("Starting.");
         this.engine.startEngine();
+
         System.out.println("J(al)VM has stopped successfully.");
+        this.isRunning = false;
     }
 
     public void initialiseVM()

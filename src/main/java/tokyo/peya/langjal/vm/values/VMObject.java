@@ -23,10 +23,10 @@ public class VMObject implements VMValue, VMReferenceValue
     private final VMClass objectType;
     @Getter
     private final VMMonitor monitor;
-    private final VMObject superObject;
 
     private final Map<VMField, VMValue> fields;
 
+    private VMObject superObject;
     @Getter
     private boolean isInitialised;
 
@@ -36,11 +36,6 @@ public class VMObject implements VMValue, VMReferenceValue
         this.objectType = objectType;
         this.monitor = new VMMonitor(this);
         this.fields = createFields();
-
-        if (objectType.getReference().isEqualClass("java/lang/Object"))
-            this.superObject = null; // Objectクラスはスーパークラスを持たないようにする。
-        else
-            this.superObject = objectType.getSuperLink().createInstance(this.owner);
     }
 
     public VMObject(@NotNull VMClass objectType)
@@ -57,6 +52,15 @@ public class VMObject implements VMValue, VMReferenceValue
         this.superObject = superObject;
         this.fields = fields;
         this.isInitialised = isInitialised;
+    }
+
+    public VMObject getSuperObject()
+    {
+        if (this.superObject == null
+                && !this.objectType.getReference().isEqualClass("java/lang/Object"))
+                this.superObject = this.objectType.getSuperLink().createInstance(this.owner);
+
+        return this.superObject;
     }
 
     private Map<VMField, VMValue> createFields()
@@ -138,7 +142,7 @@ public class VMObject implements VMValue, VMReferenceValue
         {
             if (targetObject.objectType.equals(targetClass))
                 break; // ターゲットクラスと同じクラスのオブジェクトを見つけたら終了
-            targetObject = targetObject.superObject; // スーパークラスのオブジェクトに移動
+            targetObject = targetObject.getSuperObject(); // スーパークラスのオブジェクトに移動
         } while (targetObject != null);
         if (targetObject == null)
             throw new VMPanic("Cannot find target object for constructor: " + targetClass.getReference()
@@ -234,9 +238,9 @@ public class VMObject implements VMValue, VMReferenceValue
             clonedFields.put(field, value == null ? null : value.cloneValue());
         }
 
-        VMObject clonedSuperObject = this.superObject;
-        if (this.superObject != this)
-            clonedSuperObject = this.superObject.cloneValue(); // スーパークラスのオブジェクトもクローンする
+        VMObject clonedSuperObject = this.getSuperObject();
+        if (clonedSuperObject != this)
+            clonedSuperObject = clonedSuperObject.cloneValue(); // スーパークラスのオブジェクトもクローンする
 
         return new VMObject(this.owner, this.objectType, clonedSuperObject, clonedFields, this.isInitialised);
     }

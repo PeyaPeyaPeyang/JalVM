@@ -468,7 +468,11 @@ public class VMClass extends VMType<VMReferenceValue> implements RestrictedAcces
                 if (field.getFieldID() == id)
                     return field; // 一致するフィールドを返す
 
-            current = current.superLink; // スーパークラスに移動
+            if (current == current.superLink)
+                break;
+
+            current = current.superLink
+            ; // スーパークラスに移動
         } while (!(current == null || current == this)); // スーパークラスが存在し、かつ自身ではない場合
 
         throw new VMPanic("Field with ID " + id + " not found in class " + this.reference.getFullQualifiedName());
@@ -484,8 +488,11 @@ public class VMClass extends VMType<VMReferenceValue> implements RestrictedAcces
                 if (field.getName().equals(fieldName))
                     return field; // 一致するフィールドを返す
 
+            if (current == current.superLink)
+                break;
+
             current = current.superLink; // スーパークラスに移動
-        } while (!(current == null || current == this)); // スーパークラスが存在し、かつ自身ではない場合
+        } while (!(current == null || current == this)); // スーパークラスが存在し，かつ自身ではない場合
 
         return null;
     }

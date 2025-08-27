@@ -35,6 +35,7 @@ public class InjectorManager
                 new InjectorFloat(),
                 new InjectorInet4Address(),
                 new InjectorInet6Address(),
+                new InjectorNativeAccessor(),
                 new InjectorNativeEntryPoint(),
                 new InjectorObject(),
                 new InjectorPerf(),

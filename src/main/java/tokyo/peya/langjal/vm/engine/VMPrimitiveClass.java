@@ -4,6 +4,7 @@ import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.ClassNode;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
+import tokyo.peya.langjal.vm.values.VMPrimitive;
 import tokyo.peya.langjal.vm.values.VMType;
 
 @Getter
@@ -20,13 +21,14 @@ public class VMPrimitiveClass extends VMClass
     }
 
     @Override
-    public void linkClass(@NotNull VMSystemClassLoader cl)
+    public VMPrimitiveClass linkClass(@NotNull VMSystemClassLoader cl)
     {
         this.setClassLoader(cl);
+        return this;
     }
 
     @Override
-    public String getTypeDescriptor()
+    public @NotNull String getTypeDescriptor()
     {
         return this.primitiveType.getTypeDescriptor();
     }

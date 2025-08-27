@@ -19,6 +19,6 @@ public class VMThreadObject extends VMObject
         this.vm = vm;
         this.thread = thread;
 
-        this.forceInitialise();
+        this.forceInitialise(vm.getClassLoader());
     }
 }

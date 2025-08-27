@@ -64,6 +64,7 @@ public class VMFrame
         this.locals = new VMLocals(this,
                                    method.getMaxLocals(),
                                    method.getAccessAttributes().has(AccessAttribute.STATIC),
+                                   method.getAccessAttributes().has(AccessAttribute.ENUM),
                                    args
         );
 

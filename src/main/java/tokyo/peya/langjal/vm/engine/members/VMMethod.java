@@ -102,7 +102,7 @@ public class VMMethod implements RestrictedAccessor
         if (!this.accessAttributes.has(AccessAttribute.STATIC))
             throw new NonStaticInvocationPanic(thread, this);
 
-        thread.createInterrupting(this, (_) -> {}, args);
+        thread.invokeInterrupting(this, (_) -> {}, args);
     }
 
     public void invokeInstanceMethod(@Nullable MethodInsnNode operand, @NotNull VMThread thread, @Nullable VMClass caller,

@@ -4,17 +4,21 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.references.ClassReference;
+import tokyo.peya.langjal.vm.values.metaobjects.VMStringObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class VMHeap
 {
     private final List<VMClass> loadedClasses;
+    private final HashMap<String, VMStringObject> stringPool;
 
     public VMHeap()
     {
         this.loadedClasses = new ArrayList<>();
+        this.stringPool = new HashMap<>();
     }
 
     public void addClass(VMClass vmClass)
@@ -50,5 +54,15 @@ public class VMHeap
     public List<VMClass> getLoadedClasses()
     {
         return new ArrayList<>(this.loadedClasses);
+    }
+
+    public VMStringObject internString(@NotNull VMStringObject value)
+    {
+        String valueStr = value.getString();
+        if (this.stringPool.containsKey(valueStr))
+            return this.stringPool.get(valueStr);
+
+        this.stringPool.put(valueStr, value);
+        return value;
     }
 }

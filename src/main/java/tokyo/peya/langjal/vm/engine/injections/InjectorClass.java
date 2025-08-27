@@ -352,6 +352,35 @@ public class InjectorClass implements Injector
                     }
                 }
         );
+        clazz.injectMethod(
+                cl,
+                new InjectedMethod(
+                        clazz, new MethodNode(
+                        EOpcodes.ACC_PRIVATE | EOpcodes.ACC_NATIVE,
+                        "initClassName",
+                        "()Ljava/lang/String;",
+                        null,
+                        null
+                ))
+                {
+                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
+                    {
+                        VMClassObject obj = (VMClassObject) instance;
+                        assert obj != null;
+                        VMType<?> type = obj.getTypeOf();
+                        String name;
+                        if (type.getArrayDimensions() == 0)
+                            name = type.getLinkedClass().getReference().getFullQualifiedDotName();
+                        else
+                            name = type.getTypeDescriptor();
+
+                        VMValue nameObj = VMStringObject.createString(thread, name);
+                        obj.setField("name", nameObj);
+                        return nameObj;
+                    }
+                }
+        );
     }
 
 }

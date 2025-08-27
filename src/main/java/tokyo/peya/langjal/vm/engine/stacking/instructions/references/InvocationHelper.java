@@ -21,7 +21,7 @@ public class InvocationHelper
         VMType<?>[] argumentTypes = new VMType[argumentTypeDescriptors.length];
         for (int i = arguments.length - 1; i >= 0; i--)  // スタックの順序は逆なので、最後からポップする
         {
-            argumentTypes[i] = VMType.of(argumentTypeDescriptors[i]);
+            argumentTypes[i] = VMType.of(argumentTypeDescriptors[i]).linkClass(frame.getVm().getClassLoader());
             arguments[i] = frame.getStack().popType(argumentTypes[i]);
         }
 

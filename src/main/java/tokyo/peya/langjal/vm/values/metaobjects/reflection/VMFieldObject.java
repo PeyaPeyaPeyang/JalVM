@@ -33,6 +33,6 @@ public class VMFieldObject extends VMObject
         this.setField("signature", VMStringObject.createString(classLoader, field.getFieldNode().signature));
         this.setField("annotations", new VMArray(classLoader, VMType.BYTE, 0));
 
-        this.forceInitialise();
+        this.forceInitialise(classLoader);
     }
 }

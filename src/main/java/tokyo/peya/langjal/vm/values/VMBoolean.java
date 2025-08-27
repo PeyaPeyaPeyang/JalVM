@@ -36,7 +36,7 @@ public final class VMBoolean extends AbstractVMPrimitive
     @Override
     public @NotNull String toString()
     {
-        return this.asNumber().intValue() == 0 ? "true": "false";
+        return this.asNumber().intValue() == 0 ? "false": "true";
     }
 
     public static VMBoolean of(final boolean value)

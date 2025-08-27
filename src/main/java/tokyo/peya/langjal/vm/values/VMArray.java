@@ -32,7 +32,7 @@ public class VMArray extends VMObject implements VMValue, VMReferenceValue
 
         this.arrayType = VMType.of("[" + elementType.getTypeDescriptor());
 
-        this.forceInitialise();
+        this.forceInitialise(classLoader);
     }
     public VMArray(@NotNull VMSystemClassLoader classLoader, @NotNull VMType<?> elementType)
     {
@@ -47,7 +47,7 @@ public class VMArray extends VMObject implements VMValue, VMReferenceValue
         this.elements = elements;
         this.arrayType = arrayType;
 
-        this.forceInitialise();
+        this.forceInitialise(objectType.getClassLoader());
     }
 
     private void fillDefaults()
@@ -138,6 +138,12 @@ public class VMArray extends VMObject implements VMValue, VMReferenceValue
         if (other instanceof VMArray otherArray)
             return this.elementType.isAssignableFrom(otherArray.getObjectType());
         return other.type().equals(VMType.GENERIC_OBJECT) || other instanceof VMNull;
+    }
+
+    @Override
+    public boolean isCategory2()
+    {
+        return false;
     }
 
     @Override

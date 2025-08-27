@@ -2,7 +2,6 @@ package tokyo.peya.langjal.vm.values.metaobjects;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
-import tokyo.peya.langjal.compiler.JALClassCompiler;
 import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
@@ -25,7 +24,7 @@ public class VMClassObject extends VMObject
         this.typeOf = typeOf;
 
         typeOf.linkClass(cl);
-        this.forceInitialise();
+        this.forceInitialise(cl);
     }
 
     public VMClassObject(@NotNull JalVM vm, @NotNull VMType<?> typeOf)

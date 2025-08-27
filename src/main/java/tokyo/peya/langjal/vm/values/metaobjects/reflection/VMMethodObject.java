@@ -43,7 +43,7 @@ public class VMMethodObject extends VMObject
         this.setFieldIfExists("parameterAnnotations", new VMArray(classLoader, VMType.BYTE));
         this.setFieldIfExists("annotationDefault", new VMArray(classLoader, VMType.BYTE));
 
-        this.forceInitialise();
+        this.forceInitialise(classLoader);
     }
 
 

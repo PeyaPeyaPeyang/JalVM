@@ -50,7 +50,7 @@ public class InjectorVM implements Injector
                         int initLevel = level.asNumber().intValue();
                         System.out.println("VM INITIALISATION LEVEL CHANGED: " + initLevel);
 
-                        thread.createInterrupting(
+                        thread.invokeInterrupting(
                                 originalInitLevel,
                                 _ -> {},
                                 args

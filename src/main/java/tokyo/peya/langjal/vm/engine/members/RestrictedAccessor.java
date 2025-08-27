@@ -46,30 +46,15 @@ public interface RestrictedAccessor
                 if (callerClass.equals(target))
                     return true; // privateは同じクラスからのみアクセス可能
 
-                // インナー・クラスの場合，呼び出し元と対象が内外関係ならアクセス可能
-                String targetName = target.getReference().getFullQualifiedName();
-                String callerName = callerClass.getReference().getFullQualifiedName();
-
-                // 呼び出し元の innerClasses を確認
-                for (InnerClassNode inner : callerClass.getClazz().innerClasses)
+                for (VMClass inner: target.getInnerLinks())
                 {
-                    if (inner.outerName == null)
-                        inner.outerName = inner.name.substring(0, inner.name.lastIndexOf('$'));
-
-                    if ((callerName.equals(inner.name) && targetName.equals(inner.outerName))
-                            || callerName.equals(inner.outerName) && targetName.equals(inner.name))
-                        return true;
+                    if (inner.getReference().equals(callerClass.getReference()))
+                        return true; // privateなメンバクラスは外側のクラスからアクセス可能
                 }
-
-                // 呼び出し先（target）の innerClasses も確認（逆の関係用）
-                for (InnerClassNode inner : target.getClazz().innerClasses)
+                for (VMClass inner: callerClass.getInnerLinks())
                 {
-                    if (inner.outerName == null)
-                        inner.outerName = inner.name.substring(0, inner.name.lastIndexOf('$'));
-
-                    if ((targetName.equals(inner.name) && callerName.equals(inner.outerName))
-                            || (targetName.equals(inner.outerName) && callerName.equals(inner.name)))
-                        return true;
+                    if (inner.getReference().equals(target.getReference()))
+                        return true; // privateなメンバクラスは外側のクラスからアクセス可能
                 }
 
                 /* fall-through */

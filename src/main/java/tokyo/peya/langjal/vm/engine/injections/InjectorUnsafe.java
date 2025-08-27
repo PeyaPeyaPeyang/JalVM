@@ -7,6 +7,7 @@ import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.members.VMField;
+import tokyo.peya.langjal.vm.engine.members.VMMethod;
 import tokyo.peya.langjal.vm.engine.threading.VMThread;
 import tokyo.peya.langjal.vm.exceptions.VMPanic;
 import tokyo.peya.langjal.vm.references.ClassReference;
@@ -467,6 +468,27 @@ public class InjectorUnsafe implements Injector
         clazz.injectMethod(cl, createUnsafePutVolatileMethod(
                 clazz, "putDoubleVolatile", "(Ljava/lang/Object;JD)V", VMType.DOUBLE
         ));
+
+        clazz.injectMethod(
+                cl,
+                new InjectedMethod(
+                        clazz, new MethodNode(
+                        EOpcodes.ACC_PRIVATE | EOpcodes.ACC_NATIVE,
+                        "shouldBeInitialized0",
+                        "(Ljava/lang/Class;)Z",
+                        null,
+                        null
+                )
+                )
+                {
+                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
+                    {
+                        VMClassObject clazzObject = (VMClassObject) args[0];
+                        return VMBoolean.of(!clazzObject.getRepresentingClass().isInitialised());
+                    }
+                }
+        );
     }
 
     private static InjectedMethod createUnsafeGetVolatileMethod(

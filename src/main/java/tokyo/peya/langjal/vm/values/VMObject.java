@@ -3,6 +3,7 @@ package tokyo.peya.langjal.vm.values;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.injections.InjectedField;
@@ -43,7 +44,7 @@ public class VMObject implements VMValue, VMReferenceValue
         this(objectType, null); // オーナーをnullにしてインスタンスを作成
     }
 
-    private VMObject(@NotNull VMObject owner, @NotNull VMClass objectType, @NotNull VMObject superObject,
+    private VMObject(@NotNull VMObject owner, @NotNull VMClass objectType, @Nullable VMObject superObject,
                      @NotNull Map<VMField, VMValue> fields, boolean isInitialised)
     {
         this.owner = owner;
@@ -72,11 +73,20 @@ public class VMObject implements VMValue, VMReferenceValue
         return fields;
     }
 
-    protected void forceInitialise()
-    {  // 強制的に初期化を行う。
+    protected void forceInitialise(VMSystemClassLoader cl)
+    {
+        // 強制的に初期化を行う。
         if (this.isInitialised)
             throw new VMPanic("Object has already been initialized: " + this.objectType.getReference()
                                                                                        .getFullQualifiedName());
+
+        this.objectType.link(cl);
+        if (this.objectType.getSuperLink() != this.objectType)
+        {
+            this.superObject = this.objectType.getSuperLink().createInstance(this.owner);
+            this.superObject.forceInitialise(cl);
+        }
+
 
         this.setDefaultValues();
         this.isInitialised = true;
@@ -243,11 +253,15 @@ public class VMObject implements VMValue, VMReferenceValue
         {
             VMField field = entry.getKey();
             VMValue value = entry.getValue();
-            clonedFields.put(field, value == null ? null : value.cloneValue());
+            VMValue clonedValue = value;
+            if (!(value == null || value instanceof VMReferenceValue))
+                clonedValue = value.cloneValue(); // deep copy
+
+            clonedFields.put(field, clonedValue);
         }
 
         VMObject clonedSuperObject = this.getSuperObject();
-        if (clonedSuperObject != this)
+        if (!(clonedSuperObject == null || clonedSuperObject == this))
             clonedSuperObject = clonedSuperObject.cloneValue(); // スーパークラスのオブジェクトもクローンする
 
         return new VMObject(this.owner, this.objectType, clonedSuperObject, clonedFields, this.isInitialised);

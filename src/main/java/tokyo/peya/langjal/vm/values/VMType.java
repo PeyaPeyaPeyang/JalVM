@@ -126,19 +126,17 @@ public class VMType<T extends VMValue>
         };
     }
 
-    public void linkClass(@NotNull VMSystemClassLoader cl)
+    public VMType<T> linkClass(@NotNull VMSystemClassLoader cl)
     {
         if (this.isPrimitive)
-        {
-            this.linkedClass.link(cl);
-            return;  // プリミティブ型はリンク不要だが，クラスローダを設定する必要がある。
-        }
-
-        if (this.linkedClass == null)
+            this.linkedClass.link(cl);  // プリミティブ型はリンク不要だが，クラスローダを設定する必要がある。
+        else if (this.linkedClass == null)
         {
             ClassReferenceType classRefType = (ClassReferenceType) this.type;
             this.linkedClass = cl.findClass(ClassReference.of(classRefType));
         }
+
+        return this;
     }
 
     @Override
@@ -276,6 +274,31 @@ public class VMType<T extends VMValue>
             case "float" -> FLOAT;
             case "double" -> DOUBLE;
             default -> throw new VMPanic("Unknown primitive type: " + name);
+        };
+    }
+
+    public static VMType<?> convertASMType(@NotNull org.objectweb.asm.Type type)
+    {
+        return switch (type.getSort())
+        {
+            case org.objectweb.asm.Type.VOID -> VMType.VOID;
+            case org.objectweb.asm.Type.BOOLEAN -> VMType.BOOLEAN;
+            case org.objectweb.asm.Type.CHAR -> VMType.CHAR;
+            case org.objectweb.asm.Type.BYTE -> VMType.BYTE;
+            case org.objectweb.asm.Type.SHORT -> VMType.SHORT;
+            case org.objectweb.asm.Type.INT -> VMType.INTEGER;
+            case org.objectweb.asm.Type.FLOAT -> VMType.FLOAT;
+            case org.objectweb.asm.Type.LONG -> VMType.LONG;
+            case org.objectweb.asm.Type.DOUBLE -> VMType.DOUBLE;
+            case org.objectweb.asm.Type.ARRAY -> {
+                int dims = type.getDimensions();
+                org.objectweb.asm.Type elemType = type.getElementType();
+                VMType<?> elemVMType = convertASMType(elemType);
+
+                yield new VMType<>(elemVMType.getType(), elemVMType.getArrayDimensions());
+            }
+            case org.objectweb.asm.Type.OBJECT -> VMType.ofClassName(type.getInternalName());
+            default -> throw new VMPanic("Unsupported ASM type: " + type);
         };
     }
 

@@ -1,23 +1,23 @@
 package tokyo.peya.langjal.vm.engine.stacking.instructions.references;
 
 import org.jetbrains.annotations.NotNull;
-import org.objectweb.asm.Handle;
 import org.objectweb.asm.tree.InvokeDynamicInsnNode;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.compiler.jvm.MethodDescriptor;
-import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMFrame;
-import tokyo.peya.langjal.vm.engine.reflect.ReflectUtils;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
-import tokyo.peya.langjal.vm.references.ClassReference;
-import tokyo.peya.langjal.vm.values.metaobjects.reflection.VMMethodHandleLookupObject;
+import tokyo.peya.langjal.vm.values.VMObject;
 
 public class OperatorInvokeDynamic extends AbstractInstructionOperator<InvokeDynamicInsnNode>
 {
+    private final DynamicInvocationHelper helper;
+
 
     public OperatorInvokeDynamic()
     {
         super(EOpcodes.INVOKEDYNAMIC, "invokedynamic");
+
+        this.helper = new DynamicInvocationHelper();
     }
 
     @Override
@@ -25,12 +25,13 @@ public class OperatorInvokeDynamic extends AbstractInstructionOperator<InvokeDyn
     {
         String name = operand.name;
         MethodDescriptor descriptor = MethodDescriptor.parse(operand.desc);
-
-        Handle bsmHandle = operand.bsm;
-        Object[] bsmArgs = operand.bsmArgs;
-        VMClass bsmClass = frame.getVm().getClassLoader().findClass(ClassReference.of(bsmHandle.getOwner()));
-        MethodDescriptor bsmDescriptor = MethodDescriptor.parse(bsmHandle.getDesc());
-
-        VMMethodHandleLookupObject lookup = ReflectUtils.createLookupChain(frame, bsmClass);
+        VMObject callSite = this.helper.resolveCallSite(frame, name, descriptor, operand);
+        if (callSite == null)
+        {
+            // まだ解決されていない場合は，この命令を再実行する
+            frame.rerunInstruction();
+            return;
+        }
     }
+
 }

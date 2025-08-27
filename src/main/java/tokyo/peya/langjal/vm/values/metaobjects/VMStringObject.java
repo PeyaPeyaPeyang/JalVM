@@ -30,7 +30,7 @@ public class VMStringObject extends VMObject
     {
         super(cl.findClass(ClassReference.of("java/lang/String")));
 
-        this.createString0(content);
+        this.createString0(cl, content);
     }
 
     public VMStringObject(@NotNull VMSystemClassLoader cl)
@@ -38,7 +38,7 @@ public class VMStringObject extends VMObject
         super(cl.findClass(ClassReference.of("java/lang/String")));
     }
 
-    private void createString0(@NotNull String value)
+    private void createString0(@NotNull VMSystemClassLoader cl, @NotNull String value)
     {
         final int len = value.length();
         if (len == 0)
@@ -47,7 +47,7 @@ public class VMStringObject extends VMObject
             this.setField("hash", new VMInteger(0));
             this.setField("hashIsZero", VMBoolean.TRUE);
             this.setField("coder", new VMByte(LATIN1)); // JDK でも空文字は coder=LATIN1
-            this.forceInitialise();
+            this.forceInitialise(cl);
             return;
         }
 
@@ -103,7 +103,7 @@ public class VMStringObject extends VMObject
         this.setField("hashIsZero", VMBoolean.of(hashIsZero));
         this.setField("coder", new VMByte(coder));
 
-        this.forceInitialise();
+        this.forceInitialise(cl);
     }
 
     public static VMValue createString(@NotNull VMThread thread, @NotNull String value)

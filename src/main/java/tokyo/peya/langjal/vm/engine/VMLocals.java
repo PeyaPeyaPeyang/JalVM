@@ -19,10 +19,10 @@ public class VMLocals
     private final int maxSize;
     private final Map<Integer, VMValue> locals;
 
-    public VMLocals(@NotNull VMFrame frame, int maxSize, boolean isStatic, @NotNull VMValue[] args)
+    public VMLocals(@NotNull VMFrame frame, int maxSize, boolean isStatic, boolean isEnum, @NotNull VMValue[] args)
     {
         this.frame = frame;
-        this.maxSize = maxSize;
+        this.maxSize = isEnum ? maxSize + 2 : maxSize; // enumのコンストラクタなら，name, ordinalの分だけローカル変数が増える
         this.locals = new HashMap<>();
 
         this.initialiseArgs(isStatic, args);
@@ -31,6 +31,7 @@ public class VMLocals
     public void initialiseArgs(boolean isStatic, @NotNull VMValue[] args)
     {
         int slot = isStatic ? 0 : 1; // 静的メソッドなら0から，インスタンスメソッドなら1からスタート。このとき，0は thisの参照が入る。
+
         for (VMValue arg : args)
         {
             this.setSlot(slot++, arg);

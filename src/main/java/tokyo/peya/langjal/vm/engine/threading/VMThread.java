@@ -1,8 +1,6 @@
 package tokyo.peya.langjal.vm.engine.threading;
 
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import tokyo.peya.langjal.compiler.jvm.AccessAttribute;
@@ -10,7 +8,6 @@ import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.api.events.VMFrameInEvent;
 import tokyo.peya.langjal.vm.api.events.VMFrameOutEvent;
 import tokyo.peya.langjal.vm.api.events.VMThreadChangeStateEvent;
-import tokyo.peya.langjal.vm.api.events.VMThreadWaitingEvent;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.VMInterruptingFrame;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
@@ -23,8 +20,6 @@ import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
 import tokyo.peya.langjal.vm.values.metaobjects.VMThreadObject;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -119,7 +114,11 @@ public class VMThread
         newFrame.activate();
     }
 
-    public VMFrame createInterrupting(@NotNull VMMethod method, @NotNull Consumer<? super VMValue> callback, @NotNull VMValue... args)
+    public VMFrame invokeInterrupting(@NotNull VMMethod method, @NotNull Consumer<? super VMValue> callback, @NotNull VMValue... args)
+    {
+        return this.invokeInterrupting(method, callback, null, args);
+    }
+    public VMFrame invokeInterrupting(@NotNull VMMethod method, @NotNull Consumer<? super VMValue> callback, @Nullable VMObject thisObject, @NotNull VMValue... args)
     {
         VMInterruptingFrame newFrame = new VMInterruptingFrame(
                 this.vm,
@@ -129,6 +128,9 @@ public class VMThread
                 this.currentFrame,
                 callback
         );
+        if (thisObject != null)
+            newFrame.getLocals().setSlot(0, thisObject);  // this オブジェクトをローカル変数の最初のスロットにセット
+
         newFrame.activate();
         if (this.firstFrame == null)
             this.firstFrame = newFrame;

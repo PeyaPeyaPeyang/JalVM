@@ -93,9 +93,6 @@ public class VMClass extends VMType<VMReferenceValue> implements RestrictedAcces
 
     public VMObject createInstance(@NotNull VMObject owner)
     {
-        if (this.superLink == null)
-            throw new IllegalStateException("Cannot create instance of class without super class link: " + this.reference.getFullQualifiedName());
-
         return new VMObject(this, owner);
     }
     public VMObject createInstance()
@@ -398,7 +395,19 @@ public class VMClass extends VMType<VMReferenceValue> implements RestrictedAcces
 
         if (!(this.superLink == null || this.superLink == this)) // スーパークラスが存在し、かつ自身ではない場合
             // スーパークラスに同名のメソッドがあるか再帰的に探す
-            return this.superLink.findSuitableMethod(caller, owner, methodName, returnType, args);
+        {
+            VMMethod method = this.superLink.findSuitableMethod(caller, owner, methodName, returnType, args);
+            if (method != null)
+                return method; // 一致するメソッドを返す
+        }
+        if (!this.interfaceLinks.isEmpty())
+            // インターフェースに同名のメソッドがあるか再帰的に探す
+            for (VMClass iface : this.interfaceLinks)
+            {
+                VMMethod method = iface.findSuitableMethod(caller, owner, methodName, returnType, args);
+                if (method != null)
+                    return method; // 一致するメソッドを返す
+            }
 
         return null; // 一致するメソッドが見つからなかった場合はnullを返す
     }
@@ -524,10 +533,10 @@ public class VMClass extends VMType<VMReferenceValue> implements RestrictedAcces
     {
         if (this == obj)
             return true;
-        if (!(obj instanceof VMClass other))
+        if (!(obj instanceof VMType<?> other))
             return false;
 
-        return this.reference.equals(other.reference);
+        return this.getTypeDescriptor().equals(other.getTypeDescriptor());
     }
 
     @Override

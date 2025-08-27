@@ -44,10 +44,10 @@ public class VMObject implements VMValue, VMReferenceValue
         this(objectType, null); // オーナーをnullにしてインスタンスを作成
     }
 
-    private VMObject(@NotNull VMObject owner, @NotNull VMClass objectType, @Nullable VMObject superObject,
+    private VMObject(@NotNull VMClass objectType, @Nullable VMObject superObject,
                      @NotNull Map<VMField, VMValue> fields, boolean isInitialised)
     {
-        this.owner = owner;
+        this.owner = this;
         this.objectType = objectType;
         this.monitor = new VMMonitor(this);
         this.superObject = superObject;
@@ -248,23 +248,13 @@ public class VMObject implements VMValue, VMReferenceValue
     @Override
     public @NotNull VMObject cloneValue()
     {
-        Map<VMField, VMValue> clonedFields = new HashMap<>();
-        for (Map.Entry<VMField, VMValue> entry : this.fields.entrySet())
-        {
-            VMField field = entry.getKey();
-            VMValue value = entry.getValue();
-            VMValue clonedValue = value;
-            if (!(value == null || value instanceof VMReferenceValue))
-                clonedValue = value.cloneValue(); // deep copy
-
-            clonedFields.put(field, clonedValue);
-        }
+        Map<VMField, VMValue> clonedFields = new HashMap<>(this.fields);
 
         VMObject clonedSuperObject = this.getSuperObject();
         if (!(clonedSuperObject == null || clonedSuperObject == this))
             clonedSuperObject = clonedSuperObject.cloneValue(); // スーパークラスのオブジェクトもクローンする
 
-        return new VMObject(this.owner, this.objectType, clonedSuperObject, clonedFields, this.isInitialised);
+        return new VMObject(this.objectType, clonedSuperObject, clonedFields, this.isInitialised);
     }
 
     public int insideHashCode()

@@ -72,17 +72,9 @@ public class VMArray extends VMObject implements VMValue, VMReferenceValue
     public @NotNull VMObject cloneValue()
     {
         VMValue[] clonedElements = new VMValue[this.elements.length];
-        for (int i = 0; i < this.elements.length; i++)
-        {
-            VMValue value = this.elements[i];
-            if (value != null)
-                clonedElements[i] = value.cloneValue();
-            else
-                clonedElements[i] = null; // nullはそのままコピー
-        }
+        System.arraycopy(this.elements, 0, clonedElements, 0, this.elements.length);
 
         return new VMArray(this.getObjectType(), this.elementType, clonedElements, this.arrayType);
-
     }
 
     public VMArray(@NotNull VMSystemClassLoader classLoader, @NotNull VMType<?> objectType, @NotNull VMValue[] values)

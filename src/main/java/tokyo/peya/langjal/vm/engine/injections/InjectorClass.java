@@ -14,12 +14,13 @@ import tokyo.peya.langjal.vm.engine.threading.VMThread;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMArray;
 import tokyo.peya.langjal.vm.values.VMBoolean;
+import tokyo.peya.langjal.vm.values.VMInteger;
 import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
 import tokyo.peya.langjal.vm.values.metaobjects.VMClassObject;
-import tokyo.peya.langjal.vm.values.metaobjects.VMFieldObject;
-import tokyo.peya.langjal.vm.values.metaobjects.VMMethodObject;
+import tokyo.peya.langjal.vm.values.metaobjects.reflection.VMFieldObject;
+import tokyo.peya.langjal.vm.values.metaobjects.reflection.VMMethodObject;
 import tokyo.peya.langjal.vm.values.metaobjects.VMStringObject;
 
 public class InjectorClass implements Injector
@@ -282,12 +283,12 @@ public class InjectorClass implements Injector
                         if (publicOnly.asBoolean())
                             methodObjects = representingClass.getMethods().stream()
                                                              .filter(m -> m.getAccessLevel() == AccessLevel.PUBLIC)
-                                                             .filter(m -> m.getName().equals("<init>"))
+                                                             .filter(VMMethod::isConstructor)
                                                              .map(VMMethod::getMethodObject)
                                                              .toArray(VMMethodObject[]::new);
                         else
                             methodObjects = representingClass.getMethods().stream()
-                                                             .filter(m -> m.getName().equals("<init>"))
+                                                             .filter(VMMethod::isConstructor)
                                                              .map(VMMethod::getMethodObject)
                                                              .toArray(VMMethodObject[]::new);
 
@@ -327,6 +328,27 @@ public class InjectorClass implements Injector
                                 cl.findClass(ClassReference.of("java/lang/Class")),
                                 classObjects
                         );
+                    }
+                }
+        );
+        clazz.injectMethod(
+                cl,
+                new InjectedMethod(
+                        clazz, new MethodNode(
+                        EOpcodes.ACC_PUBLIC | EOpcodes.ACC_NATIVE,
+                        "getModifiers",
+                        "()I",
+                        null,
+                        null
+                ))
+                {
+                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
+                    {
+                        VMClassObject obj = (VMClassObject) instance;
+                        assert obj != null;
+                        int access = obj.getRepresentingClass().getClazz().access;
+                        return new VMInteger(access);
                     }
                 }
         );

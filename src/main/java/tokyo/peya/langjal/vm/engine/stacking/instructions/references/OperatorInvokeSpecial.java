@@ -15,7 +15,6 @@ import tokyo.peya.langjal.vm.exceptions.invocation.IllegalInvocationTypePanic;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMReferenceValue;
-import tokyo.peya.langjal.vm.values.VMType;
 
 public class OperatorInvokeSpecial extends AbstractInstructionOperator<MethodInsnNode>
 {

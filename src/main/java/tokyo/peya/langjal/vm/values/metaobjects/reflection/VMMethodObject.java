@@ -1,8 +1,7 @@
-package tokyo.peya.langjal.vm.values.metaobjects;
+package tokyo.peya.langjal.vm.values.metaobjects.reflection;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
-import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
@@ -11,6 +10,7 @@ import tokyo.peya.langjal.vm.values.VMArray;
 import tokyo.peya.langjal.vm.values.VMInteger;
 import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMType;
+import tokyo.peya.langjal.vm.values.metaobjects.VMStringObject;
 
 import java.util.Arrays;
 

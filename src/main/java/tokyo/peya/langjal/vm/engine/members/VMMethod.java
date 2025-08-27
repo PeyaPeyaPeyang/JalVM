@@ -20,8 +20,8 @@ import tokyo.peya.langjal.vm.exceptions.invocation.NonStaticInvocationPanic;
 import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
-import tokyo.peya.langjal.vm.values.metaobjects.VMConstructorObject;
-import tokyo.peya.langjal.vm.values.metaobjects.VMMethodObject;
+import tokyo.peya.langjal.vm.values.metaobjects.reflection.VMConstructorObject;
+import tokyo.peya.langjal.vm.values.metaobjects.reflection.VMMethodObject;
 
 import java.util.Arrays;
 
@@ -63,7 +63,7 @@ public class VMMethod implements RestrictedAccessor
     {
         if (this.methodNode != null)
         {
-            if (this.methodNode.name.equals("<init>"))
+            if (this.isConstructor())
                 this.methodObject = new VMConstructorObject(this.clazz.getClassLoader(), this);
             else
                 this.methodObject = new VMMethodObject(this.clazz.getClassLoader(), this);
@@ -143,5 +143,10 @@ public class VMMethod implements RestrictedAccessor
     {
         return this.clazz.getReference() + "->" + this.methodNode.name + this.methodNode.desc +
                 " (access: " + this.accessLevel + ", attributes: " + this.accessAttributes + ")";
+    }
+
+    public boolean isConstructor()
+    {
+        return this.methodNode.name.equals("<init>") && !this.accessAttributes.has(AccessAttribute.STATIC);
     }
 }

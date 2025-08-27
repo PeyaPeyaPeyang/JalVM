@@ -8,6 +8,7 @@ import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.threading.VMThread;
 import tokyo.peya.langjal.vm.references.ClassReference;
+import tokyo.peya.langjal.vm.values.VMInteger;
 import tokyo.peya.langjal.vm.values.metaobjects.VMClassObject;
 import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMValue;
@@ -40,7 +41,29 @@ public class InjectorReflection implements Injector
                     @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
+                        assert caller != null;
                         return new VMClassObject(thread.getVm(), caller);
+                    }
+                }
+        );
+        clazz.injectMethod(
+                cl,
+                new InjectedMethod(
+                        clazz, new MethodNode(
+                        EOpcodes.ACC_PUBLIC | EOpcodes.ACC_STATIC | EOpcodes.ACC_NATIVE,
+                        "getClassAccessFlags",
+                        "(Ljava/lang/Class;)I",
+                        null,
+                        null
+                )
+                )
+                {
+                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
+                    {
+                        VMClassObject obj = (VMClassObject) args[0];
+                        int access = obj.getRepresentingClass().getClazz().access;
+                        return new VMInteger(access);
                     }
                 }
         );

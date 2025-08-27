@@ -9,7 +9,7 @@ import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
-import tokyo.peya.langjal.vm.values.metaobjects.VMFieldObject;
+import tokyo.peya.langjal.vm.values.metaobjects.reflection.VMFieldObject;
 
 @Getter
 public class VMField implements RestrictedAccessor

@@ -6,6 +6,7 @@ import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import tokyo.peya.langjal.vm.engine.VMClass;
+import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.members.VMField;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
 import tokyo.peya.langjal.vm.engine.threading.VMThread;
@@ -37,18 +38,20 @@ public abstract class InjectedMethod extends VMMethod
     public void invokeInstanceMethod(@Nullable MethodInsnNode operand, @NotNull VMThread thread, @Nullable VMClass caller, @NotNull VMObject instance,
                                      boolean isVMDecree, @NotNull VMValue... args)
     {
+        // インジェクションされたメソド内で違うフレームを作る可能性があるため，ここで保持しておく。
+        VMFrame currentFrame = thread.getCurrentFrame();
         VMValue returning = this.invoke(thread, caller, instance, args);
         if (returning != null)
         {
             if (operand != null)
-                thread.getCurrentFrame().getTracer().pushHistory(
+                currentFrame.getTracer().pushHistory(
                         ValueTracingEntry.returning(
                                 returning,
                                 this,
                                 operand
                         )
                 );
-            thread.getCurrentFrame().getStack().push(returning);
+            currentFrame.getStack().push(returning);
         }
     }
 
@@ -56,18 +59,20 @@ public abstract class InjectedMethod extends VMMethod
     public void invokeStatic(@Nullable MethodInsnNode operand, @NotNull VMThread thread, @Nullable VMClass caller, boolean isVMDecree,
                              @NotNull VMValue... args)
     {
+        // インジェクションされたメソド内で違うフレームを作る可能性があるため，ここで保持しておく。
+        VMFrame currentFrame = thread.getCurrentFrame();
         VMValue returning = this.invoke(thread, caller, null, args);
         if (returning != null)
         {
             if (operand != null)
-                thread.getCurrentFrame().getTracer().pushHistory(
+                currentFrame.getTracer().pushHistory(
                         ValueTracingEntry.returning(
                                 returning,
                                 this,
                                 operand
                         )
                 );
-            thread.getCurrentFrame().getStack().push(returning);
+            currentFrame.getStack().push(returning);
         }
     }
 

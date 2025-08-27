@@ -9,6 +9,7 @@ import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.threading.VMThread;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMInteger;
+import tokyo.peya.langjal.vm.values.VMLong;
 import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMValue;
 
@@ -64,6 +65,56 @@ public class InjectorCDS implements Injector
                     }
                 }
         );
-    }
 
+        clazz.injectMethod(
+                cl,
+                new InjectedMethod(
+                        clazz, new MethodNode(
+                        EOpcodes.ACC_PUBLIC | EOpcodes.ACC_STATIC | EOpcodes.ACC_NATIVE,
+                        "getRandomSeedForDumping",
+                        "()J",
+                        null,
+                        null
+                )
+                )
+                {
+                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
+                    {
+                        String release   = System.getProperty("java.runtime.version");
+                        String dbgLevel  = "release"; // 通常は "release" or "fastdebug" とか
+                        String version   = System.getProperty("java.vm.version");
+                        int major        = Runtime.version().feature();
+                        int minor        = Runtime.version().interim();
+                        int security     = Runtime.version().update();
+                        int patch        = Runtime.version().patch();
+                        return new VMLong(
+                                getRandomSeedForDumping(release, dbgLevel, version, major, minor, security, patch)
+                        );
+                    }
+                }
+        );
+    }
+    
+    private static long getRandomSeedForDumping(
+            String release,
+            String dbgLevel,
+            String version,
+            int major,
+            int minor,
+            int security,
+            int patch)
+    {
+        long seed = release.hashCode() ^ dbgLevel.hashCode() ^ version.hashCode();
+
+        seed += major;
+        seed += minor;
+        seed += security;
+        seed += patch;
+
+        if (seed == 0)
+            seed = 0x87654321L;
+
+        return seed;
+    }
 }

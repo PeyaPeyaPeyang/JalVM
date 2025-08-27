@@ -3,22 +3,14 @@ package tokyo.peya.langjal.vm.engine.stacking.instructions.references;
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.tree.InvokeDynamicInsnNode;
-import org.objectweb.asm.tree.MethodInsnNode;
-import tokyo.peya.langjal.compiler.jvm.AccessAttribute;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.compiler.jvm.MethodDescriptor;
-import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMFrame;
-import tokyo.peya.langjal.vm.engine.members.VMMethod;
 import tokyo.peya.langjal.vm.engine.reflect.ReflectUtils;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
 import tokyo.peya.langjal.vm.references.ClassReference;
-import tokyo.peya.langjal.vm.values.VMType;
-import tokyo.peya.langjal.vm.values.VMValue;
-import tokyo.peya.langjal.vm.values.metaobjects.VMMethodHandleLookupObject;
-
-import java.lang.invoke.MethodHandles;
+import tokyo.peya.langjal.vm.values.metaobjects.reflection.VMMethodHandleLookupObject;
 
 public class OperatorInvokeDynamic extends AbstractInstructionOperator<InvokeDynamicInsnNode>
 {

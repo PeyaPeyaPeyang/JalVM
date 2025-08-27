@@ -93,6 +93,44 @@ public class VMObject implements VMValue, VMReferenceValue
         }
     }
 
+    public void initialiseInstance(@NotNull VMThread thread, @NotNull VMMethod constructor, @NotNull VMValue[] args, boolean isVMDecree)
+    {
+        if (!constructor.isConstructor())
+            throw new IllegalArgumentException("The provided method is not a constructor: " + constructor.getName());
+
+        // ターゲットを選定する
+        VMClass targetClass = constructor.getClazz();
+        VMObject targetObject = findSuitableTarget(targetClass, this.owner);
+
+        boolean isOuterInitialise = false;
+        VMFrame frame = thread.getCurrentFrame();
+        if (frame != null)
+        {
+            VMMethod prevMethod = frame.getMethod();
+            if (prevMethod == null || !(prevMethod.getClazz().equals(targetClass) && prevMethod.isConstructor()))
+                isOuterInitialise = true;
+        }
+
+        if (isOuterInitialise)
+        {
+            if (targetObject.isInitialised)
+                throw new VMPanic("Outer object is already initialised: " + this.objectType.getReference()
+                                                                                           .getFullQualifiedName());
+            targetObject.setDefaultValues();
+            targetObject.isInitialised = true; // 初期化フラグを立てる
+        }
+
+        // コンストラクタを実行
+        constructor.invokeInstanceMethod(
+                null,
+                thread,
+                this.objectType,
+                this.owner,
+                isVMDecree,
+                args
+        );
+    }
+
     public void initialiseInstance(@NotNull VMThread thread, @Nullable VMClass caller, @NotNull VMClass owner,
                                    @NotNull VMType<?>[] argTypes, @NotNull VMValue[] args, boolean isVMDecree)
     {
@@ -102,37 +140,7 @@ public class VMObject implements VMValue, VMReferenceValue
             throw new IllegalStateException("No suitable constructor found for class: " +
                                                     this.objectType.getReference().getFullQualifiedName());
 
-        // ターゲットを選定する
-        VMClass targetClass = constructorMethod.getClazz();
-        VMObject targetObject = findSuitableTarget(targetClass, this.owner);
-
-        boolean isOuterInitialise = false;
-        VMFrame frame = thread.getCurrentFrame();
-        if (frame != null)
-        {
-            VMMethod prevMethod = frame.getMethod();
-            if (prevMethod == null || !(prevMethod.getClazz().equals(targetClass) && prevMethod.getName().equals("<init>")))
-                isOuterInitialise = true;
-        }
-
-        if (isOuterInitialise)
-        {
-            if (targetObject.isInitialised)
-                throw new VMPanic("Outer object is already initialised: " + this.objectType.getReference()
-                                                                                          .getFullQualifiedName());
-            targetObject.setDefaultValues();
-            targetObject.isInitialised = true; // 初期化フラグを立てる
-        }
-
-        // コンストラクタを実行
-        constructorMethod.invokeInstanceMethod(
-                null,
-                thread,
-                this.objectType,
-                this.owner,
-                isVMDecree,
-                args
-        );
+        this.initialiseInstance(thread, constructorMethod, args, isVMDecree);
     }
 
     private static @NotNull VMObject findSuitableTarget(@NotNull VMClass targetClass, @NotNull VMObject owner)

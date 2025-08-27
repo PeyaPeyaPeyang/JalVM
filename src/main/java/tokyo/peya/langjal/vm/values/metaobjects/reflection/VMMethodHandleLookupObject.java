@@ -1,4 +1,4 @@
-package tokyo.peya.langjal.vm.values.metaobjects;
+package tokyo.peya.langjal.vm.values.metaobjects.reflection;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
@@ -7,6 +7,7 @@ import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMInteger;
 import tokyo.peya.langjal.vm.values.VMObject;
+import tokyo.peya.langjal.vm.values.metaobjects.VMClassObject;
 
 @Getter
 public class VMMethodHandleLookupObject extends VMObject

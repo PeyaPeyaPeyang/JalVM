@@ -7,7 +7,7 @@ import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.exceptions.VMPanic;
 import tokyo.peya.langjal.vm.values.metaobjects.VMClassObject;
-import tokyo.peya.langjal.vm.values.metaobjects.VMMethodHandleLookupObject;
+import tokyo.peya.langjal.vm.values.metaobjects.reflection.VMMethodHandleLookupObject;
 
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;

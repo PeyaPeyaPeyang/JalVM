@@ -71,15 +71,20 @@ public class JalVM
     public void initialiseVM()
     {
         VMClass systemClass = this.classLoader.findClass(ClassReference.of("java/lang/System"));
-        VMMethod method = systemClass.findMethod("initPhase1", MethodDescriptor.parse("()V"));
-        if (method == null)
+        VMMethod initPhase1 = systemClass.findMethod("initPhase1", MethodDescriptor.parse("()V"));
+        if (initPhase1 == null)
             throw new VMPanic("System class does not have initPhase1 method");
         VMFrame f = this.engine.getMainThread().createFrame(
-                method,
+                initPhase1,
                 true
         );
         f.activate();
 
+        // AccessibleObject の <clinit> を実行して， SharedSecrets の javaLangReflectAccess を設定する。
+        // ２回実行するのは，最初に親を，次に子を初期化するため。
+        VMClass accessibleObjectClass = this.classLoader.findClass(ClassReference.of("java/lang/reflect/AccessibleObject"));
+        accessibleObjectClass.initialise(this.engine.getMainThread());
+        accessibleObjectClass.initialise(this.engine.getMainThread());
     }
 
     public void executeMain(@NotNull ClassReference clazz, @NotNull String[] args)

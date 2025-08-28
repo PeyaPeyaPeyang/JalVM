@@ -73,9 +73,8 @@ public interface VMValue
 
     default VMValue conformValue(@NotNull VMType<?> expectedType)
     {
-        // 値を暗黙的に変換する場合は，型が一致しているかどうかを確認する
-        if (this.type().equals(expectedType))
-            return this;
+        if (expectedType.equals(VMType.GENERIC_OBJECT) || this.type().equals(expectedType))
+            return this;  // Object 型にはすべての型が適合する，また型が同じならそのまま返す
 
         throw new VMPanic("Cannot conform " + this.type() + " to " + expectedType);
     }

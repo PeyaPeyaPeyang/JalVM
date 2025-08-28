@@ -26,7 +26,7 @@ import tokyo.peya.langjal.vm.values.metaobjects.reflection.VMMethodObject;
 import java.util.Arrays;
 
 @Getter
-public class VMMethod implements RestrictedAccessor
+public class VMMethod implements AccessibleObject
 {
     private final VMClass clazz;
     private final int slot;

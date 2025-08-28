@@ -21,7 +21,7 @@ public class VMResolvedMethodName extends VMObject
         this.method = method;
         this.declaringClass = method.getClazz();
 
-        this.setField("declaringClass", this.declaringClass.getClassObject());
+        this.setField("vmholder", this.declaringClass.getClassObject());
 
         this.forceInitialise(cl);
     }

@@ -42,6 +42,7 @@ public class InjectorNativeAccessor implements Injector
                     VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
                                    @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
+                        assert caller != null;
                         VMConstructorObject constructor = (VMConstructorObject) args[0];
                         VMObject obj = constructor.getMethod().getClazz().createInstance();
                         VMValue[] callingArgs;
@@ -50,7 +51,7 @@ public class InjectorNativeAccessor implements Injector
                         else
                             callingArgs = new VMValue[0];
 
-                        constructor.call(thread, obj, callingArgs, false);
+                        constructor.call(thread, caller, obj, callingArgs, false);
                         return obj;
                     }
                 }

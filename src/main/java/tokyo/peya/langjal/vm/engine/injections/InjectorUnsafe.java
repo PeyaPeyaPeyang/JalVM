@@ -489,6 +489,29 @@ public class InjectorUnsafe implements Injector
                     }
                 }
         );
+        clazz.injectMethod(
+                cl,
+                new InjectedMethod(
+                        clazz, new MethodNode(
+                        EOpcodes.ACC_PRIVATE | EOpcodes.ACC_NATIVE,
+                        "ensureClassInitialized0",
+                        "(Ljava/lang/Class;)V",
+                        null,
+                        null
+                )
+                )
+                {
+                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
+                    {
+                        VMClassObject clazzObject = (VMClassObject) args[0];
+                        VMClass repClass = clazzObject.getRepresentingClass();
+                        if (!repClass.isInitialised())
+                            repClass.initialise(thread);
+                        return null;
+                    }
+                }
+        );
     }
 
     private static InjectedMethod createUnsafeGetVolatileMethod(

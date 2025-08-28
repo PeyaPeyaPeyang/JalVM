@@ -25,11 +25,12 @@ public class VMConstructorObject extends VMMethodObject
         this.method = method;
     }
 
-    public void call(@NotNull VMThread thread, @NotNull VMObject instance,
+    public void call(@NotNull VMThread thread, @NotNull VMClass caller, @NotNull VMObject instance,
                      @NotNull VMValue[] args, boolean isVMDecree)
     {
         instance.initialiseInstance(
                 thread,
+                caller,
                 this.method,
                 args,
                 isVMDecree

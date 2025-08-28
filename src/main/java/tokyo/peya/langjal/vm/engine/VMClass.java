@@ -15,7 +15,7 @@ import tokyo.peya.langjal.compiler.jvm.MethodDescriptor;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.injections.InjectedField;
 import tokyo.peya.langjal.vm.engine.injections.InjectedMethod;
-import tokyo.peya.langjal.vm.engine.members.RestrictedAccessor;
+import tokyo.peya.langjal.vm.engine.members.AccessibleObject;
 import tokyo.peya.langjal.vm.engine.members.VMField;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
 import tokyo.peya.langjal.vm.engine.threading.VMThread;
@@ -33,10 +33,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Getter
-public class VMClass extends VMType<VMReferenceValue> implements RestrictedAccessor
+public class VMClass extends VMType<VMReferenceValue> implements AccessibleObject
 {
     private final ClassReference reference;
     private final ClassNode clazz;

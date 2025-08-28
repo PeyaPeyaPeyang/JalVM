@@ -30,7 +30,7 @@ public class VMArray extends VMObject implements VMValue, VMReferenceValue
         this.elements = new VMValue[size];
         this.fillDefaults();
 
-        this.arrayType = VMType.of("[" + elementType.getTypeDescriptor());
+        this.arrayType = VMType.of("[" + elementType.getTypeDescriptor()).linkClass(classLoader);
 
         this.forceInitialise(classLoader);
     }

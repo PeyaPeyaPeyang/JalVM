@@ -12,7 +12,7 @@ import tokyo.peya.langjal.vm.values.VMValue;
 import tokyo.peya.langjal.vm.values.metaobjects.reflection.VMFieldObject;
 
 @Getter
-public class VMField implements RestrictedAccessor
+public class VMField implements AccessibleObject
 {
     private final VMSystemClassLoader classLoader;
 

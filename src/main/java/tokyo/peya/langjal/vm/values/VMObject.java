@@ -103,7 +103,8 @@ public class VMObject implements VMValue, VMReferenceValue
         }
     }
 
-    public void initialiseInstance(@NotNull VMThread thread, @NotNull VMMethod constructor, @NotNull VMValue[] args, boolean isVMDecree)
+    public void initialiseInstance(@NotNull VMThread thread, @NotNull VMClass caller, @NotNull VMMethod constructor,
+                                   @NotNull VMValue[] args, boolean isVMDecree)
     {
         if (!constructor.isConstructor())
             throw new IllegalArgumentException("The provided method is not a constructor: " + constructor.getName());
@@ -134,7 +135,7 @@ public class VMObject implements VMValue, VMReferenceValue
         constructor.invokeInstanceMethod(
                 null,
                 thread,
-                this.objectType,
+                caller,
                 this.owner,
                 isVMDecree,
                 args
@@ -150,7 +151,10 @@ public class VMObject implements VMValue, VMReferenceValue
             throw new IllegalStateException("No suitable constructor found for class: " +
                                                     this.objectType.getReference().getFullQualifiedName());
 
-        this.initialiseInstance(thread, constructorMethod, args, isVMDecree);
+        if (caller == null)
+            caller = this.objectType;
+
+        this.initialiseInstance(thread, caller, constructorMethod, args, isVMDecree);
     }
 
     private static @NotNull VMObject findSuitableTarget(@NotNull VMClass targetClass, @NotNull VMObject owner)

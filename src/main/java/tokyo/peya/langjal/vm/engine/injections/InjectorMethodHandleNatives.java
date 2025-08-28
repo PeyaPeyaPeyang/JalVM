@@ -8,12 +8,16 @@ import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.members.VMField;
+import tokyo.peya.langjal.vm.engine.members.VMMethod;
 import tokyo.peya.langjal.vm.engine.threading.VMThread;
+import tokyo.peya.langjal.vm.exceptions.VMPanic;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMArray;
 import tokyo.peya.langjal.vm.values.VMInteger;
+import tokyo.peya.langjal.vm.values.VMLong;
 import tokyo.peya.langjal.vm.values.VMNull;
 import tokyo.peya.langjal.vm.values.VMObject;
+import tokyo.peya.langjal.vm.values.VMReferenceValue;
 import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
 import tokyo.peya.langjal.vm.values.metaobjects.VMClassObject;
@@ -126,31 +130,82 @@ public class InjectorMethodHandleNatives implements Injector
 
                         int flags;
                         int modifiersInt = modifiers.asNumber().intValue();
-                        if (lookup instanceof VMFieldObject)
+                        switch (lookup)
                         {
-                            flags = calcFieldFlags(modifiersInt);
-                            memberName.setField("name", lookup.getField("name"));
-                            memberName.setField("type", lookup.getField("type"));
+                            case VMFieldObject _ -> {
+                                flags = calcFieldFlags(modifiersInt);
+                                memberName.setField("name", lookup.getField("name"));
+                                memberName.setField("type", lookup.getField("type"));
+                            }
+                            case VMConstructorObject constructor -> flags = calcMethodFlags(modifiersInt, true);
+                            case VMMethodObject method -> flags = calcMethodFlags(modifiersInt, false);
+                            default -> flags = 0;
                         }
-                        else if (lookup instanceof VMConstructorObject constructor)
-                        {
-                            flags = calcMethodFlags(modifiersInt, true);
-
-                            memberName.setField("method", new VMResolvedMethodName(cl, constructor.getMethod()));
-                        }
-                        else if (lookup instanceof VMMethodObject method)
-                        {
-                            flags = calcMethodFlags(modifiersInt, false);
-
-                            memberName.setField("method", new VMResolvedMethodName(cl, method.getMethod()));
-                        }
-                        else
-                            flags = 0;
 
                         memberName.setField("flags", new VMInteger(flags));
                         memberName.setField("clazz", lookup.getField("clazz"));
 
                         return null;
+                    }
+                }
+        );
+        clazz.injectMethod(
+                cl,
+                new InjectedMethod(
+                        clazz, new MethodNode(
+                        EOpcodes.ACC_STATIC | EOpcodes.ACC_NATIVE,
+                        "resolve",
+                        "(Ljava/lang/invoke/MemberName;Ljava/lang/Class;IZ)Ljava/lang/invoke/MemberName;",
+                        null,
+                        null
+                )
+                )
+                {
+                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
+                    {
+                        VMObject memberName = (VMObject) args[0];
+                        VMClass clazz = ((VMClassObject) memberName.getField("clazz")).getRepresentingClass();
+                        String methodName = ((VMStringObject) memberName.getField("name")).getString();
+
+                        VMMethod m = clazz.findMethod(methodName, null);
+                        if (m == null)
+                            throw new VMPanic("Cannot resolve method: " + clazz + "->" + methodName);
+
+                        memberName.setField("method", new VMResolvedMethodName(cl, m));
+
+                        return memberName;
+                    }
+                }
+        );
+        clazz.injectMethod(
+                cl,
+                new InjectedMethod(
+                        clazz, new MethodNode(
+                        EOpcodes.ACC_STATIC | EOpcodes.ACC_NATIVE,
+                        "getMemberVMInfo",
+                        "(Ljava/lang/invoke/MemberName;)Ljava/lang/Object;",
+                        null,
+                        null
+                )
+                )
+                {
+                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
+                    {
+                        VMObject memberName = (VMObject) args[0];
+                        VMArray arr = new VMArray(thread.getVm().getClassLoader(), VMType.GENERIC_OBJECT, 2);
+                        VMClassObject clazzObj = (VMClassObject) memberName.getField("clazz");
+                        VMClass clazz = clazzObj.getRepresentingClass();
+
+                        VMReferenceValue method = (VMReferenceValue) memberName.getField("method");
+                        if (method instanceof VMResolvedMethodName resolved)
+                            arr.set(0, new VMLong(resolved.getMethod().getSlot()));
+
+
+                        arr.set(1, clazzObj);
+
+                        return arr;
                     }
                 }
         );

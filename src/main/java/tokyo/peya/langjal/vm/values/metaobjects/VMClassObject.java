@@ -37,6 +37,19 @@ public class VMClassObject extends VMObject
         this(cl, typeOf.getLinkedClass(), typeOf);
     }
 
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (!(obj instanceof VMClassObject other))
+            return false;
+        return this.representingClass.equals(other.representingClass);
+    }
+
+    @Override
+    public @NotNull String toString()
+    {
+        return "class " + this.representingClass.getReference();
+    }
 
     public boolean isPrimitive()
     {

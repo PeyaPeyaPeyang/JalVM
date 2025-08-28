@@ -291,7 +291,6 @@ public class VMType<T extends VMValue>
             case org.objectweb.asm.Type.LONG -> VMType.LONG;
             case org.objectweb.asm.Type.DOUBLE -> VMType.DOUBLE;
             case org.objectweb.asm.Type.ARRAY -> {
-                int dims = type.getDimensions();
                 org.objectweb.asm.Type elemType = type.getElementType();
                 VMType<?> elemVMType = convertASMType(elemType);
 

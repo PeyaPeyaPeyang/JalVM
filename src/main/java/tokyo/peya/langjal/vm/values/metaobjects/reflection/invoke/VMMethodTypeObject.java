@@ -51,4 +51,10 @@ public class VMMethodTypeObject extends VMObject
 
         return new VMMethodTypeObject(cl, returnType, paramTypes);
     }
+
+    @Override
+    public @NotNull VMObject cloneValue()
+    {
+        return super.cloneValue();
+    }
 }

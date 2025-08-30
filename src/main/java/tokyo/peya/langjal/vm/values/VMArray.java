@@ -23,7 +23,7 @@ public class VMArray extends VMObject implements VMValue, VMReferenceValue
 
         if (size < 0)
             throw new VMPanic("Size cannot be negative: " + size);
-        else if (elementType.getArrayDimensions() > 0)
+        else if (elementType.getComponentType() != null)
             throw new VMPanic("Cannot create an array of arrays: " + elementType.getTypeDescriptor());
 
         this.elementType = elementType;
@@ -50,6 +50,12 @@ public class VMArray extends VMObject implements VMValue, VMReferenceValue
         this.forceInitialise(objectType.getClassLoader());
     }
 
+    @Override
+    public VMClass getObjectType()
+    {
+        return this.arrayType.getLinkedClass();
+    }
+
     private void fillDefaults()
     {
         for (int i = 0; i < this.elements.length; i++)
@@ -58,7 +64,7 @@ public class VMArray extends VMObject implements VMValue, VMReferenceValue
 
     public void linkClass(@NotNull VMSystemClassLoader cl)
     {
-        if (this.elementType.getArrayDimensions() > 0)
+        if (this.elementType.getComponentType() != null)
             throw new VMPanic("Cannot link an array of arrays: " + this.elementType.getTypeDescriptor());
 
         // 配列の型をリンクする

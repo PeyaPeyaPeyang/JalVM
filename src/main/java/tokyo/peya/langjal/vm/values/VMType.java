@@ -2,11 +2,13 @@ package tokyo.peya.langjal.vm.values;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import tokyo.peya.langjal.compiler.jvm.ClassReferenceType;
 import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 import tokyo.peya.langjal.compiler.jvm.Type;
 import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
+import tokyo.peya.langjal.vm.engine.VMArrayClass;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMPrimitiveClass;
 import tokyo.peya.langjal.vm.exceptions.VMPanic;
@@ -52,27 +54,26 @@ public class VMType<T extends VMValue>
 
 
     private final Type type;
-    private final int arrayDimensions;
+    private final VMType<?> componentType;  // 配列型の場合，1次元減らした型
     private final boolean isPrimitive;  // 配列でも基底タイプがプリミティブなら true
 
     private VMClass linkedClass;
 
-    public VMType(@NotNull Type type, int arrayDimensions)
+    private VMType(@NotNull Type type, @Nullable VMType<?> componentType)
     {
-        if (type instanceof PrimitiveTypes && arrayDimensions == 0)
-            throw new VMPanic("type can not be a PrimitiveTypes instance directly. Use VMType.PRIMITIVE_NAME instead.");
-
         this.type = type;
-        this.arrayDimensions = arrayDimensions;
+        this.componentType = componentType;
         this.isPrimitive = type.isPrimitive();
         if (type instanceof PrimitiveTypes primitive)
             this.linkedClass = new VMPrimitiveClass(this, primitive);
+        else if (componentType != null)
+            this.linkedClass = componentType.linkedClass;  // 配列型で基底タイプが参照型ならそのクラスを流用
     }
 
     private VMType(@NotNull PrimitiveTypes type)
     {
         this.type = type;
-        this.arrayDimensions = 0;
+        this.componentType = null;
         this.isPrimitive = true;
         this.linkedClass = new VMPrimitiveClass(this, type);
     }
@@ -80,7 +81,7 @@ public class VMType<T extends VMValue>
     public VMType(@NotNull ClassReference reference)
     {
         this.type = ClassReferenceType.parse(reference.getFullQualifiedName());
-        this.arrayDimensions = 0;
+        this.componentType = null;
         this.isPrimitive = false;
     }
 
@@ -102,13 +103,17 @@ public class VMType<T extends VMValue>
                 default -> throw new VMPanic("Unsupported primitive type: " + desc.getBaseType());
             };
 
-        return new VMType<>(desc.getBaseType(), desc.getArrayDimensions());
+        VMType<?> created = new VMType<>(desc.getBaseType(), null);
+        for (int i = 0; i < desc.getArrayDimensions(); i++)
+            created = new VMType<>(created.getType(), created);
+
+        return (VMType<T>) created;
     }
 
     public VMValue defaultValue()
     {
         // 非プリミティブまたは配列は「参照型」であるから， null
-        if (this.type instanceof ClassReferenceType || this.arrayDimensions > 0)
+        if (this.type instanceof ClassReferenceType)
             return new VMNull<>(this);
 
         // プリミティブ型のデフォルト値を返す
@@ -133,8 +138,15 @@ public class VMType<T extends VMValue>
         else if (this.linkedClass == null)
         {
             ClassReferenceType classRefType = (ClassReferenceType) this.type;
-            this.linkedClass = cl.findClass(ClassReference.of(classRefType));
+            VMClass linkedClass = cl.findClass(ClassReference.of(classRefType));
+            if (this.componentType == null)
+                this.linkedClass = linkedClass;  // 参照型
+            else
+                this.linkedClass = new VMArrayClass(cl, this, linkedClass);
         }
+
+        if (this.componentType != null)
+            this.componentType.linkClass(cl);
 
         return this;
     }
@@ -149,13 +161,13 @@ public class VMType<T extends VMValue>
 
         // 型と配列次元数が同じなら等価
         return Objects.equals(this.type, that.type) &&
-                this.arrayDimensions == that.arrayDimensions;
+                Objects.equals(this.componentType, that.componentType);
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(this.type, this.arrayDimensions);
+        return Objects.hash(this.type, this.componentType);
     }
 
     public boolean isAssignableFrom(@NotNull VMType<?> other)
@@ -174,7 +186,7 @@ public class VMType<T extends VMValue>
         if (isBothPrimitive)
         {
             // 配列型は同じ次元数であれば互換性あり
-            if (this.arrayDimensions != other.arrayDimensions)
+            if (Objects.equals(this.componentType, other.componentType))
                 return false;
             return this.isAssignableFromPrimitive((PrimitiveTypes) other.type);
         }
@@ -189,7 +201,7 @@ public class VMType<T extends VMValue>
         }
 
         // 参照型の互換性チェック
-        return other.linkedClass.isSubclassOf(this.linkedClass);
+        return this.linkedClass.isAssignableFrom(other.linkedClass);
     }
 
     private void linkOthers(@NotNull VMType<?> other)
@@ -239,8 +251,15 @@ public class VMType<T extends VMValue>
     @NotNull
     public String getTypeDescriptor()
     {
-        return "[".repeat(Math.max(0, this.arrayDimensions)) +
-                this.type.getDescriptor();
+        StringBuilder sb = new StringBuilder();
+        VMType<?> current = this.componentType;
+        while (current != null)
+        {
+            sb.append('[');
+            current = current.componentType;
+        }
+        sb.append(this.type.getDescriptor());
+        return sb.toString();
     }
 
     public VMObject createInstance()
@@ -292,9 +311,10 @@ public class VMType<T extends VMValue>
             case org.objectweb.asm.Type.DOUBLE -> VMType.DOUBLE;
             case org.objectweb.asm.Type.ARRAY -> {
                 org.objectweb.asm.Type elemType = type.getElementType();
-                VMType<?> elemVMType = convertASMType(elemType);
-
-                yield new VMType<>(elemVMType.getType(), elemVMType.getArrayDimensions());
+                VMType<?> arrayType = convertASMType(elemType);
+                for (int i = 0; i < type.getDimensions(); i++)
+                    arrayType = new VMType<>(arrayType.getType(), arrayType);
+                yield arrayType;
             }
             case org.objectweb.asm.Type.OBJECT -> VMType.ofClassName(type.getInternalName());
             default -> throw new VMPanic("Unsupported ASM type: " + type);
@@ -305,9 +325,13 @@ public class VMType<T extends VMValue>
     public String toString()
     {
         StringBuilder sb = new StringBuilder();
+        VMType<?> current = this.componentType;
+        while (current != null)
+        {
+            sb.append("[");
+            current = current.componentType;
+        }
         sb.append(this.type.getDescriptor());
-        if (this.arrayDimensions > 0)
-            sb.append("[]".repeat(this.arrayDimensions));
         return sb.toString();
     }
 }

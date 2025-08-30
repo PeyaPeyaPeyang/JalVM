@@ -80,8 +80,10 @@ public class OperatorInstanceOf extends AbstractInstructionOperator<TypeInsnNode
 
     public static int checkType(@NotNull VMValue obj, @NotNull VMType<?> type)
     {
+        if (obj.type().equals(type))
+            return 1;
+
         VMClass typeClass = type.getLinkedClass();
-        int arrayDimensions = type.getArrayDimensions();
         if (typeClass.equals(VMType.GENERIC_OBJECT.getLinkedClass()))
             return 1;  // Object はなんでも OK
 
@@ -90,13 +92,6 @@ public class OperatorInstanceOf extends AbstractInstructionOperator<TypeInsnNode
             case VMArray vmArray ->
             {
                 VMType<?> arrayType = vmArray.getArrayType();
-                VMClass arrayClass = arrayType.getLinkedClass();
-                if (arrayClass.equals(VMType.GENERIC_OBJECT.getLinkedClass()))
-                    return 1;  // Object[] は Object のサブクラス
-
-                if (arrayType.getArrayDimensions() != arrayDimensions)
-                    return 0;  // 次元が違う場合はダメ
-
                 return arrayType.getLinkedClass().isSubclassOf(typeClass) ? 1: 0;  // 次元が違う場合はダメ
             }
             case VMObject vmObj ->

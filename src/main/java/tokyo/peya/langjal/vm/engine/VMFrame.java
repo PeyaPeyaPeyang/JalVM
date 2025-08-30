@@ -179,7 +179,7 @@ public class VMFrame
         if (canOmitLastArray && expectedArgs > 0)
         {
             VMType<?> lastType = parameterTypes[expectedArgs - 1];
-            if (lastType.getArrayDimensions() > 0 && actualArgs + 1 == expectedArgs)
+            if (lastType.getComponentType()  != null && actualArgs + 1 == expectedArgs)
             {
                 // 最後の引数が配列である場合、最後の引数を省略できる
                 expectedArgs--;

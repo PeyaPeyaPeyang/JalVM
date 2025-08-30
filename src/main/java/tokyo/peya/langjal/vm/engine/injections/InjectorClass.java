@@ -8,6 +8,7 @@ import tokyo.peya.langjal.compiler.jvm.AccessAttribute;
 import tokyo.peya.langjal.compiler.jvm.AccessLevel;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
+import tokyo.peya.langjal.vm.engine.VMArrayClass;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.members.VMField;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
@@ -180,9 +181,8 @@ public class InjectorClass implements Injector
                     {
                         VMClassObject instanceClass = (VMClassObject) instance;
                         assert instanceClass != null: "Instance must be a VMClassObject";
-
                         VMClass representingClass = instanceClass.getRepresentingClass();
-                        return VMBoolean.of(representingClass.getArrayDimensions() > 0);
+                        return VMBoolean.of(representingClass instanceof VMArrayClass);
                     }
                 }
         );
@@ -372,7 +372,7 @@ public class InjectorClass implements Injector
                         assert obj != null;
                         VMType<?> type = obj.getTypeOf();
                         String name;
-                        if (type.getArrayDimensions() == 0)
+                        if (type.getComponentType() != null)
                             name = type.getLinkedClass().getReference().getFullQualifiedDotName();
                         else
                             name = type.getTypeDescriptor();

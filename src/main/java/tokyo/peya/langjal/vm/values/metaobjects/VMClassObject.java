@@ -23,6 +23,9 @@ public class VMClassObject extends VMObject
         this.representingClass = representingClass;
         this.typeOf = typeOf;
 
+        if (typeOf.getComponentType() != null)
+            this.setField("componentType", new VMClassObject(cl, typeOf.getComponentType()));
+
         typeOf.linkClass(cl);
         this.forceInitialise(cl);
     }

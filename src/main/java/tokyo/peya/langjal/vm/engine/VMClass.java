@@ -37,33 +37,33 @@ import java.util.Map;
 @Getter
 public class VMClass extends VMType<VMReferenceValue> implements AccessibleObject
 {
-    private final ClassReference reference;
-    private final ClassNode clazz;
+    protected final ClassReference reference;
+    protected final ClassNode clazz;
 
-    private final AccessAttributeSet accessAttributes;
-    private final AccessLevel accessLevel;
-
-    @Getter(lombok.AccessLevel.NONE)
-    private final List<VMClass> innerLinks;
-    @Getter(lombok.AccessLevel.NONE)
-    private final List<VMClass> interfaceLinks;
-    @Getter(lombok.AccessLevel.NONE)
-    private final List<VMMethod> methods;
-    @Getter(lombok.AccessLevel.NONE)
-    private final List<VMField> fields;
+    protected final AccessAttributeSet accessAttributes;
+    protected final AccessLevel accessLevel;
 
     @Getter(lombok.AccessLevel.NONE)
-    private final Map<VMField, VMValue> staticFields;
+    protected final List<VMClass> innerLinks;
+    @Getter(lombok.AccessLevel.NONE)
+    protected final List<VMClass> interfaceLinks;
+    @Getter(lombok.AccessLevel.NONE)
+    protected final List<VMMethod> methods;
+    @Getter(lombok.AccessLevel.NONE)
+    protected final List<VMField> fields;
 
-    private boolean isLinked;
-    private boolean isInitialised;
+    @Getter(lombok.AccessLevel.NONE)
+    protected final Map<VMField, VMValue> staticFields;
+
+    protected boolean isLinked;
+    protected boolean isInitialised;
     @Getter(lombok.AccessLevel.NONE)
     private VMClassObject classObject;
     private VMClass superLink;
 
     // Primitive は static final で持っておきたい。
     @Setter
-    private VMSystemClassLoader classLoader;
+    protected VMSystemClassLoader classLoader;
 
     public VMClass(@Nullable VMSystemClassLoader classLoader, @NotNull ClassNode clazz)
     {
@@ -206,6 +206,24 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
         this.linkMembers(cl);
 
         this.isLinked = true; // リンク済みフラグを立てる
+    }
+
+    @Override
+    public boolean isAssignableFrom(@NotNull VMType<?> other)
+    {
+        VMClass linkedClass = other.getLinkedClass();
+
+        boolean isSubclass = linkedClass.isSubclassOf(this);
+        if (isSubclass)
+            return true; // 他のクラスがこのクラスのサブクラスである場合はtrue
+
+        for (VMClass iface : linkedClass.interfaceLinks)
+        {
+            if (iface.equals(this) || this.isAssignableFrom(iface))
+                return true; // 他のクラスがこのクラスのインターフェースを実装している場合はtrue
+        }
+
+        return false; // それ以外の場合はfalse
     }
 
     private void linkInner(@NotNull VMSystemClassLoader cl)
@@ -539,6 +557,12 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
     }
 
     @Override
+    public String toString()
+    {
+        return this.reference.getFullQualifiedName();
+    }
+
+    @Override
     public VMClass getOwningClass()
     {
         return this; // VMClassは常に自身がオーナクラス
@@ -557,5 +581,10 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
     public List<VMMethod> getMethods()
     {
         return Collections.unmodifiableList(this.methods);
+    }
+
+    public String getTypeDescriptor()
+    {
+        return "L" + this.reference.getFullQualifiedName() + ";";
     }
 }

@@ -81,9 +81,10 @@ public class VMObject implements VMValue, VMReferenceValue
                                                                                        .getFullQualifiedName());
 
         this.objectType.link(cl);
-        if (this.objectType.getSuperLink() != this.objectType)
+        VMClass superLink = this.objectType.getSuperLink();
+        if (!(superLink == null || superLink == this.objectType))
         {
-            this.superObject = this.objectType.getSuperLink().createInstance(this.owner);
+            this.superObject = superLink.createInstance(this.owner);
             this.superObject.forceInitialise(cl);
         }
 

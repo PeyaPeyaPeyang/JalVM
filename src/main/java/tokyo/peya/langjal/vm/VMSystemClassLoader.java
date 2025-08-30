@@ -69,10 +69,18 @@ public class VMSystemClassLoader
         VMClass vmClass = new VMClass(this, classNode);
         this.heap.addClass(vmClass);
 
-        this.linkingQueue.add(vmClass);
-        this.resumeLinking();
+        this.linkClass(vmClass);
 
         return vmClass;
+    }
+
+    public void linkClass(@NotNull VMClass vmClass)
+    {
+        if (vmClass.isLinked())
+            return;
+
+        this.linkingQueue.add(vmClass);
+        this.resumeLinking();
     }
 
     public void resumeLinking()
@@ -85,8 +93,9 @@ public class VMSystemClassLoader
         {
             VMClass vmClass = this.linkingQueue.pollFirst();
             vmClass.link(this);
-            // クラスにネイティブ等を注入
-            this.injector.injectClass(this, vmClass);
+            // Array などを弾く
+            if (VMClass.class == vmClass.getClass())
+                this.injector.injectClass(this, vmClass);
         }
         this.isLinking = false;
     }

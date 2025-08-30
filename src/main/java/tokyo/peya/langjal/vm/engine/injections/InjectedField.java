@@ -38,7 +38,7 @@ public abstract class InjectedField extends VMField
         return clazz.getFields().stream()
                     .filter(f -> f.getName().equals(node.name))
                     .findFirst()
-                    .map(VMField::getFieldSlot)
+                    .map(VMField::getSlot)
                     .orElseThrow(() -> new IllegalStateException("Original field ID not found for " + node.name));
     }
 

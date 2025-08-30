@@ -27,8 +27,6 @@ import tokyo.peya.langjal.vm.values.metaobjects.reflection.VMFieldObject;
 import tokyo.peya.langjal.vm.values.metaobjects.reflection.VMMethodObject;
 import tokyo.peya.langjal.vm.values.metaobjects.reflection.invoke.VMResolvedMethodName;
 
-import java.util.List;
-
 public class InjectorMethodHandleNatives implements Injector
 {
     public static final ClassReference CLAZZ = ClassReference.of("java/lang/invoke/MethodHandleNatives");
@@ -196,14 +194,21 @@ public class InjectorMethodHandleNatives implements Injector
                         VMObject memberName = (VMObject) args[0];
                         VMArray arr = new VMArray(thread.getVm().getClassLoader(), VMType.GENERIC_OBJECT, 2);
                         VMClassObject clazzObj = (VMClassObject) memberName.getField("clazz");
-                        VMClass clazz = clazzObj.getRepresentingClass();
+                        int flags = ((VMInteger) memberName.getField("flags")).asNumber().intValue();
 
                         VMReferenceValue method = (VMReferenceValue) memberName.getField("method");
                         if (method instanceof VMResolvedMethodName resolved)
+                        {
                             arr.set(0, new VMLong(resolved.getMethod().getSlot()));
-
-
-                        arr.set(1, clazzObj);
+                            arr.set(1, memberName);
+                        }
+                        else if (isField(flags))
+                        {
+                            String fieldName = ((VMStringObject) memberName.getField("name")).getString();
+                            VMField field = clazzObj.getRepresentingClass().findField(fieldName);
+                            arr.set(0, new VMLong(field.getSlot()));
+                            arr.set(1, clazzObj);
+                        }
 
                         return arr;
                     }
@@ -225,6 +230,11 @@ public class InjectorMethodHandleNatives implements Injector
     {
         boolean isStatic = (EOpcodes.ACC_STATIC & modifier) != 0;
         return calcFlags(0x00040000, modifier, isStatic ? /* REF_getStatic */ 2 : /* REF_getField */ 1);
+    }
+
+    public static boolean isField(int flags)
+    {
+        return (flags & 0x00040000) != 0;
     }
 
     private static int calcFlags(int is, int modifier, int refKind)

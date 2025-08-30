@@ -15,6 +15,7 @@ import tokyo.peya.langjal.vm.values.VMNull;
 import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMReferenceValue;
 import tokyo.peya.langjal.vm.values.VMType;
+import tokyo.peya.langjal.vm.values.VMValue;
 
 public class OperatorCheckCast extends AbstractInstructionOperator<TypeInsnNode>
 {
@@ -27,7 +28,7 @@ public class OperatorCheckCast extends AbstractInstructionOperator<TypeInsnNode>
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull TypeInsnNode operand)
     {
-        VMReferenceValue object = frame.getStack().peekType(VMType.GENERIC_OBJECT);
+        VMValue object = frame.getStack().peekType(VMType.GENERIC_OBJECT);
         if (object instanceof VMNull<?>)
             return;  // null はなんでも OK
 

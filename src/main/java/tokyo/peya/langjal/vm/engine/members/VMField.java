@@ -17,7 +17,7 @@ public class VMField implements AccessibleObject
     private final VMSystemClassLoader classLoader;
 
     private final VMClass clazz;
-    private final int fieldSlot;
+    private final int slot;
     private final long fieldID;
     private final FieldNode fieldNode;
 
@@ -30,10 +30,10 @@ public class VMField implements AccessibleObject
     @Getter(lombok.AccessLevel.NONE)
     private VMFieldObject fieldObject;
 
-    public VMField(@NotNull VMSystemClassLoader classLoader, @NotNull VMClass clazz, int fieldSlot, long id,
+    public VMField(@NotNull VMSystemClassLoader classLoader, @NotNull VMClass clazz, int slot, long id,
                    @NotNull VMType<?> fieldType, @NotNull FieldNode fieldNode)
     {
-        this.fieldSlot = fieldSlot;
+        this.slot = slot;
         this.fieldID = id;
         this.classLoader = classLoader;
         this.clazz = clazz;

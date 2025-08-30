@@ -73,7 +73,7 @@ public class VMObject implements VMValue, VMReferenceValue
         return fields;
     }
 
-    protected void forceInitialise(VMSystemClassLoader cl)
+    public void forceInitialise(VMSystemClassLoader cl)
     {
         // 強制的に初期化を行う。
         if (this.isInitialised)

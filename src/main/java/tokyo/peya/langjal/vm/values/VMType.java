@@ -66,7 +66,7 @@ public class VMType<T extends VMValue>
         this.arrayDimensions = arrayDimensions;
         this.isPrimitive = type.isPrimitive();
         if (type instanceof PrimitiveTypes primitive)
-            this.linkedClass = new VMPrimitiveClass(this, primitive.getName());
+            this.linkedClass = new VMPrimitiveClass(this, primitive);
     }
 
     private VMType(@NotNull PrimitiveTypes type)
@@ -74,7 +74,7 @@ public class VMType<T extends VMValue>
         this.type = type;
         this.arrayDimensions = 0;
         this.isPrimitive = true;
-        this.linkedClass = new VMPrimitiveClass(this, type.getName());
+        this.linkedClass = new VMPrimitiveClass(this, type);
     }
 
     public VMType(@NotNull ClassReference reference)

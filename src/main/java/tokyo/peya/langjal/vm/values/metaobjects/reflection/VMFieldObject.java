@@ -29,7 +29,7 @@ public class VMFieldObject extends VMObject
         this.setField("type", field.getClazz().getClassObject());
         this.setField("modifiers", new VMInteger(field.getFieldNode().access));
         this.setField("trustedFinal", VMBoolean.FALSE);
-        this.setField("slot", new VMInteger(field.getFieldSlot()));
+        this.setField("slot", new VMInteger(field.getSlot()));
         this.setField("signature", VMStringObject.createString(classLoader, field.getFieldNode().signature));
         this.setField("annotations", new VMArray(classLoader, VMType.BYTE, 0));
 

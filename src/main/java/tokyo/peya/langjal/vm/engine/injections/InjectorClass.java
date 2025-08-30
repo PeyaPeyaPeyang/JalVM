@@ -2,6 +2,7 @@ package tokyo.peya.langjal.vm.engine.injections;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 import tokyo.peya.langjal.compiler.jvm.AccessAttribute;
 import tokyo.peya.langjal.compiler.jvm.AccessLevel;
@@ -15,6 +16,7 @@ import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMArray;
 import tokyo.peya.langjal.vm.values.VMBoolean;
 import tokyo.peya.langjal.vm.values.VMInteger;
+import tokyo.peya.langjal.vm.values.VMNull;
 import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
@@ -400,6 +402,75 @@ public class InjectorClass implements Injector
                         VMClassObject other = (VMClassObject) args[0];
 
                         return VMBoolean.of(obj.getTypeOf().isAssignableFrom(other.getTypeOf()));
+                    }
+                }
+        );
+        clazz.injectMethod(
+                cl,
+                new InjectedMethod(
+                        clazz, new MethodNode(
+                        EOpcodes.ACC_PRIVATE | EOpcodes.ACC_NATIVE,
+                        "getEnclosingMethod0",
+                        "()[Ljava/lang/Object;",
+                        null,
+                        null
+                ))
+                {
+                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
+                    {
+                        VMClassObject obj = (VMClassObject) instance;
+                        assert obj != null;
+                        VMClass clazz = obj.getRepresentingClass();
+                        ClassNode node = clazz.getClazz();
+                        String outerClass = node.outerClass;
+                        String outerMethod = node.outerMethod;
+                        String outerMethodDesc = node.outerMethodDesc;
+
+                        VMArray result = new VMArray(cl, VMType.GENERIC_OBJECT, 3);
+                        if (outerClass == null)
+                            return new VMNull<>(VMType.GENERIC_OBJECT);
+                        else
+                        {
+                            VMClass outerClazz = cl.findClass(ClassReference.of(outerClass));
+                            result.set(0, outerClazz.getClassObject());
+                        }
+                        if (outerMethod != null)
+                            result.set(1, VMStringObject.createString(thread, outerMethod));
+                        if (outerMethodDesc != null)
+                            result.set(2, VMStringObject.createString(thread, outerMethodDesc));
+
+                        return result;
+                    }
+                }
+        );
+        clazz.injectMethod(
+                cl,
+                new InjectedMethod(
+                        clazz, new MethodNode(
+                        EOpcodes.ACC_PRIVATE | EOpcodes.ACC_NATIVE,
+                        "getDeclaringClass0",
+                        "()Ljava/lang/Class;",
+                        null,
+                        null
+                ))
+                {
+                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
+                    {
+                        VMClassObject obj = (VMClassObject) instance;
+                        assert obj != null;
+                        VMClass clazz = obj.getRepresentingClass();
+                        ClassNode node = clazz.getClazz();
+                        String outerClass = node.outerClass;
+
+                        if (outerClass == null)
+                            return new VMNull<>(VMType.GENERIC_OBJECT);
+                        else
+                        {
+                            VMClass outerClazz = cl.findClass(ClassReference.of(outerClass));
+                            return outerClazz.getClassObject();
+                        }
                     }
                 }
         );

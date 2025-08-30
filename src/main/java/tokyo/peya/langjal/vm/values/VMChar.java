@@ -1,14 +1,25 @@
 package tokyo.peya.langjal.vm.values;
 
 import org.jetbrains.annotations.NotNull;
+import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
+import tokyo.peya.langjal.vm.JalVM;
+import tokyo.peya.langjal.vm.engine.VMFrame;
 
 public final class VMChar extends VMInteger
 {
-    public static final VMChar ZERO = new VMChar((char) 0);
-
-    public VMChar(final char value)
+    public VMChar(@NotNull JalVM vm, final char value)
     {
-        super(VMType.CHAR, value);
+        super(vm, VMType.of(vm, PrimitiveTypes.CHAR), value);
+    }
+
+    public VMChar(@NotNull VMFrame frame, final char value)
+    {
+        super(frame.getVm(), VMType.of(frame.getVm(), PrimitiveTypes.CHAR), value);
+    }
+
+    public static VMChar ofZero(@NotNull JalVM vm)
+    {
+        return new VMChar(vm, (char) 0);
     }
 
     @Override
@@ -29,7 +40,7 @@ public final class VMChar extends VMInteger
     @Override
     public @NotNull VMChar cloneValue()
     {
-        return new VMChar((char) this.asNumber().intValue());
+        return new VMChar(this.vm, (char) this.asNumber().intValue());
     }
 
     @Override

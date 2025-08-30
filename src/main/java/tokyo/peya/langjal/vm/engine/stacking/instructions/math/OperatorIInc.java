@@ -3,6 +3,7 @@ package tokyo.peya.langjal.vm.engine.stacking.instructions.math;
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.IincInsnNode;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
+import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
 import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
@@ -19,12 +20,12 @@ public class OperatorIInc extends AbstractInstructionOperator<IincInsnNode>
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull IincInsnNode operand)
     {
-        VMInteger val1 = frame.getLocals().getType(operand.var, VMType.INTEGER, operand);
+        VMInteger val1 = frame.getLocals().getType(operand.var, VMType.of(frame, PrimitiveTypes.INT), operand);
         int amount = operand.incr;
 
         if (amount == 0)
             return; // No increment needed
-        VMInteger amountValue = new VMInteger(amount);
+        VMInteger amountValue = new VMInteger(frame, amount);
         frame.getTracer().pushHistory(
                 ValueTracingEntry.generation(amountValue, frame.getMethod(), operand)
         );

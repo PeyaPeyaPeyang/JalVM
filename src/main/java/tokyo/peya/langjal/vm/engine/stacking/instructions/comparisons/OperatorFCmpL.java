@@ -18,7 +18,7 @@ public class OperatorFCmpL extends AbstractInstructionOperator<InsnNode>
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand)
     {
-        NumericComparator.compareFloat(frame, VMInteger.M1);
+        NumericComparator.compareFloat(frame, new VMInteger(frame, -1));
     }
 
 }

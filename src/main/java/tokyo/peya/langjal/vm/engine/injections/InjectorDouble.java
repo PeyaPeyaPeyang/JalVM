@@ -46,7 +46,7 @@ public class InjectorDouble implements Injector
                         VMDouble doubleValue = (VMDouble) args[0];
                         double value = doubleValue.asNumber().doubleValue();
                         long bits = Double.doubleToRawLongBits(value);
-                        return new VMLong(bits);
+                        return new VMLong(thread, bits);
                     }
                 }
         );
@@ -68,7 +68,7 @@ public class InjectorDouble implements Injector
                         VMLong bitsValue = (VMLong) args[0];
                         long bits = bitsValue.asNumber().longValue();
                         double value = Double.longBitsToDouble(bits);
-                        return new VMDouble(value);
+                        return new VMDouble(thread, value);
                     }
                 }
         );

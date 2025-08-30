@@ -1,15 +1,27 @@
 package tokyo.peya.langjal.vm.values;
 
 import org.jetbrains.annotations.NotNull;
+import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
+import tokyo.peya.langjal.vm.JalVM;
+import tokyo.peya.langjal.vm.engine.VMFrame;
 
 public final class VMShort extends VMInteger
 {
-    public static final VMShort ZERO = new VMShort((short) 0);
-
-    public VMShort(final short value)
+    public VMShort(@NotNull JalVM vm, final short value)
     {
-        super(VMType.SHORT, value);
+        super(vm, VMType.of(vm, PrimitiveTypes.SHORT), value);
     }
+
+    public VMShort(@NotNull VMFrame frame, final short value)
+    {
+        super(frame.getVm(), VMType.of(frame, PrimitiveTypes.SHORT), value);
+    }
+
+    public static VMShort ofZero(@NotNull JalVM vm)
+    {
+        return new VMShort(vm, (short) 0);
+    }
+
 
     @Override
     public boolean isCompatibleTo(@NotNull VMValue other)
@@ -29,7 +41,7 @@ public final class VMShort extends VMInteger
     @Override
     public @NotNull VMShort cloneValue()
     {
-        return new VMShort(this.asNumber().shortValue());
+        return this;
     }
 
     @Override

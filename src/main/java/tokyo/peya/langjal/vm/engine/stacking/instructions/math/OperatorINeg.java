@@ -3,6 +3,7 @@ package tokyo.peya.langjal.vm.engine.stacking.instructions.math;
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.InsnNode;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
+import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
 import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
@@ -19,7 +20,7 @@ public class OperatorINeg extends AbstractInstructionOperator<InsnNode>
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand)
     {
-        VMInteger val1 = frame.getStack().popType(VMType.INTEGER);
+        VMInteger val1 = frame.getStack().popType(VMType.of(frame, PrimitiveTypes.INT));
         VMInteger result = val1.neg();
         frame.getTracer().pushHistory(
                 ValueTracingEntry.manipulation(result, val1, frame.getMethod(), operand)

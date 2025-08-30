@@ -40,9 +40,9 @@ public class JalVM
         this.heap = new VMHeap();
         this.classLoader = new VMSystemClassLoader(this, this.heap);
         this.classPaths = new ClassPaths();
-        VMType.initialiseWellKnownClasses(this.classLoader);
+        VMType.initVM(this);
         this.engine = new VMEngine(this);
-        this.nativeCaller = new NativeCaller();
+        this.nativeCaller = new NativeCaller(this);
 
         this.pluginLoader.loadPlugins();
     }

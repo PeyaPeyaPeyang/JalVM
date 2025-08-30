@@ -18,7 +18,7 @@ public class OperatorAStore extends AbstractInstructionOperator<VarInsnNode>
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull VarInsnNode operand)
     {
-        VMReferenceValue value = frame.getStack().popType(VMType.GENERIC_OBJECT);
+        VMReferenceValue value = frame.getStack().popType(VMType.ofGenericObject(frame));
         frame.getLocals().setSlot(operand.var, value);
     }
 }

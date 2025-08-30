@@ -10,7 +10,7 @@ public class OperatorIConstSupport
 {
     public static void execute(@NotNull VMFrame frame, @NotNull InsnNode operand, int i)
     {
-        VMInteger vmInteger = new VMInteger(i);
+        VMInteger vmInteger = new VMInteger(frame, i);
         frame.getTracer().pushHistory(
                 ValueTracingEntry.generation(vmInteger, frame.getMethod(), operand)
         );

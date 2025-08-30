@@ -4,30 +4,30 @@ import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.ClassNode;
 import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
-import tokyo.peya.langjal.vm.VMSystemClassLoader;
+import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.exceptions.VMPanic;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMPrimitive;
 import tokyo.peya.langjal.vm.values.VMType;
-import tokyo.peya.langjal.vm.values.VMValue;
 import tokyo.peya.langjal.vm.values.metaobjects.VMBoxedPrimitiveObject;
 
 @Getter
 public class VMPrimitiveClass extends VMClass
 {
-
     private final VMType<?> primitiveType;
     private final ClassReference boxedReference;
 
     private VMClass boxedClass;
 
-    public VMPrimitiveClass(@NotNull VMType<?> primitiveType,
+    public VMPrimitiveClass(@NotNull JalVM vm,
+                            @NotNull VMType<?> primitiveType,
                             @NotNull PrimitiveTypes primitiveName)
     {
-        super(null, createClassNode(primitiveName.getName()));
+        super(vm, createClassNode(primitiveName.getName()));
         this.primitiveType = primitiveType;
         this.boxedReference = getBoxedReference(primitiveName);
+        this.linkedClass = this;
     }
 
     private static ClassReference getBoxedReference(@NotNull PrimitiveTypes primitiveName)
@@ -56,11 +56,9 @@ public class VMPrimitiveClass extends VMClass
     }
 
     @Override
-    public VMPrimitiveClass linkClass(@NotNull VMSystemClassLoader cl)
+    public void link(@NotNull JalVM vm)
     {
-        this.boxedClass = cl.findClass(this.boxedReference);
-        this.setClassLoader(cl);
-        return this;
+        this.boxedClass = vm.getClassLoader().findClass(this.boxedReference);
     }
 
     @Override
@@ -72,7 +70,7 @@ public class VMPrimitiveClass extends VMClass
     @Override
     public boolean isSubclassOf(@NotNull VMClass maySuper)
     {
-        return maySuper == this || maySuper == VMType.GENERIC_OBJECT.getLinkedClass()
+        return maySuper == this || maySuper == VMType.ofGenericObject(maySuper.getVm()).getLinkedClass()
                 || this.getReference().equals(maySuper.getReference());
     }
 

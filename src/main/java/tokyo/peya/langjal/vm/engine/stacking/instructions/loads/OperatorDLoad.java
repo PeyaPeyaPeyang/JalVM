@@ -3,6 +3,7 @@ package tokyo.peya.langjal.vm.engine.stacking.instructions.loads;
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.VarInsnNode;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
+import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
 import tokyo.peya.langjal.vm.values.VMDouble;
@@ -18,7 +19,7 @@ public class OperatorDLoad extends AbstractInstructionOperator<VarInsnNode>
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull VarInsnNode operand)
     {
-        VMDouble val1 = frame.getLocals().getType(operand.var, VMType.DOUBLE, operand);
+        VMDouble val1 = frame.getLocals().getType(operand.var, VMType.of(frame, PrimitiveTypes.DOUBLE), operand);
         frame.getStack().push(val1);
     }
 }

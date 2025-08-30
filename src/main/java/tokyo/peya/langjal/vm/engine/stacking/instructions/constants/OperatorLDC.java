@@ -33,7 +33,7 @@ public class OperatorLDC extends AbstractInstructionOperator<LdcInsnNode>
     public void execute(@NotNull VMFrame frame, @NotNull LdcInsnNode operand)
     {
         Object value = operand.cst;
-        VMValue toValue = VMValue.fromJavaObject(frame.getVm().getClassLoader(), value);
+        VMValue toValue = VMValue.fromJavaObject(frame.getVm(), value);
         frame.getTracer().pushHistory(
                 ValueTracingEntry.generation(toValue, frame.getMethod(), operand)
         );

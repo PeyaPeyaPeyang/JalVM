@@ -9,6 +9,7 @@ import tokyo.peya.langjal.vm.api.events.VMDefineClassEvent;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.injections.InjectorManager;
 import tokyo.peya.langjal.vm.references.ClassReference;
+import tokyo.peya.langjal.vm.values.VMType;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -21,7 +22,7 @@ public class VMSystemClassLoader
     private final InjectorManager injector;
 
     private boolean isLinking;
-    private final Deque<VMClass> linkingQueue;
+    private final Deque<VMType<?>> linkingQueue;
 
     public VMSystemClassLoader(@NotNull JalVM vm, @NotNull VMHeap heap)
     {
@@ -59,43 +60,55 @@ public class VMSystemClassLoader
     public VMClass defineClass(@NotNull ClassNode classNode)
     {
         String name = classNode.name;
-        if (this.heap.getLoadedClass(name) != null)
+        if (this.heap.getLoadedClass("L" + name + ";") != null)
             throw new IllegalStateException("Class " + name + " is already defined!");
 
         ClassReference ref = ClassReference.of(name);
+        System.out.println("Defining class: " + ref.getFullQualifiedName());
         VMDefineClassEvent event = new VMDefineClassEvent(this.vm, ref, classNode);
         this.vm.getEventManager().dispatchEvent(event);
 
-        VMClass vmClass = new VMClass(this, classNode);
+        VMClass vmClass = new VMClass(this.vm, classNode);
         this.heap.addClass(vmClass);
 
-        this.linkClass(vmClass);
+        this.linkType(vmClass);
 
         return vmClass;
     }
 
-    public void linkClass(@NotNull VMClass vmClass)
+    public void linkType(@NotNull VMType<?> vmClass)
+    {
+        this.linkLater(vmClass);
+        this.resumeLinking();
+    }
+    public void linkLater(@NotNull VMType<?> vmClass)
     {
         if (vmClass.isLinked())
             return;
 
         this.linkingQueue.add(vmClass);
-        this.resumeLinking();
     }
 
     public void resumeLinking()
     {
-        if (this.isLinking || !this.vm.isRunning())
+        if (this.isLinking)
             return;
 
         this.isLinking = true;
         while (!this.linkingQueue.isEmpty())
         {
-            VMClass vmClass = this.linkingQueue.pollFirst();
-            vmClass.link(this);
+            VMType<?> vmClass = this.linkingQueue.pollFirst();
+            if (vmClass.isLinked())
+                continue;
+
+            System.out.println("Linking class: " + vmClass);
+            vmClass.link(this.vm);
             // Array などを弾く
             if (VMClass.class == vmClass.getClass())
-                this.injector.injectClass(this, vmClass);
+            {
+                VMClass clazz = (VMClass) vmClass;
+                this.injector.injectClass(this, clazz);
+            }
         }
         this.isLinking = false;
     }

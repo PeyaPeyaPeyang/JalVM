@@ -3,6 +3,7 @@ package tokyo.peya.langjal.vm.engine.stacking.instructions.references;
 import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.compiler.jvm.MethodDescriptor;
 import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
+import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.references.ClassReference;
@@ -21,23 +22,23 @@ public class InvocationHelper
         VMType<?>[] argumentTypes = new VMType[argumentTypeDescriptors.length];
         for (int i = arguments.length - 1; i >= 0; i--)  // スタックの順序は逆なので、最後からポップする
         {
-            argumentTypes[i] = VMType.of(argumentTypeDescriptors[i]).linkClass(frame.getVm().getClassLoader());
+            argumentTypes[i] = VMType.of(frame.getVm(), argumentTypeDescriptors[i]);
             arguments[i] = frame.getStack().popType(argumentTypes[i]);
         }
 
         return new InvocationContext(
                 arguments,
                 argumentTypes,
-                findOwner(owner, frame.getVm().getClassLoader())
+                findOwner(frame.getVm(), owner)
         );
     }
 
-    private static VMType<? extends VMReferenceValue> findOwner(@NotNull String owner, @NotNull VMSystemClassLoader cl)
+    private static VMType<? extends VMReferenceValue> findOwner(@NotNull JalVM vm, @NotNull String owner)
     {
         if (owner.startsWith("["))
-            return VMType.GENERIC_ARRAY;
+            return VMType.ofGenericArray(vm.getHeap());
 
-        return cl.findClass(ClassReference.of(owner));
+        return vm.getClassLoader().findClass(ClassReference.of(owner));
     }
 
     public record InvocationContext(

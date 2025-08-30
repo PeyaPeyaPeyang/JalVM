@@ -40,9 +40,6 @@ public abstract class AbstractVMPrimitive implements VMPrimitive
             throw new VMPanic("Current type is not a primitive class: " + currentType);
 
         VMClass expectedClass = expectedType.getLinkedClass();
-        if (!expectedClass.isLinked())
-            expectedClass.linkClass(currentClass.getClassLoader());
-
         if (primitive.equals(expectedClass))
             return this;
         else if (expectedClass.isAssignableFrom(primitive.getBoxedClass()))

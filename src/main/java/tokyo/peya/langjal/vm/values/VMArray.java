@@ -2,6 +2,8 @@ package tokyo.peya.langjal.vm.values;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
+import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
+import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMArrayClass;
 import tokyo.peya.langjal.vm.engine.VMClass;
@@ -13,18 +15,21 @@ import java.lang.reflect.Array;
 @Getter
 public class VMArray extends VMObject implements VMValue, VMReferenceValue
 {
+    private final JalVM vm;
     private final VMType<?> elementType;
     private final VMValue[] elements;
 
     private final VMType<?> arrayType;
 
-    public VMArray(@NotNull VMSystemClassLoader classLoader, @NotNull VMType<?> elementType, int size)
+    public VMArray(@NotNull JalVM vm, @NotNull VMType<?> elementType, int size)
     {
         super(new VMArrayClass(
-                classLoader,
-                VMType.of("[" + elementType.getTypeDescriptor()).linkClass(classLoader),
+                vm,
+                VMType.of(vm, "[" + elementType.getTypeDescriptor()),
                 elementType.getLinkedClass()
         ));
+
+        this.vm = vm;
 
         if (size < 0)
             throw new VMPanic("Size cannot be negative: " + size);
@@ -33,39 +38,31 @@ public class VMArray extends VMObject implements VMValue, VMReferenceValue
         this.elements = new VMValue[size];
         this.fillDefaults();
 
-        this.arrayType = VMType.of("[" + elementType.getTypeDescriptor()).linkClass(classLoader);
+        this.arrayType = VMType.of(vm, "[" + elementType.getTypeDescriptor());
 
-        this.forceInitialise(classLoader);
+        this.forceInitialise(vm.getClassLoader());
     }
-    public VMArray(@NotNull VMSystemClassLoader classLoader, @NotNull VMType<?> elementType)
+    public VMArray(@NotNull JalVM vm, @NotNull VMType<?> elementType)
     {
-        this(classLoader, elementType, 0);
+        this(vm, elementType, 0);
     }
 
 
     public VMArray(@NotNull VMClass objectType, VMType<?> elementType, VMValue[] elements, @NotNull VMType<?> arrayType)
     {
         super(arrayType.getLinkedClass());
+        this.vm = objectType.getVm();
         this.elementType = elementType;
         this.elements = elements;
         this.arrayType = arrayType;
 
-        this.forceInitialise(objectType.getClassLoader());
+        this.forceInitialise(objectType.getVm().getClassLoader());
     }
 
     private void fillDefaults()
     {
         for (int i = 0; i < this.elements.length; i++)
             this.elements[i] = this.elementType.defaultValue();
-    }
-
-    public void linkClass(@NotNull VMSystemClassLoader cl)
-    {
-        // 配列の型をリンクする
-        this.arrayType.linkClass(cl);
-
-        // 要素の型をリンクする
-        this.elementType.linkClass(cl);
     }
 
     @Override
@@ -77,13 +74,15 @@ public class VMArray extends VMObject implements VMValue, VMReferenceValue
         return new VMArray(this.getObjectType(), this.elementType, clonedElements, this.arrayType);
     }
 
-    public VMArray(@NotNull VMSystemClassLoader classLoader, @NotNull VMType<?> elementType, @NotNull VMValue[] values)
+    public VMArray(@NotNull JalVM vm, @NotNull VMType<?> elementType, @NotNull VMValue[] values)
     {
         super(new VMArrayClass(
-                      classLoader,
-                      VMType.of("[" + elementType.getTypeDescriptor()).linkClass(classLoader),
+                      vm,
+                      VMType.of(vm, "[" + elementType.getTypeDescriptor()),
                       elementType.getLinkedClass()
               ));
+
+        this.vm = vm;
 
         // 値チェック
         for (VMValue value : values)
@@ -94,7 +93,7 @@ public class VMArray extends VMObject implements VMValue, VMReferenceValue
         this.elementType = elementType;
         this.elements = values;
 
-        this.arrayType = VMType.of("[" + elementType.getTypeDescriptor());
+        this.arrayType = VMType.of(vm, "[" + elementType.getTypeDescriptor());
     }
 
 
@@ -134,7 +133,7 @@ public class VMArray extends VMObject implements VMValue, VMReferenceValue
     {
         if (other instanceof VMArray otherArray)
             return this.elementType.isAssignableFrom(otherArray.getObjectType());
-        return other.type().equals(VMType.GENERIC_OBJECT) || other instanceof VMNull;
+        return other.type().equals(VMType.ofGenericObject(other.type().getVm())) || other instanceof VMNull;
     }
 
     @Override
@@ -190,7 +189,7 @@ public class VMArray extends VMObject implements VMValue, VMReferenceValue
 
     public byte[] toByteArray()
     {
-        if (this.elementType != VMType.BYTE)
+        if (this.elementType != VMType.of(this.vm, PrimitiveTypes.BYTE))
             throw new VMPanic("Cannot convert VMArray to byte array: " + this.elementType.getTypeDescriptor());
 
         byte[] array = new byte[this.elements.length];

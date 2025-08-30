@@ -1,33 +1,46 @@
 package tokyo.peya.langjal.vm.values;
 
 import org.jetbrains.annotations.NotNull;
+import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
+import tokyo.peya.langjal.vm.JalVM;
+import tokyo.peya.langjal.vm.engine.VMFrame;
+import tokyo.peya.langjal.vm.engine.threading.VMThread;
 import tokyo.peya.langjal.vm.exceptions.IllegalOperandPanic;
 
 public sealed class VMInteger extends AbstractVMPrimitive permits VMByte, VMChar, VMShort
 {
-    public static final VMInteger ZERO = new VMInteger(0);
-    public static final VMInteger M1 = new VMInteger(-1);
-    public static final VMInteger ONE = new VMInteger(1);
-    public static final VMInteger TWO = new VMInteger(2);
-    public static final VMInteger THREE = new VMInteger(3);
-    public static final VMInteger FOUR = new VMInteger(4);
-    public static final VMInteger FIVE = new VMInteger(5);
+    protected final JalVM vm;
 
-    protected VMInteger(VMType<?> type, final int value)
+    protected VMInteger(@NotNull JalVM vm, @NotNull VMType<?> type, final int value)
     {
         super(type, value);
+        this.vm = vm;
     }
 
-    public VMInteger(final int value)
+    public VMInteger(@NotNull JalVM vm, final int value)
     {
-        super(VMType.INTEGER, value);
+        this(vm, VMType.of(vm, PrimitiveTypes.INT), value);
     }
 
+    public VMInteger(@NotNull VMThread thread, final int value)
+    {
+        this(thread.getVm(), VMType.of(thread, PrimitiveTypes.INT), value);
+    }
+
+    public VMInteger(@NotNull VMFrame frame, final int value)
+    {
+        this(frame.getVm(), VMType.of(frame, PrimitiveTypes.INT), value);
+    }
+
+    public static VMInteger ofZero(@NotNull JalVM vm)
+    {
+        return new VMInteger(vm, 0);
+    }
 
     @NotNull
     public VMInteger add(@NotNull VMInteger other)
     {
-        return new VMInteger(this.asNumber().intValue() + other.asNumber().intValue());
+        return new VMInteger(this.vm, this.asNumber().intValue() + other.asNumber().intValue());
     }
 
     @Override
@@ -39,7 +52,7 @@ public sealed class VMInteger extends AbstractVMPrimitive permits VMByte, VMChar
     @Override
     public @NotNull VMInteger cloneValue()
     {
-        return new VMInteger(this.asNumber().intValue());
+        return new VMInteger(this.vm, this.asNumber().intValue());
     }
 
     @Override
@@ -50,59 +63,59 @@ public sealed class VMInteger extends AbstractVMPrimitive permits VMByte, VMChar
 
     public @NotNull VMInteger sub(VMInteger val1)
     {
-        return new VMInteger(this.asNumber().intValue() - val1.asNumber().intValue());
+        return new VMInteger(this.vm, this.asNumber().intValue() - val1.asNumber().intValue());
     }
 
     public @NotNull VMInteger mul(VMInteger val1)
     {
-        return new VMInteger(this.asNumber().intValue() * val1.asNumber().intValue());
+        return new VMInteger(this.vm, this.asNumber().intValue() * val1.asNumber().intValue());
     }
 
     public @NotNull VMInteger div(VMInteger val1)
     {
         if (val1.asNumber().intValue() == 0)
             throw new IllegalOperandPanic("Division by zero");
-        return new VMInteger(this.asNumber().intValue() / val1.asNumber().intValue());
+        return new VMInteger(this.vm, this.asNumber().intValue() / val1.asNumber().intValue());
     }
 
     public @NotNull VMInteger rem(VMInteger val1)
     {
-        return new VMInteger(this.asNumber().intValue() % val1.asNumber().intValue());
+        return new VMInteger(this.vm, this.asNumber().intValue() % val1.asNumber().intValue());
     }
 
     public @NotNull VMInteger neg()
     {
-        return new VMInteger(-this.asNumber().intValue());
+        return new VMInteger(this.vm, -this.asNumber().intValue());
     }
 
     public @NotNull VMInteger shl(VMInteger val1)
     {
-        return new VMInteger(this.asNumber().intValue() << val1.asNumber().intValue());
+        return new VMInteger(this.vm, this.asNumber().intValue() << val1.asNumber().intValue());
     }
 
     public @NotNull VMInteger shr(VMInteger val1)
     {
-        return new VMInteger(this.asNumber().intValue() >> val1.asNumber().intValue());
+        return new VMInteger(this.vm, this.asNumber().intValue() >> val1.asNumber().intValue());
     }
 
     public @NotNull VMInteger ushr(VMInteger val1)
     {
-        return new VMInteger(this.asNumber().intValue() >>> val1.asNumber().intValue());
+        return new VMInteger(this.vm, this.asNumber().intValue() >>> val1.asNumber().intValue());
     }
 
     public @NotNull VMInteger and(VMInteger val1)
     {
-        return new VMInteger(this.asNumber().intValue() & val1.asNumber().intValue());
+        return new VMInteger(this.vm, this.asNumber().intValue() & val1.asNumber().intValue());
     }
 
     public @NotNull VMInteger or(VMInteger val1)
     {
-        return new VMInteger(this.asNumber().intValue() | val1.asNumber().intValue());
+        return new VMInteger(this.vm, this.asNumber().intValue() | val1.asNumber().intValue());
     }
 
     public @NotNull VMInteger xor(VMInteger val1)
     {
-        return new VMInteger(this.asNumber().intValue() ^ val1.asNumber().intValue());
+        return new VMInteger(this.vm, this.asNumber().intValue() ^ val1.asNumber().intValue());
     }
 
     @Override
@@ -111,46 +124,46 @@ public sealed class VMInteger extends AbstractVMPrimitive permits VMByte, VMChar
         if (this.type().equals(expectedType))
             return this;
 
-        if (expectedType.equals(VMType.BYTE))
+        if (expectedType.getType() ==  PrimitiveTypes.BYTE)
         {
             int value = this.asNumber().intValue();
             if (value < Byte.MIN_VALUE || value > Byte.MAX_VALUE)
                 throw new IllegalOperandPanic("Value out of range for byte: " + value);
 
-            return new VMByte((byte) value);
+            return new VMByte(this.vm, (byte) value);
         }
-        else if (expectedType.equals(VMType.CHAR))
+        else if (expectedType.getType() == PrimitiveTypes.CHAR)
         {
             int value = this.asNumber().intValue();
             if (value < Character.MIN_VALUE || value > Character.MAX_VALUE)
                 throw new IllegalOperandPanic("Value out of range for char: " + value);
 
-            return new VMChar((char) value);
+            return new VMChar(this.vm, (char) value);
         }
-        else if (expectedType.equals(VMType.SHORT))
+        else if (expectedType.getType() == PrimitiveTypes.SHORT)
         {
             int value = this.asNumber().intValue();
             if (value < Short.MIN_VALUE || value > Short.MAX_VALUE)
                 throw new IllegalOperandPanic("Value out of range for short: " + value);
 
-            return new VMShort((short) value);
+            return new VMShort(this.vm, (short) value);
         }
-        else if (expectedType.equals(VMType.BOOLEAN))
+        else if (expectedType.getType() == PrimitiveTypes.BOOLEAN)
         {
             int value = this.asNumber().intValue();
             if (value < 0 || value > 1)
                 throw new IllegalOperandPanic("Value out of range for boolean: " + value);
 
-            return VMBoolean.of(value == 1);
+            return VMBoolean.of(this.vm, value == 1);
         }
-        else if (expectedType.equals(VMType.LONG))
-            return new VMLong(this.asNumber().longValue());  // 長整数に変換
-        else if (expectedType.equals(VMType.DOUBLE))
-            return new VMDouble(this.asNumber().doubleValue());  // 浮動小数点数に変換
-        else if (expectedType.equals(VMType.FLOAT))
-            return new VMFloat(this.asNumber().floatValue());  // 浮動小数点数に変換
-        else if (expectedType.equals(VMType.INTEGER))
-            return new VMInteger(this.asNumber().intValue());  // そのまま返す
+        else if (expectedType.getType() == PrimitiveTypes.LONG)
+            return new VMLong(this.vm, this.asNumber().longValue());  // 長整数に変換
+        else if (expectedType.getType() == PrimitiveTypes.DOUBLE)
+            return new VMDouble(this.vm, this.asNumber().doubleValue());  // 浮動小数点数に変換
+        else if (expectedType.getType() == PrimitiveTypes.FLOAT)
+            return new VMFloat(this.vm, this.asNumber().floatValue());  // 浮動小数点数に変換
+        else if (expectedType.getType() == PrimitiveTypes.INT)
+            return new VMInteger(this.vm, this.asNumber().intValue());  // そのまま返す
 
         return super.conformValue(expectedType);
     }

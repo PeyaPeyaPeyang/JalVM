@@ -106,7 +106,7 @@ public class InjectorSignal implements Injector
                         VMStringObject signalNameObject = (VMStringObject) args[0];
                         String signalName = signalNameObject.getString();
                         int handle = InjectorSignal.this.getSignalOrCreateHandle(signalName);
-                        return new VMInteger(handle);
+                        return new VMInteger(thread, handle);
                     }
                 }
         );
@@ -133,7 +133,7 @@ public class InjectorSignal implements Injector
                         Long current = InjectorSignal.this.signalHandler.put(signalHandle, handler);
                         // すでにハンドラが登録されている場合は、古いハンドラを返す
                         // 新しいハンドラを登録した場合は、0を返す
-                        return new VMLong(Objects.requireNonNullElse(current, 0L));
+                        return new VMLong(thread, Objects.requireNonNullElse(current, 0L));
                     }
                 }
         );

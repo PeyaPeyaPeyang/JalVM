@@ -2,6 +2,8 @@ package tokyo.peya.langjal.vm.values.metaobjects.reflection;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
+import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
+import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
@@ -17,40 +19,40 @@ import java.util.Arrays;
 @Getter
 public class VMMethodObject extends VMObject
 {
-    private final VMSystemClassLoader classLoader;
+    private final JalVM vm;
     private final VMMethod method;
 
-    public VMMethodObject(@NotNull VMSystemClassLoader classLoader, @NotNull VMMethod method, @NotNull VMClass objectType)
+    public VMMethodObject(@NotNull JalVM vm, @NotNull VMMethod method, @NotNull VMClass objectType)
     {
         super(objectType);
-        this.classLoader = classLoader;
+        this.vm = vm;
         this.method = method;
 
         this.setFieldIfExists("clazz", method.getClazz().getClassObject());
-        this.setFieldIfExists("name", VMStringObject.createString(classLoader, method.getName()));
+        this.setFieldIfExists("name", VMStringObject.createString(vm, method.getName()));
         this.setFieldIfExists("parameterTypes", new VMArray(
-                classLoader,
-                VMType.ofClassName("java/lang/Class").linkClass(classLoader),
+                vm,
+                VMType.ofClassName(vm, "java/lang/Class"),
                 Arrays.stream(method.getParameterTypes())
                         .map(t -> t.getLinkedClass().getClassObject())
                         .toArray(VMObject[]::new)
         ));
         this.setFieldIfExists("returnType", method.getReturnType().getLinkedClass().getClassObject());
         this.setFieldIfExists("exceptionTypes",
-                              new VMArray(classLoader, VMType.ofClassName("java/lang/Class").linkClass(classLoader))
+                              new VMArray(vm, VMType.ofClassName(vm, "java/lang/Class"))
         );
-        this.setFieldIfExists("modifiers", new VMInteger(method.getMethodNode().access));
-        this.setFieldIfExists("signature", VMStringObject.createString(classLoader, method.getMethodNode().signature));
-        this.setFieldIfExists("annotations", new VMArray(classLoader, VMType.BYTE));
-        this.setFieldIfExists("parameterAnnotations", new VMArray(classLoader, VMType.BYTE));
-        this.setFieldIfExists("annotationDefault", new VMArray(classLoader, VMType.BYTE));
+        this.setFieldIfExists("modifiers", new VMInteger(vm, method.getMethodNode().access));
+        this.setFieldIfExists("signature", VMStringObject.createString(vm, method.getMethodNode().signature));
+        this.setFieldIfExists("annotations", new VMArray(vm, VMType.of(vm, PrimitiveTypes.BYTE)));
+        this.setFieldIfExists("parameterAnnotations", new VMArray(vm, VMType.of(vm, PrimitiveTypes.BYTE)));
+        this.setFieldIfExists("annotationDefault", new VMArray(vm, VMType.of(vm, PrimitiveTypes.BYTE)));
 
-        this.forceInitialise(classLoader);
+        this.forceInitialise(vm.getClassLoader());
     }
 
 
-    public VMMethodObject(@NotNull VMSystemClassLoader classLoader, @NotNull VMMethod method)
+    public VMMethodObject(@NotNull JalVM vm, @NotNull VMMethod method)
     {
-        this(classLoader, method, classLoader.findClass(ClassReference.of("java/lang/reflect/Method")));
+        this(vm, method, vm.getClassLoader().findClass(ClassReference.of("java/lang/reflect/Method")));
     }
 }

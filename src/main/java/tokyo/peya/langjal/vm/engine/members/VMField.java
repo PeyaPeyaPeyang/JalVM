@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.FieldNode;
 import tokyo.peya.langjal.compiler.jvm.AccessAttributeSet;
 import tokyo.peya.langjal.compiler.jvm.AccessLevel;
+import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.values.VMType;
@@ -14,7 +15,7 @@ import tokyo.peya.langjal.vm.values.metaobjects.reflection.VMFieldObject;
 @Getter
 public class VMField implements AccessibleObject
 {
-    private final VMSystemClassLoader classLoader;
+    private final JalVM vm;
 
     private final VMClass clazz;
     private final int slot;
@@ -30,12 +31,12 @@ public class VMField implements AccessibleObject
     @Getter(lombok.AccessLevel.NONE)
     private VMFieldObject fieldObject;
 
-    public VMField(@NotNull VMSystemClassLoader classLoader, @NotNull VMClass clazz, int slot, long id,
+    public VMField(@NotNull JalVM vm, @NotNull VMClass clazz, int slot, long id,
                    @NotNull VMType<?> fieldType, @NotNull FieldNode fieldNode)
     {
         this.slot = slot;
         this.fieldID = id;
-        this.classLoader = classLoader;
+        this.vm = vm;
         this.clazz = clazz;
         this.fieldNode = fieldNode;
 
@@ -49,7 +50,7 @@ public class VMField implements AccessibleObject
     public VMFieldObject getFieldObject()
     {
         if (this.fieldObject == null)
-            this.fieldObject = new VMFieldObject(this.classLoader, this);
+            this.fieldObject = new VMFieldObject(this.vm, this);
         return this.fieldObject;
     }
 
@@ -59,13 +60,8 @@ public class VMField implements AccessibleObject
         if (fieldDefaultValue == null)
             return this.type.defaultValue();
 
-        VMValue value = VMValue.fromJavaObject(this.classLoader, fieldDefaultValue);
+        VMValue value = VMValue.fromJavaObject(this.vm, fieldDefaultValue);
         return value.conformValue(this.type);
-    }
-
-    public void linkType(@NotNull VMSystemClassLoader cl)
-    {
-        this.type.linkClass(cl);
     }
 
     @Override

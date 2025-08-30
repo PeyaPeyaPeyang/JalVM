@@ -18,7 +18,7 @@ public class OperatorAReturn extends AbstractInstructionOperator<InsnNode>
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand)
     {
-        VMReferenceValue value = frame.getStack().popType(VMType.GENERIC_OBJECT);
+        VMReferenceValue value = frame.getStack().popType(VMType.ofGenericObject(frame));
         frame.returnFromMethod(value, operand);
     }
 }

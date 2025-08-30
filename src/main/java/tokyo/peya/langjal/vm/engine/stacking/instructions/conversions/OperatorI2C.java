@@ -3,6 +3,7 @@ package tokyo.peya.langjal.vm.engine.stacking.instructions.conversions;
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.InsnNode;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
+import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
 import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
@@ -22,8 +23,8 @@ public class OperatorI2C extends AbstractInstructionOperator<InsnNode>
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand)
     {
-        VMInteger value = frame.getStack().popType(VMType.INTEGER);
-        VMChar result = new VMChar((char) value.asNumber().intValue());
+        VMInteger value = frame.getStack().popType(VMType.of(frame, PrimitiveTypes.INT));
+        VMChar result = new VMChar(frame, (char) value.asNumber().intValue());
         frame.getTracer().pushHistory(
                 ValueTracingEntry.manipulation(
                         result,

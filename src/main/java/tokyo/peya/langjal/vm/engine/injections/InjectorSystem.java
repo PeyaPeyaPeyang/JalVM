@@ -94,7 +94,7 @@ public class InjectorSystem implements Injector
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         long currentTime = System.currentTimeMillis();
-                        return new VMLong(currentTime);
+                        return new VMLong(thread, currentTime);
                     }
                 }
         );
@@ -114,7 +114,7 @@ public class InjectorSystem implements Injector
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         long currentTime = System.nanoTime();
-                        return new VMLong(currentTime);
+                        return new VMLong(thread, currentTime);
                     }
                 }
         );

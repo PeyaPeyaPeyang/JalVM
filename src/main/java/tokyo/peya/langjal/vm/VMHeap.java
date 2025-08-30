@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.references.ClassReference;
+import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.metaobjects.VMStringObject;
 
 import java.util.ArrayList;
@@ -13,15 +14,17 @@ import java.util.List;
 public class VMHeap
 {
     private final List<VMClass> loadedClasses;
+    private final HashMap<String, VMType<?>> typePool;
     private final HashMap<String, VMStringObject> stringPool;
 
     public VMHeap()
     {
         this.loadedClasses = new ArrayList<>();
+        this.typePool = new HashMap<>();
         this.stringPool = new HashMap<>();
     }
 
-    public void addClass(VMClass vmClass)
+    public void addClass(@NotNull VMClass vmClass)
     {
         this.loadedClasses.add(vmClass);
     }
@@ -31,11 +34,26 @@ public class VMHeap
         this.loadedClasses.removeIf(vmClass -> vmClass.getReference().isEqualClass(name));
     }
 
+    public void addType(@NotNull VMType<?> type)
+    {
+        this.typePool.put(type.getTypeDescriptor(), type);
+    }
+
+    public void removeType(@NotNull String descriptor)
+    {
+        this.typePool.remove(descriptor);
+    }
+
+    public VMType<?> getType(@NotNull String descriptor)
+    {
+        return this.typePool.get(descriptor);
+    }
+
     @Nullable
-    public VMClass getLoadedClass(@NotNull String className)
+    public VMClass getLoadedClass(@NotNull String descriptor)
     {
         for (VMClass vmClass : this.loadedClasses)
-            if (vmClass.getReference().isEqualClass(className))
+            if (vmClass.getTypeDescriptor().equals(descriptor))
                 return vmClass;
 
         return null;

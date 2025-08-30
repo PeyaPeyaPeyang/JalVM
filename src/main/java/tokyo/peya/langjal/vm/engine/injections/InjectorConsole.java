@@ -41,7 +41,7 @@ public class InjectorConsole implements Injector
                     VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
                                             @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
-                        return VMBoolean.TRUE;
+                        return VMBoolean.ofTrue(thread);
                     }
                 }
         );

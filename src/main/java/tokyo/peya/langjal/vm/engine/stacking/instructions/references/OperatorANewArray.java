@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.TypeInsnNode;
 import tokyo.peya.langjal.compiler.jvm.ClassReferenceType;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
+import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMFrame;
@@ -32,14 +33,13 @@ public class OperatorANewArray extends AbstractInstructionOperator<TypeInsnNode>
         String descriptor = operand.desc;
         ClassReferenceType classReferenceType = ClassReferenceType.parse(descriptor);
         VMClass vmClass = cl.findClass(ClassReference.of(classReferenceType));
-        VMInteger arrayLength = frame.getStack().popType(VMType.INTEGER);
+        VMInteger arrayLength = frame.getStack().popType(VMType.of(frame, PrimitiveTypes.INT));
 
         int length = arrayLength.asNumber().intValue();
         if (length < 0)
             throw new VMPanic("Array length cannot be negative: " + length);
 
-        VMArray array = new VMArray(cl,  vmClass, length);
-        array.linkClass(cl);
+        VMArray array = new VMArray(frame.getVm(), vmClass, length);
         frame.getTracer().pushHistory(
                 ValueTracingEntry.generation(
                         array,

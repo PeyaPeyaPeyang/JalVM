@@ -1,14 +1,28 @@
 package tokyo.peya.langjal.vm.values;
 
 import org.jetbrains.annotations.NotNull;
+import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
+import tokyo.peya.langjal.vm.JalVM;
+import tokyo.peya.langjal.vm.engine.VMFrame;
 
 public final class VMByte extends VMInteger
 {
-    public static final VMByte ZERO = new VMByte((byte) 0x00);
+    private final JalVM vm;
 
-    public VMByte(final byte value)
+    public VMByte(@NotNull JalVM vm, final byte value)
     {
-        super(VMType.BYTE, value);
+        super(vm, VMType.of(vm, PrimitiveTypes.BYTE), value);
+        this.vm = vm;
+    }
+
+    public VMByte(@NotNull VMFrame frame, final byte value)
+    {
+        this(frame.getVm(), value);
+    }
+
+    public static VMByte ofZero(@NotNull JalVM vm)
+    {
+        return new VMByte(vm, (byte) 0);
     }
 
     @Override
@@ -29,7 +43,7 @@ public final class VMByte extends VMInteger
     @Override
     public @NotNull VMByte cloneValue()
     {
-        return new VMByte(this.asNumber().byteValue());
+        return new VMByte(this.vm, this.asNumber().byteValue());
     }
 
     @Override

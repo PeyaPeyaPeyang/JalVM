@@ -2,6 +2,7 @@ package tokyo.peya.langjal.vm.engine.stacking.instructions.stores;
 
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.InsnNode;
+import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.exceptions.IllegalOperationPanic;
 import tokyo.peya.langjal.vm.values.VMArray;
@@ -15,8 +16,8 @@ public class OperatorXAStoreSupporter
                                                    @NotNull VMType<T> type)
     {
         T value = frame.getStack().popType(type);
-        VMInteger index = frame.getStack().popType(VMType.INTEGER);
-        VMArray array = frame.getStack().popType(VMType.GENERIC_ARRAY);
+        VMInteger index = frame.getStack().popType(VMType.of(frame, PrimitiveTypes.INT));
+        VMArray array = frame.getStack().popType(VMType.ofGenericArray(frame));
 
         int idx = index.asNumber().intValue();
         if (idx < 0 || idx >= array.length())

@@ -148,7 +148,7 @@ public class InjectorFileDescriptor implements Injector
                     {
                         VMInteger fdValue = (VMInteger) args[0];
                         int fd = fdValue.asNumber().intValue();
-                        return new VMLong(InjectorFileDescriptor.this.fdToHandleNums.get(fd));
+                        return new VMLong(thread, InjectorFileDescriptor.this.fdToHandleNums.get(fd));
                     }
                 }
         );
@@ -170,7 +170,7 @@ public class InjectorFileDescriptor implements Injector
                     {
                         VMInteger fdValue = (VMInteger) args[0];
                         int fd = fdValue.asNumber().intValue();
-                        return VMBoolean.of(InjectorFileDescriptor.this.appends.get(fd));
+                        return VMBoolean.of(thread, InjectorFileDescriptor.this.appends.get(fd));
                     }
                 }
         );

@@ -29,9 +29,9 @@ public class VMThread
 {
     protected final String name;
     protected final int currentFrameIndex;
-    private final JalVM vm;
-    private final VMFrameTracer tracer;
-    private final VMThreadObject threadObject;
+    protected final JalVM vm;
+    protected final VMFrameTracer tracer;
+    protected final VMThreadObject threadObject;
 
     protected VMFrame firstFrame;
     protected VMFrame currentFrame;
@@ -95,7 +95,7 @@ public class VMThread
         // ネイティブの場合は，FFIで呼び出し
         if (method.getAccessAttributes().has(AccessAttribute.NATIVE))
         {
-            VMType<?> returningType = VMType.of(method.getDescriptor().getReturnType());
+            VMType<?> returningType = VMType.of(this.vm, method.getDescriptor().getReturnType());
             VMValue respond = this.vm.getNativeCaller().callFFI(
                     this,
                     method.getClazz().getReference(),

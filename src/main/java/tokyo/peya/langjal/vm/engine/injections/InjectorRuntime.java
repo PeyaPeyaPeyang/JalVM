@@ -41,7 +41,7 @@ public class InjectorRuntime implements Injector
                     @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
-                        return new VMLong(Long.MAX_VALUE);
+                        return new VMLong(thread, Long.MAX_VALUE);
                     }
                 }
         );
@@ -60,7 +60,7 @@ public class InjectorRuntime implements Injector
                     @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
-                        return new VMLong(Long.MAX_VALUE);
+                        return new VMLong(thread, Long.MAX_VALUE);
                     }
                 }
         );
@@ -98,7 +98,7 @@ public class InjectorRuntime implements Injector
                     @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
-                        return new VMInteger(Integer.MAX_VALUE);
+                        return new VMInteger(thread, Integer.MAX_VALUE);
                     }
                 }
         );

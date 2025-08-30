@@ -18,6 +18,6 @@ public class VMBoxedPrimitiveObject extends VMObject
         this.value = value;
 
         this.setField("value", value);
-        this.forceInitialise(boxedClass.getClassLoader());
+        this.forceInitialise(boxedClass.getVm().getClassLoader());
     }
 }

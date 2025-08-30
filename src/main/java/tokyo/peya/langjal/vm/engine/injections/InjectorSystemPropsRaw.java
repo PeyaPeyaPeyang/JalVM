@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.tree.MethodNode;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
+import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.threading.VMThread;
@@ -116,11 +117,13 @@ public class InjectorSystemPropsRaw implements Injector
     @Override
     public void inject(@NotNull VMSystemClassLoader cl, @NotNull VMClass clazz)
     {
+        JalVM vm = cl.getVm();
+
         String[] platformProperties = createPlatformProperties();
         String[] vmProperties = createVMProperties();
 
-        VMArray platformPropsArray = VMStringObject.createStringArray(cl, platformProperties);
-        VMArray vmPropsArray = VMStringObject.createStringArray(cl, vmProperties);
+        VMArray platformPropsArray = VMStringObject.createStringArray(vm, platformProperties);
+        VMArray vmPropsArray = VMStringObject.createStringArray(vm, vmProperties);
 
         clazz.injectMethod(
                 cl,

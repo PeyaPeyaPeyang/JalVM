@@ -18,7 +18,7 @@ public class OperatorFConst2 extends AbstractInstructionOperator<InsnNode>
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand)
     {
-        VMFloat value = new VMFloat(2.0f);
+        VMFloat value = new VMFloat(frame, 2.0f);
         frame.getTracer().pushHistory(
                 ValueTracingEntry.generation(value, frame.getMethod(), operand)
         );

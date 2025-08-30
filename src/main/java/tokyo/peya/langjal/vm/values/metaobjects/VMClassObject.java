@@ -17,27 +17,21 @@ public class VMClassObject extends VMObject
     @NotNull
     private final VMType<?> typeOf;
 
-    public VMClassObject(@NotNull VMSystemClassLoader cl, @NotNull VMClass representingClass, @NotNull VMType<?> typeOf)
+    public VMClassObject(@NotNull JalVM vm, @NotNull VMClass representingClass, @NotNull VMType<?> typeOf)
     {
-        super(cl.findClass(ClassReference.of("java/lang/Class")));
+        super(vm.getClassLoader().findClass(ClassReference.of("java/lang/Class")));
         this.representingClass = representingClass;
         this.typeOf = typeOf;
 
         if (typeOf.getComponentType() != null)
-            this.setField("componentType", new VMClassObject(cl, typeOf.getComponentType()));
+            this.setField("componentType", new VMClassObject(typeOf.getComponentType()));
 
-        typeOf.linkClass(cl);
-        this.forceInitialise(cl);
+        this.forceInitialise(vm.getClassLoader());
     }
 
-    public VMClassObject(@NotNull JalVM vm, @NotNull VMType<?> typeOf)
+    public VMClassObject(@NotNull VMType<?> typeOf)
     {
-        this(vm.getClassLoader(), typeOf.getLinkedClass(), typeOf);
-    }
-
-    public VMClassObject(@NotNull VMSystemClassLoader cl, @NotNull VMType<?> typeOf)
-    {
-        this(cl, typeOf.getLinkedClass(), typeOf);
+        this(typeOf.getVm(), typeOf.getLinkedClass(), typeOf);
     }
 
     @Override

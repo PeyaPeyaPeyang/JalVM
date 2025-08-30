@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.TypeInsnNode;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
+import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMFrame;
@@ -30,8 +31,8 @@ public class OperatorInstanceOf extends AbstractInstructionOperator<TypeInsnNode
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull TypeInsnNode operand)
     {
-        VMReferenceValue object = frame.getStack().popType(VMType.GENERIC_OBJECT);
-        VMInteger result = new VMInteger(checkType(frame.getVm().getClassLoader(), object, operand));
+        VMReferenceValue object = frame.getStack().popType(VMType.ofGenericObject(frame));
+        VMInteger result = new VMInteger(frame, checkType(frame.getVm(), object, operand));
         frame.getTracer().pushHistory(
                 ValueTracingEntry.generation(
                         result,
@@ -43,10 +44,9 @@ public class OperatorInstanceOf extends AbstractInstructionOperator<TypeInsnNode
         frame.getStack().push(result);
     }
 
-    public static int checkType(@NotNull VMSystemClassLoader cl, @NotNull VMValue obj, @NotNull TypeInsnNode operand)
+    public static int checkType(@NotNull JalVM vm, @NotNull VMValue obj, @NotNull TypeInsnNode operand)
     {
-        VMType<?> type = VMType.of(parseAmbiguousType(operand.desc));
-        type.linkClass(cl);
+        VMType<?> type = VMType.of(vm, parseAmbiguousType(operand.desc));
 
         return checkType(obj, type);
     }
@@ -84,7 +84,7 @@ public class OperatorInstanceOf extends AbstractInstructionOperator<TypeInsnNode
             return 1;
 
         VMClass typeClass = type.getLinkedClass();
-        if (typeClass.equals(VMType.GENERIC_OBJECT.getLinkedClass()))
+        if (typeClass.equals(VMType.ofGenericObject(type.getVm()).getLinkedClass()))
             return 1;  // Object はなんでも OK
 
         switch (obj)

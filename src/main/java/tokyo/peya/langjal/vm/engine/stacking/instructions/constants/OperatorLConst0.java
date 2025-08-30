@@ -18,7 +18,7 @@ public class OperatorLConst0 extends AbstractInstructionOperator<InsnNode>
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand)
     {
-        VMLong value = new VMLong(0L);
+        VMLong value = new VMLong(frame, 0L);
         frame.getTracer().pushHistory(
                 ValueTracingEntry.generation(value, frame.getMethod(), operand)
         );

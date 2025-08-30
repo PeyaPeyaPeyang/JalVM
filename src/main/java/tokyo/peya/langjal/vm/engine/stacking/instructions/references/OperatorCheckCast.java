@@ -28,11 +28,11 @@ public class OperatorCheckCast extends AbstractInstructionOperator<TypeInsnNode>
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull TypeInsnNode operand)
     {
-        VMValue object = frame.getStack().peekType(VMType.GENERIC_OBJECT);
+        VMValue object = frame.getStack().peekType(VMType.ofGenericObject(frame));
         if (object instanceof VMNull<?>)
             return;  // null はなんでも OK
 
-        int checkTypeResult = OperatorInstanceOf.checkType(frame.getVm().getClassLoader(), object, operand);
+        int checkTypeResult = OperatorInstanceOf.checkType(frame.getVm(), object, operand);
         if (checkTypeResult == 0)
             throw new VMPanic("Cannot cast " + object.type() + " to " + operand.desc);
     }

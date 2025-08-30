@@ -2,8 +2,10 @@ package tokyo.peya.langjal.vm.values;
 
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.Type;
+import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
 import tokyo.peya.langjal.vm.JalVM;
+import tokyo.peya.langjal.vm.VMHeap;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.exceptions.VMPanic;
 import tokyo.peya.langjal.vm.values.metaobjects.VMClassObject;
@@ -32,34 +34,33 @@ public interface VMValue
             throw new VMPanic("Cannot convert " + this.getClass().getName());
     }
 
-    static VMValue fromJavaObject(@NotNull VMSystemClassLoader cl, @NotNull Object value)
+    static VMValue fromJavaObject(@NotNull JalVM vm, @NotNull Object value)
     {
-        VMValue vmValue = switch (value)
+        return switch (value)
         {
-            case Integer intValue -> new VMInteger(intValue);
-            case Long longValue -> new VMLong(longValue);
-            case Float floatValue -> new VMFloat(floatValue);
-            case String strValue -> VMStringObject.createString(cl, strValue);
-            case Double doubleValue -> new VMDouble(doubleValue);
-            case Character charValue -> new VMChar(charValue);
-            case Byte byteValue -> new VMByte(byteValue);
-            case Short shortValue -> new VMShort(shortValue);
-            case Boolean boolValue -> VMBoolean.of(boolValue);
+            case Integer intValue -> new VMInteger(vm, intValue);
+            case Long longValue -> new VMLong(vm, longValue);
+            case Float floatValue -> new VMFloat(vm, floatValue);
+            case String strValue -> VMStringObject.createString(vm, strValue);
+            case Double doubleValue -> new VMDouble(vm, doubleValue);
+            case Character charValue -> new VMChar(vm, charValue);
+            case Byte byteValue -> new VMByte(vm, byteValue);
+            case Short shortValue -> new VMShort(vm, shortValue);
+            case Boolean boolValue -> VMBoolean.of(vm, boolValue);
             case Type asmType  -> switch (asmType.getSort())
             {
-                case Type.VOID: new VMClassObject(cl, VMType.VOID);
-                case Type.BOOLEAN: new VMClassObject(cl, VMType.BOOLEAN);
-                case Type.BYTE: new VMClassObject(cl, VMType.BYTE);
-                case Type.CHAR: new VMClassObject(cl, VMType.CHAR);
-                case Type.SHORT: new VMClassObject(cl, VMType.SHORT);
-                case Type.INT: new VMClassObject(cl, VMType.INTEGER);
-                case Type.FLOAT: new VMClassObject(cl, VMType.FLOAT);
-                case Type.LONG: new VMClassObject(cl, VMType.LONG);
-                case Type.DOUBLE: new VMClassObject(cl, VMType.DOUBLE);
+                case Type.VOID: new VMClassObject(VMType.of(vm, PrimitiveTypes.VOID));
+                case Type.BOOLEAN: new VMClassObject(VMType.of(vm, PrimitiveTypes.BOOLEAN));
+                case Type.BYTE: new VMClassObject(VMType.of(vm, PrimitiveTypes.BYTE));
+                case Type.CHAR: new VMClassObject(VMType.of(vm, PrimitiveTypes.CHAR));
+                case Type.SHORT: new VMClassObject(VMType.of(vm, PrimitiveTypes.SHORT));
+                case Type.INT: new VMClassObject(VMType.of(vm, PrimitiveTypes.INT));
+                case Type.FLOAT: new VMClassObject(VMType.of(vm, PrimitiveTypes.FLOAT));
+                case Type.LONG: new VMClassObject(VMType.of(vm, PrimitiveTypes.LONG));
+                case Type.DOUBLE: new VMClassObject(VMType.of(vm, PrimitiveTypes.DOUBLE));
                 case Type.ARRAY, Type.OBJECT: {
-                    VMType<?> vmType = VMType.of(TypeDescriptor.parse(asmType.getDescriptor()));
-                    vmType.linkClass(cl);
-                    yield new VMClassObject(cl, vmType);
+                    VMType<?> vmType = VMType.of(vm, TypeDescriptor.parse(asmType.getDescriptor()));
+                    yield new VMClassObject(vmType);
                 }
 
                 default:
@@ -67,13 +68,11 @@ public interface VMValue
             };
             default -> throw new VMPanic("Unsupported constant type: " + value.getClass().getName());
         };
-        vmValue.type().linkClass(cl);
-        return vmValue;
     }
 
-    default VMValue conformValue(@NotNull VMType<?> expectedType)
+    default VMValue conformValue( @NotNull VMType<?> expectedType)
     {
-        if (expectedType.equals(VMType.GENERIC_OBJECT) || this.type().equals(expectedType))
+        if (expectedType.equals(VMType.ofGenericObject(expectedType.getVm())) || this.type().equals(expectedType))
             return this;  // Object 型にはすべての型が適合する，また型が同じならそのまま返す
 
         throw new VMPanic("Cannot conform " + this.type() + " to " + expectedType);

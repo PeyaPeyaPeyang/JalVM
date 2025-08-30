@@ -73,14 +73,13 @@ public class VMObject implements VMValue, VMReferenceValue
         return fields;
     }
 
-    public void forceInitialise(VMSystemClassLoader cl)
+    public void forceInitialise(@NotNull VMSystemClassLoader cl)
     {
         // 強制的に初期化を行う。
         if (this.isInitialised)
             throw new VMPanic("Object has already been initialized: " + this.objectType.getReference()
                                                                                        .getFullQualifiedName());
 
-        this.objectType.link(cl);
         VMClass superLink = this.objectType.getSuperLink();
         if (!(superLink == null || superLink == this.objectType))
         {

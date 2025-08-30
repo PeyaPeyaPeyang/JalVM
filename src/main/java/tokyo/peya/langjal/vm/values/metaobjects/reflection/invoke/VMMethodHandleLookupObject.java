@@ -29,7 +29,7 @@ public class VMMethodHandleLookupObject extends VMObject
         super(vm.getClassLoader().findClass(ClassReference.of("java/lang/invoke/MethodHandles$Lookup")));
         this.lookupClass = lookupClass;
         this.previousLookupClass = previousLookupClass;
-        this.allowedModes = new VMInteger(allowedModes);
+        this.allowedModes = new VMInteger(vm, allowedModes);
 
         this.setField("lookupClass", lookupClass);
         if (previousLookupClass != null)

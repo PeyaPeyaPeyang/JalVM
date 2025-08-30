@@ -12,6 +12,7 @@ import tokyo.peya.langjal.compiler.jvm.AccessAttribute;
 import tokyo.peya.langjal.compiler.jvm.AccessAttributeSet;
 import tokyo.peya.langjal.compiler.jvm.AccessLevel;
 import tokyo.peya.langjal.compiler.jvm.MethodDescriptor;
+import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.injections.InjectedField;
 import tokyo.peya.langjal.vm.engine.injections.InjectedMethod;
@@ -40,21 +41,24 @@ public class VMArrayClass extends VMClass
     private final VMType<?> arrayType;
     private final VMClass componentClass;
 
-    public VMArrayClass(@NotNull VMSystemClassLoader classLoader, @NotNull VMType<?> arrayType, @NotNull VMClass componentClass)
+    public VMArrayClass(@NotNull JalVM vm, @NotNull VMType<?> arrayType, @NotNull VMClass componentClass)
     {
-        super(classLoader, componentClass.getClazz());
+        super(vm, componentClass.getClazz(), arrayType.getComponentType());
         this.arrayType = arrayType;
         this.componentClass = componentClass;
 
-        classLoader.linkClass(this);  // 本来はいらないが， ArrayClass は仮想的なクラスなので，強制的にリンクする
+        vm.getClassLoader().linkType(this);
     }
 
     @Override
-    public void link(@NotNull VMSystemClassLoader cl)
+    public void link(@NotNull JalVM vm)
     {
+        if (this.isLinked)
+            return;
+
+        VMSystemClassLoader cl = vm.getClassLoader();
+        super.link(vm);
         this.interfaceLinks.add(cl.findClass(ClassReference.of("java/util/Collection")));
-        this.arrayType.linkClass(cl);
-        this.componentClass.link(cl);
         this.superLink = cl.findClass(ClassReference.of("java/lang/Object"));
 
         this.isLinked = true;

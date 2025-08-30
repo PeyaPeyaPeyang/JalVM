@@ -249,6 +249,7 @@ public class DebugMain
         @VMEventHandler
         public void onStepIn(@NotNull VMStepInEvent event)
         {
+            System.out.println("Executing instruction: " + EOpcodes.getName(event.getInstruction().getOpcode()) + " in frame: " + event.getFrame());
             if (!this.stepIn)
                 return; // Debugging is disabled
 

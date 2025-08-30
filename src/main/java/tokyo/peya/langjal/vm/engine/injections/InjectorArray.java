@@ -50,7 +50,7 @@ public class InjectorArray implements Injector
                         if (length < 0)
                             throw new VMPanic("NegativeArraySizeException");
 
-                        return new VMArray(thread.getVm().getClassLoader(), obj.getRepresentingClass(), length);
+                        return new VMArray(thread.getVm(), obj.getRepresentingClass(), length);
                     }
                 }
         );

@@ -94,8 +94,8 @@ public class InjectorMethodHandleNatives implements Injector
                         if (field == null)
                         {
                             // 終端記号
-                            arr.set(0, new VMNull<>(VMType.GENERIC_OBJECT));
-                            return VMInteger.M1;
+                            arr.set(0, new VMNull<>(VMType.ofGenericObject(thread)));
+                            return new VMInteger(thread, -1);
                         }
 
                         VMValue value = constantsClass.getStaticFieldValue(field);
@@ -135,12 +135,12 @@ public class InjectorMethodHandleNatives implements Injector
                                 memberName.setField("name", lookup.getField("name"));
                                 memberName.setField("type", lookup.getField("type"));
                             }
-                            case VMConstructorObject constructor -> flags = calcMethodFlags(modifiersInt, true);
-                            case VMMethodObject method -> flags = calcMethodFlags(modifiersInt, false);
+                            case VMConstructorObject _ -> flags = calcMethodFlags(modifiersInt, true);
+                            case VMMethodObject _ -> flags = calcMethodFlags(modifiersInt, false);
                             default -> flags = 0;
                         }
 
-                        memberName.setField("flags", new VMInteger(flags));
+                        memberName.setField("flags", new VMInteger(thread, flags));
                         memberName.setField("clazz", lookup.getField("clazz"));
 
                         return null;
@@ -196,21 +196,21 @@ public class InjectorMethodHandleNatives implements Injector
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMObject memberName = (VMObject) args[0];
-                        VMArray arr = new VMArray(thread.getVm().getClassLoader(), VMType.GENERIC_OBJECT, 2);
+                        VMArray arr = new VMArray(thread.getVm(), VMType.ofGenericObject(thread), 2);
                         VMClassObject clazzObj = (VMClassObject) memberName.getField("clazz");
                         int flags = ((VMInteger) memberName.getField("flags")).asNumber().intValue();
 
                         VMReferenceValue method = (VMReferenceValue) memberName.getField("method");
                         if (method instanceof VMResolvedMethodName resolved)
                         {
-                            arr.set(0, new VMLong(resolved.getMethod().getSlot()));
+                            arr.set(0, new VMLong(thread, resolved.getMethod().getSlot()));
                             arr.set(1, memberName);
                         }
                         else if (isField(flags))
                         {
                             String fieldName = ((VMStringObject) memberName.getField("name")).getString();
                             VMField field = clazzObj.getRepresentingClass().findField(fieldName);
-                            arr.set(0, new VMLong(field.getSlot()));
+                            arr.set(0, new VMLong(thread, field.getSlot()));
                             arr.set(1, clazzObj);
                         }
 

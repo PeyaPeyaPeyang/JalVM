@@ -28,6 +28,7 @@ import java.util.Arrays;
 @Getter
 public class VMMethod implements AccessibleObject
 {
+    private final JalVM vm;
     private final VMClass clazz;
     private final int slot;
     private final MethodNode methodNode;
@@ -42,8 +43,9 @@ public class VMMethod implements AccessibleObject
     @Getter(lombok.AccessLevel.NONE)
     private VMMethodObject methodObject;
 
-    public VMMethod(@NotNull VMClass clazz, int slot, @NotNull MethodNode methodNode)
+    public VMMethod(@NotNull JalVM vm, @NotNull VMClass clazz, int slot, @NotNull MethodNode methodNode)
     {
+        this.vm = vm;
         this.clazz = clazz;
         this.slot = slot;
         this.methodNode = methodNode;
@@ -52,9 +54,9 @@ public class VMMethod implements AccessibleObject
         this.accessAttributes = AccessAttributeSet.fromAccess(methodNode.access);
 
         this.descriptor = MethodDescriptor.parse(methodNode.desc);
-        this.returnType = VMType.of(this.descriptor.getReturnType());
+        this.returnType = VMType.of(vm, this.descriptor.getReturnType());
         this.parameterTypes = Arrays.stream(this.descriptor.getParameterTypes())
-                                    .map(VMType::of)
+                                    .map(m -> VMType.of(vm, m))
                                     .toArray(VMType[]::new);
 
     }
@@ -64,9 +66,9 @@ public class VMMethod implements AccessibleObject
         if (this.methodNode != null)
         {
             if (this.isConstructor())
-                this.methodObject = new VMConstructorObject(this.clazz.getClassLoader(), this);
+                this.methodObject = new VMConstructorObject(this.vm, this);
             else
-                this.methodObject = new VMMethodObject(this.clazz.getClassLoader(), this);
+                this.methodObject = new VMMethodObject(this.vm, this);
         }
 
         return this.methodObject;
@@ -77,13 +79,6 @@ public class VMMethod implements AccessibleObject
     {
         return new BytecodeInterpreter(vm, this.methodNode);
         // return new DebugInterpreter(vm, engine, frame);
-    }
-
-    public void linkTypes(@NotNull VMSystemClassLoader cl)
-    {
-        this.returnType.linkClass(cl);
-        for (VMType<?> type : this.parameterTypes)
-            type.linkClass(cl);
     }
 
     public void invokeStatic(@Nullable MethodInsnNode operand, @NotNull VMThread thread, @Nullable VMClass caller, boolean isVMDecree,

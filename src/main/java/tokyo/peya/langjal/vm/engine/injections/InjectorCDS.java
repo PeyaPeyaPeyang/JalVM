@@ -41,7 +41,7 @@ public class InjectorCDS implements Injector
                     @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
-                        return VMInteger.ZERO;  // CDS 使わない
+                        return new VMInteger(thread, 0); // 0 = CDS無効
                     }
                 }
         );
@@ -89,6 +89,7 @@ public class InjectorCDS implements Injector
                         int security     = Runtime.version().update();
                         int patch        = Runtime.version().patch();
                         return new VMLong(
+                                thread,
                                 getRandomSeedForDumping(release, dbgLevel, version, major, minor, security, patch)
                         );
                     }

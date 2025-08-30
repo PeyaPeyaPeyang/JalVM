@@ -1,5 +1,6 @@
 package tokyo.peya.langjal.vm.engine.stacking.instructions.references;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -11,6 +12,7 @@ import tokyo.peya.langjal.compiler.jvm.AccessAttribute;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.compiler.jvm.MethodDescriptor;
 import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
+import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMFrame;
@@ -59,7 +61,7 @@ public class DynamicInvocationHelper
         VMClass targetClass = frame.getMethod().getOwningClass();
         VMMethodHandleLookupObject lookup = VMMethodHandleLookupObject.createLookupChain(frame, targetClass);
         VMValue[] bsmParameters = this.createBSMParameters(
-                frame.getVm().getClassLoader(),
+                frame.getVm(),
                 lookup,
                 name,
                 descriptor,
@@ -89,7 +91,7 @@ public class DynamicInvocationHelper
             }
             else if (param instanceof UnresolvedMethodHandle unresolvedHandle)
             {
-                VMObject resolved = this.resolveMethodHandle(thread, cl, lookup, unresolvedHandle);
+                VMObject resolved = this.resolveMethodHandle(thread, lookup, unresolvedHandle);
                 if (resolved == null)
                     return false;
                 bsmParameters[i] = resolved;
@@ -107,7 +109,6 @@ public class DynamicInvocationHelper
 
     @Nullable
     private VMObject resolveMethodHandle(@NotNull VMThread thread,
-                                         @NotNull VMSystemClassLoader cl,
                                          @NotNull VMMethodHandleLookupObject lookup,
                                          @NotNull UnresolvedMethodHandle unresolved)
     {
@@ -120,23 +121,24 @@ public class DynamicInvocationHelper
         switch (handle.getTag())
         {
             case EOpcodes.H_GETFIELD, EOpcodes.H_GETSTATIC, EOpcodes.H_PUTFIELD, EOpcodes.H_PUTSTATIC ->
-                    this.resolveVariableMethodHandle(cl, thread, lookup, caller, unresolved);
+                    this.resolveVariableMethodHandle(thread, lookup, caller, unresolved);
             case EOpcodes.H_INVOKEVIRTUAL, EOpcodes.H_INVOKEINTERFACE, EOpcodes.H_INVOKESTATIC ->
-                    this.resolveNormalInvocationMethodHandle(cl, thread, lookup, caller, unresolved);
-            case EOpcodes.H_INVOKESPECIAL -> this.resolveSpecialInvocationMethodHandle(cl, thread, lookup, caller, unresolved);
-            case EOpcodes.H_NEWINVOKESPECIAL -> this.resolveConstructorMethodHandle(cl, thread, lookup, caller, unresolved);
+                    this.resolveNormalInvocationMethodHandle(thread, lookup, caller, unresolved);
+            case EOpcodes.H_INVOKESPECIAL -> this.resolveSpecialInvocationMethodHandle(thread, lookup, caller, unresolved);
+            case EOpcodes.H_NEWINVOKESPECIAL -> this.resolveConstructorMethodHandle(thread, lookup, caller, unresolved);
             default -> throw new VMPanic("Unsupported MethodHandle tag: " + handle.getTag());
         }
 
         return null;
     }
 
-    private void resolveVariableMethodHandle(@NotNull VMSystemClassLoader cl,
-                                             @NotNull VMThread thread,
+    private void resolveVariableMethodHandle(@NotNull VMThread thread,
                                              @NotNull VMMethodHandleLookupObject lookup,
                                              @NotNull VMClass caller,
                                              @NotNull UnresolvedMethodHandle unresolved)
     {
+        JalVM vm = thread.getVm();
+        VMSystemClassLoader cl = vm.getClassLoader();
         final VMClass lookupClass = cl.findClass(ClassReference.of("java/lang/invoke/MethodHandles$Lookup"));
         final VMClass typeClass = cl.findClass(ClassReference.of("java/lang/Class"));
         final VMClass typeString = cl.findClass(ClassReference.of("java/lang/String"));
@@ -164,9 +166,9 @@ public class DynamicInvocationHelper
             throw new VMPanic("No suitable MethodHandle factory method found: " + lookupClass.getReference().getFullQualifiedName() + "." + lookupMethodName);
 
         VMClass ownerClass = cl.findClass(ClassReference.of(handle.getOwner()));
-        VMValue name = VMStringObject.createString(cl, handle.getName());
+        VMValue name = VMStringObject.createString(vm, handle.getName());
         TypeDescriptor type = TypeDescriptor.parse(handle.getDesc());
-        VMClass fieldType = VMType.of(type).linkClass(cl).getLinkedClass();
+        VMClass fieldType = VMType.of(vm, type).getLinkedClass();
 
         thread.invokeInterrupting(
                 lookupMethod,
@@ -178,12 +180,14 @@ public class DynamicInvocationHelper
         );
     }
 
-    private void resolveConstructorMethodHandle(@NotNull VMSystemClassLoader cl,
-                                                @NotNull VMThread thread,
+    private void resolveConstructorMethodHandle(@NotNull VMThread thread,
                                                 @NotNull VMMethodHandleLookupObject lookup,
                                                 @NotNull VMClass caller,
                                                 @NotNull UnresolvedMethodHandle unresolved)
     {
+        JalVM vm = thread.getVm();
+        VMSystemClassLoader cl = vm.getClassLoader();
+
         final VMClass lookupClass = cl.findClass(ClassReference.of("java/lang/invoke/MethodHandles$Lookup"));
         final VMClass typeClass = cl.findClass(ClassReference.of("java/lang/Class"));
         final VMClass typeMethodHandle = cl.findClass(ClassReference.of("java/lang/invoke/MethodHandle"));
@@ -206,7 +210,7 @@ public class DynamicInvocationHelper
 
         VMClass ownerClass = cl.findClass(ClassReference.of(handle.getOwner()));
         TypeDescriptor type = TypeDescriptor.parse(handle.getDesc());
-        VMClass fieldType = VMType.of(type).linkClass(cl).getLinkedClass();
+        VMClass fieldType = VMType.of(vm ,type).getLinkedClass();
 
         thread.invokeInterrupting(
                 lookupMethod,
@@ -217,12 +221,14 @@ public class DynamicInvocationHelper
         );
     }
 
-    private void resolveNormalInvocationMethodHandle(@NotNull VMSystemClassLoader cl,
-                                                     @NotNull VMThread thread,
+    private void resolveNormalInvocationMethodHandle(@NotNull VMThread thread,
                                                      @NotNull VMMethodHandleLookupObject lookup,
                                                      @NotNull VMClass caller,
                                                      @NotNull UnresolvedMethodHandle unresolved)
     {
+        JalVM vm = thread.getVm();
+        VMSystemClassLoader cl = thread.getVm().getClassLoader();
+
         final VMClass lookupClass = cl.findClass(ClassReference.of("java/lang/invoke/MethodHandles$Lookup"));
         final VMClass typeClass = cl.findClass(ClassReference.of("java/lang/Class"));
         final VMClass typeString = cl.findClass(ClassReference.of("java/lang/String"));
@@ -249,9 +255,9 @@ public class DynamicInvocationHelper
             throw new VMPanic("No suitable MethodHandle factory method found: " + lookupClass.getReference().getFullQualifiedName() + "." + lookupMethodName);
 
         VMClass ownerClass = cl.findClass(ClassReference.of(handle.getOwner()));
-        VMValue name = VMStringObject.createString(cl, handle.getName());
+        VMValue name = VMStringObject.createString(vm, handle.getName());
         MethodDescriptor desc = MethodDescriptor.parse(handle.getDesc());
-        VMMethodTypeObject methodType = VMMethodTypeObject.of(cl, desc);
+        VMMethodTypeObject methodType = VMMethodTypeObject.of(vm, desc);
 
         thread.invokeInterrupting(
                 lookupMethod,
@@ -263,12 +269,12 @@ public class DynamicInvocationHelper
         );
     }
 
-    private void resolveSpecialInvocationMethodHandle(@NotNull VMSystemClassLoader cl,
-                                                      @NotNull VMThread thread,
+    private void resolveSpecialInvocationMethodHandle(@NotNull VMThread thread,
                                                       @NotNull VMMethodHandleLookupObject lookup,
                                                       @NotNull VMClass caller,
                                                       @NotNull UnresolvedMethodHandle unresolved)
     {
+        VMSystemClassLoader cl = thread.getVm().getClassLoader();
         final VMClass lookupClass = cl.findClass(ClassReference.of("java/lang/invoke/MethodHandles$Lookup"));
         final VMClass typeClass = cl.findClass(ClassReference.of("java/lang/Class"));
         final VMClass typeString = cl.findClass(ClassReference.of("java/lang/String"));
@@ -294,9 +300,9 @@ public class DynamicInvocationHelper
             throw new VMPanic("No suitable MethodHandle factory method for special invocation found: " + lookupClass.getReference().getFullQualifiedName() + "." + lookupMethodName);
 
         VMClass ownerClass = cl.findClass(ClassReference.of(handle.getOwner()));
-        VMValue name = VMStringObject.createString(cl, handle.getName());
+        VMValue name = VMStringObject.createString(thread, handle.getName());
         MethodDescriptor desc = MethodDescriptor.parse(handle.getDesc());
-        VMMethodTypeObject methodType = VMMethodTypeObject.of(cl, desc);
+        VMMethodTypeObject methodType = VMMethodTypeObject.of(thread.getVm(), desc);
 
         thread.invokeInterrupting(
                 lookupMethod,
@@ -349,7 +355,7 @@ public class DynamicInvocationHelper
         }, bsmParameters);
     }
 
-    private VMValue[] createBSMParameters(@NotNull VMSystemClassLoader cl, @NotNull VMMethodHandleLookupObject lookup,
+    private VMValue[] createBSMParameters(@NotNull JalVM vm, @NotNull VMMethodHandleLookupObject lookup,
                                           @NotNull String name, @NotNull MethodDescriptor descriptor,
                                           @NotNull Object[] bsmArgs)
     {
@@ -357,66 +363,63 @@ public class DynamicInvocationHelper
 
         VMValue[] bsmParameters = new VMValue[RESERVED + bsmArgs.length];
         bsmParameters[0] = lookup;
-        bsmParameters[1] = VMStringObject.createString(cl, name);
-        bsmParameters[2] = VMMethodTypeObject.of(cl, descriptor);
+        bsmParameters[1] = VMStringObject.createString(vm, name);
+        bsmParameters[2] = VMMethodTypeObject.of(vm, descriptor);
 
         for (int i = 0; i < bsmArgs.length; i++)
         {
             Object arg = bsmArgs[i];
             int slot = RESERVED + i;
-            bsmParameters[slot] = this.createOneBSMParameter(cl, arg);
+            bsmParameters[slot] = this.createOneBSMParameter(vm, arg);
         }
 
         return bsmParameters;
     }
 
-    private VMValue createOneBSMParameter(@NotNull VMSystemClassLoader cl, @NotNull Object arg)
+    private VMValue createOneBSMParameter(@NotNull JalVM vm, @NotNull Object arg)
     {
         return switch (arg)
         {
-            case Type type -> createTypeBSMParameter(cl, type);
+            case Type type -> createTypeBSMParameter(vm, type);
             case Handle handle -> {
                 if (this.resolvedHandleCaches.containsKey(handle))
                     yield this.resolvedHandleCaches.get(handle);
-                yield new UnresolvedMethodHandle(handle);
+                yield new UnresolvedMethodHandle(vm, handle);
             }
-            case String str -> VMStringObject.createString(cl, str);
-            case Integer i -> new VMInteger(i);
-            case Short s -> new VMShort(s);
-            case Byte b -> new VMByte(b);
-            case Double d -> new VMDouble(d);
-            case Float f -> new VMFloat(f);
-            case Long l -> new VMLong(l);
+            case String str -> VMStringObject.createString(vm, str);
+            case Integer i -> new VMInteger(vm, i);
+            case Short s -> new VMShort(vm, s);
+            case Byte b -> new VMByte(vm, b);
+            case Double d -> new VMDouble(vm, d);
+            case Float f -> new VMFloat(vm, f);
+            case Long l -> new VMLong(vm, l);
             case ConstantDynamic c -> {
                 if (this.resolvedConstantCaches.containsKey(c))
                     yield this.resolvedConstantCaches.get(c);
-                yield new UnresolvedConstantDynamic(c);
+                yield new UnresolvedConstantDynamic(vm, c);
             }
             default -> throw new IllegalArgumentException("Unsupported bsmArg type: " + arg.getClass().getName());
         };
     }
 
-    private static VMValue createTypeBSMParameter(@NotNull VMSystemClassLoader cl, @NotNull Type type)
+    private static VMValue createTypeBSMParameter(@NotNull JalVM vm, @NotNull Type type)
     {
         if (type.getSort() == Type.METHOD)
-            return VMMethodTypeObject.of(cl, MethodDescriptor.parse(type.getDescriptor()));
-        return VMType.convertASMType(type).getLinkedClass().getClassObject();
+            return VMMethodTypeObject.of(vm, MethodDescriptor.parse(type.getDescriptor()));
+        return VMType.convertASMType(vm, type).getLinkedClass().getClassObject();
     }
 
     @Getter
+    @AllArgsConstructor
     private static class UnresolvedMethodHandle implements VMValue
     {
+        private final JalVM vm;
         private final Handle handle;
-
-        public UnresolvedMethodHandle(@NotNull Handle handle)
-        {
-            this.handle = handle;
-        }
 
         @Override
         public @NotNull VMType<?> type()
         {
-            return VMType.ofClassName("java/lang/invoke/MethodHandle");
+            return VMType.ofClassName(this.vm, "java/lang/invoke/MethodHandle");
         }
 
         @Override
@@ -433,19 +436,16 @@ public class DynamicInvocationHelper
     }
 
     @Getter
+    @AllArgsConstructor
     private static class UnresolvedConstantDynamic implements VMValue
     {
+        private final JalVM vm;
         private final ConstantDynamic constantDynamic;
-
-        public UnresolvedConstantDynamic(@NotNull ConstantDynamic constantDynamic)
-        {
-            this.constantDynamic = constantDynamic;
-        }
 
         @Override
         public @NotNull VMType<?> type()
         {
-            return VMType.ofClassName("java/lang/invoke/MethodHandle");
+            return VMType.ofClassName(this.vm, "java/lang/invoke/MethodHandle");
         }
 
         @Override

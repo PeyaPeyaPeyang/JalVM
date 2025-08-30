@@ -5,7 +5,9 @@ import org.objectweb.asm.tree.MultiANewArrayInsnNode;
 import org.objectweb.asm.tree.TypeInsnNode;
 import tokyo.peya.langjal.compiler.jvm.ClassReferenceType;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
+import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
+import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMFrame;
@@ -28,27 +30,26 @@ public class OperatorMultiANewArray extends AbstractInstructionOperator<MultiANe
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull MultiANewArrayInsnNode operand)
     {
-        VMSystemClassLoader cl = frame.getVm().getClassLoader();
+        JalVM vm = frame.getVm();
 
         String descriptor = operand.desc;
         if (descriptor.startsWith("["))
             descriptor = descriptor.substring(descriptor.lastIndexOf('[') + 1);
-        VMType<?> type = VMType.of(TypeDescriptor.parse(descriptor)).linkClass(cl);
+        VMType<?> type = VMType.of(frame, TypeDescriptor.parse(descriptor));
         VMClass vmClass = type.getLinkedClass();
 
         int dimensions = operand.dims;
         if (dimensions < 1)
             throw new VMPanic("Array dimensions must be greater or equal to 1: " + dimensions);
 
-        VMArray array = new VMArray(cl, vmClass, 0);
+        VMArray array = new VMArray(vm, vmClass, 0);
         for (int i = dimensions - 1; i >= 0; i--)
         {
-            int count = frame.getStack().popType(VMType.INTEGER).asNumber().intValue();
+            int count = frame.getStack().popType(VMType.of(vm, PrimitiveTypes.INT)).asNumber().intValue();
             if (count < 0)
                 throw new VMPanic("Array length cannot be negative: " + count);
 
-            VMArray newArray = new VMArray(cl, array.getArrayType().getLinkedClass(), count);
-            newArray.linkClass(cl);
+            VMArray newArray = new VMArray(vm, array.getArrayType().getLinkedClass(), count);
             for (int j = 0; j < count; j++)
                 newArray.set(j, array);
             frame.getTracer().pushHistory(

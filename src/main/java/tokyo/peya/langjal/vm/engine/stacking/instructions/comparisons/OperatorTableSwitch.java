@@ -5,6 +5,7 @@ import org.objectweb.asm.tree.LabelNode;
 import org.objectweb.asm.tree.LookupSwitchInsnNode;
 import org.objectweb.asm.tree.TableSwitchInsnNode;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
+import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
 import tokyo.peya.langjal.vm.values.VMInteger;
@@ -21,7 +22,7 @@ public class OperatorTableSwitch extends AbstractInstructionOperator<TableSwitch
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull TableSwitchInsnNode operand)
     {
-        VMInteger value = frame.getStack().popType(VMType.INTEGER);
+        VMInteger value = frame.getStack().popType(VMType.of(frame, PrimitiveTypes.INT));
         int intValue = value.asNumber().intValue();
 
         int min = operand.min;

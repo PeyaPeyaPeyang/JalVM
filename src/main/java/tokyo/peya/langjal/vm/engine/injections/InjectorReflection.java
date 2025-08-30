@@ -70,7 +70,7 @@ public class InjectorReflection implements Injector
                     {
                         VMClassObject obj = (VMClassObject) args[0];
                         int access = obj.getRepresentingClass().getClazz().access;
-                        return new VMInteger(access);
+                        return new VMInteger(thread, access);
                     }
                 }
         );

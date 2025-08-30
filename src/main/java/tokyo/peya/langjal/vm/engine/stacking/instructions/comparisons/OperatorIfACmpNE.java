@@ -19,8 +19,8 @@ public class OperatorIfACmpNE extends AbstractInstructionOperator<JumpInsnNode>
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull JumpInsnNode operand)
     {
-        VMReferenceValue value1 = frame.getStack().popType(VMType.GENERIC_OBJECT);
-        VMReferenceValue value2 = frame.getStack().popType(VMType.GENERIC_OBJECT);
+        VMReferenceValue value1 = frame.getStack().popType(VMType.ofGenericObject(frame));
+        VMReferenceValue value2 = frame.getStack().popType(VMType.ofGenericObject(frame));
 
         if (!value1.equals(value2))
             frame.jumpTo(operand.label.getLabel(), operand);

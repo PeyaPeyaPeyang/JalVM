@@ -5,6 +5,7 @@ import org.objectweb.asm.tree.JumpInsnNode;
 import org.objectweb.asm.tree.LabelNode;
 import org.objectweb.asm.tree.LookupSwitchInsnNode;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
+import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
 import tokyo.peya.langjal.vm.exceptions.VMPanic;
@@ -23,7 +24,7 @@ public class OperatorLookupSwitch extends AbstractInstructionOperator<LookupSwit
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull LookupSwitchInsnNode operand)
     {
-        VMInteger value = frame.getStack().popType(VMType.INTEGER);
+        VMInteger value = frame.getStack().popType(VMType.of(frame, PrimitiveTypes.INT));
         int intValue = value.asNumber().intValue();
         LabelNode target = null;
         for (int i = 0; i < operand.keys.size(); i++)

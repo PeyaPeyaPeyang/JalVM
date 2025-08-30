@@ -3,6 +3,7 @@ package tokyo.peya.langjal.vm.engine.stacking.instructions.comparisons;
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.JumpInsnNode;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
+import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
 import tokyo.peya.langjal.vm.values.VMInteger;
@@ -19,7 +20,7 @@ public class OperatorIfGE extends AbstractInstructionOperator<JumpInsnNode>
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull JumpInsnNode operand)
     {
-        VMInteger value = frame.getStack().popType(VMType.INTEGER);
+        VMInteger value = frame.getStack().popType(VMType.of(frame, PrimitiveTypes.INT));
         int intValue = value.asNumber().intValue();
         if (intValue >= 0)
             frame.jumpTo(operand.label.getLabel(), operand);

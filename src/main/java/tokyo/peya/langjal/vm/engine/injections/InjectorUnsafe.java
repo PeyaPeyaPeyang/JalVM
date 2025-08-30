@@ -4,6 +4,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.tree.MethodNode;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
+import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
+import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.members.VMField;
@@ -70,7 +72,7 @@ public class InjectorUnsafe implements Injector
                     @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
-                        return new VMInteger(getArrayBaseOffset());
+                        return new VMInteger(thread, getArrayBaseOffset());
                     }
                 }
         );
@@ -91,7 +93,7 @@ public class InjectorUnsafe implements Injector
                     {
                         VMClassObject clazzObject = (VMClassObject) args[0];
                         int scale = getArrayScale(clazzObject.getRepresentingClass());
-                        return new VMInteger(scale);
+                        return new VMInteger(thread, scale);
                     }
                 }
         );
@@ -114,7 +116,7 @@ public class InjectorUnsafe implements Injector
                         VMStringObject fieldNameObject = (VMStringObject) args[1];
                         String fieldNameStr = fieldNameObject.getString();
                         VMField field = clazzObject.getTypeOf().getLinkedClass().findField(fieldNameStr);
-                        return new VMLong(field.getFieldID());
+                        return new VMLong(thread, field.getFieldID());
                     }
                 }
         );
@@ -182,7 +184,7 @@ public class InjectorUnsafe implements Injector
                         else
                             throw new VMPanic("Unsupported object type for compareAndSet: " + object.getClass().getName());
 
-                        return VMBoolean.of(success);
+                        return VMBoolean.of(thread, success);
                     }
                 }
         );
@@ -237,13 +239,13 @@ public class InjectorUnsafe implements Injector
 
                         VMField field = object.getObjectType().findField(offset);
                         VMValue currentValue = object.getField(field.getName());
-                        VMInteger convertedCurrentValue = (VMInteger) currentValue.conformValue(VMType.INTEGER);
+                        VMInteger convertedCurrentValue = (VMInteger) currentValue.conformValue(VMType.of(thread, PrimitiveTypes.INT));
                         int currentIntValue = convertedCurrentValue.asNumber().intValue();
                         boolean success = currentIntValue == expected;
                         if (success)
-                            object.setField(field, new VMInteger(newValue));
+                            object.setField(field, new VMInteger(thread, newValue));
 
-                        return VMBoolean.of(success);
+                        return VMBoolean.of(thread, success);
                     }
                 }
         );
@@ -269,13 +271,13 @@ public class InjectorUnsafe implements Injector
 
                         VMField field = object.getObjectType().findField(offset);
                         VMValue currentValue = object.getField(field.getName());
-                        VMInteger convertedCurrentValue = (VMInteger) currentValue.conformValue(VMType.INTEGER);
+                        VMInteger convertedCurrentValue = (VMInteger) currentValue.conformValue(VMType.of(thread, PrimitiveTypes.INT));
                         int currentIntValue = convertedCurrentValue.asNumber().intValue();
                         boolean success = currentIntValue == expected;
                         if (success)
-                            object.setField(field, new VMInteger(newValue));
+                            object.setField(field, new VMInteger(thread, newValue));
 
-                        return new VMInteger(success ? currentIntValue : expected);
+                        return new VMInteger(thread, success ? currentIntValue : expected);
                     }
                 }
         );
@@ -302,13 +304,13 @@ public class InjectorUnsafe implements Injector
 
                         VMField field = object.getObjectType().findField(offset);
                         VMValue currentValue = object.getField(field.getName());
-                        VMLong convertedCurrentValue = (VMLong) currentValue.conformValue(VMType.LONG);
+                        VMLong convertedCurrentValue = (VMLong) currentValue.conformValue(VMType.of(thread, PrimitiveTypes.LONG));
                         long currentIntValue = convertedCurrentValue.asNumber().longValue();
                         boolean success = currentIntValue == expected;
                         if (success)
-                            object.setField(field, new VMLong(newValue));
+                            object.setField(field, new VMLong(thread, newValue));
 
-                        return VMBoolean.of(success);
+                        return VMBoolean.of(thread, success);
                     }
                 }
         );
@@ -334,13 +336,13 @@ public class InjectorUnsafe implements Injector
 
                         VMField field = object.getObjectType().findField(offset);
                         VMValue currentValue = object.getField(field.getName());
-                        VMLong convertedCurrentValue = (VMLong) currentValue.conformValue(VMType.LONG);
+                        VMLong convertedCurrentValue = (VMLong) currentValue.conformValue(VMType.of(thread, PrimitiveTypes.LONG));
                         long currentIntValue = convertedCurrentValue.asNumber().longValue();
                         boolean success = currentIntValue == expected;
                         if (success)
-                            object.setField(field, new VMLong(newValue));
+                            object.setField(field, new VMLong(thread, newValue));
 
-                        return new VMLong(success ? currentIntValue : expected);
+                        return new VMLong(thread, success ? currentIntValue : expected);
                     }
                 }
         );
@@ -409,64 +411,65 @@ public class InjectorUnsafe implements Injector
                         long offset = ((VMLong) args[1]).asNumber().longValue();
                         VMField field = object.getObjectType().findField(offset);
                         VMValue value = object.getField(field.getName());
-                        return value.conformValue(VMType.INTEGER);
+                        return value.conformValue(VMType.of(thread, PrimitiveTypes.INT));
                     }
                 }
         );
 
+        JalVM vm = cl.getVm();
         clazz.injectMethod(cl, createUnsafeGetVolatileMethod(
-                clazz, "getReferenceVolatile", "(Ljava/lang/Object;J)Ljava/lang/Object;", VMType.GENERIC_OBJECT
+                clazz, "getReferenceVolatile", "(Ljava/lang/Object;J)Ljava/lang/Object;", VMType.ofGenericObject(vm)
         ));
         clazz.injectMethod(cl, createUnsafePutVolatileMethod(
-                clazz, "putReferenceVolatile", "(Ljava/lang/Object;JLjava/lang/Object;)V", VMType.GENERIC_OBJECT
+                clazz, "putReferenceVolatile", "(Ljava/lang/Object;JLjava/lang/Object;)V", VMType.ofGenericObject(vm)
         ));
         clazz.injectMethod(cl, createUnsafeGetVolatileMethod(
-                clazz, "getIntVolatile", "(Ljava/lang/Object;J)I", VMType.INTEGER
+                clazz, "getIntVolatile", "(Ljava/lang/Object;J)I", VMType.of(vm, PrimitiveTypes.INT)
         ));
         clazz.injectMethod(cl, createUnsafePutVolatileMethod(
-                        clazz, "putIntVolatile", "(Ljava/lang/Object;JI)V", VMType.INTEGER
+                        clazz, "putIntVolatile", "(Ljava/lang/Object;JI)V", VMType.of(vm, PrimitiveTypes.INT)
         ));
         clazz.injectMethod(cl, createUnsafeGetVolatileMethod(
-                clazz, "getBooleanVolatile", "(Ljava/lang/Object;J)Z", VMType.BOOLEAN
+                clazz, "getBooleanVolatile", "(Ljava/lang/Object;J)Z", VMType.of(vm, PrimitiveTypes.BOOLEAN)
         ));
         clazz.injectMethod(cl, createUnsafePutVolatileMethod(
-                clazz, "putBooleanVolatile", "(Ljava/lang/Object;JZ)V", VMType.BOOLEAN
+                clazz, "putBooleanVolatile", "(Ljava/lang/Object;JZ)V", VMType.of(vm, PrimitiveTypes.BOOLEAN)
         ));
         clazz.injectMethod(cl, createUnsafeGetVolatileMethod(
-                clazz, "getByteVolatile", "(Ljava/lang/Object;J)B", VMType.BYTE
+                clazz, "getByteVolatile", "(Ljava/lang/Object;J)B", VMType.of(vm, PrimitiveTypes.BYTE)
         ));
         clazz.injectMethod(cl, createUnsafePutVolatileMethod(
-                clazz, "putByteVolatile", "(Ljava/lang/Object;JB)V", VMType.BYTE
+                clazz, "putByteVolatile", "(Ljava/lang/Object;JB)V", VMType.of(vm, PrimitiveTypes.BYTE)
         ));
         clazz.injectMethod(cl, createUnsafeGetVolatileMethod(
-                clazz, "getShortVolatile", "(Ljava/lang/Object;J)S", VMType.SHORT
+                clazz, "getShortVolatile", "(Ljava/lang/Object;J)S", VMType.of(vm, PrimitiveTypes.SHORT)
         ));
         clazz.injectMethod(cl, createUnsafePutVolatileMethod(
-                clazz, "putShortVolatile", "(Ljava/lang/Object;JS)V", VMType.SHORT
+                clazz, "putShortVolatile", "(Ljava/lang/Object;JS)V", VMType.of(vm, PrimitiveTypes.SHORT)
         ));
         clazz.injectMethod(cl, createUnsafeGetVolatileMethod(
-                clazz, "getCharVolatile", "(Ljava/lang/Object;J)C", VMType.CHAR
+                clazz, "getCharVolatile", "(Ljava/lang/Object;J)C", VMType.of(vm, PrimitiveTypes.CHAR)
         ));
         clazz.injectMethod(cl, createUnsafePutVolatileMethod(
-                clazz, "putCharVolatile", "(Ljava/lang/Object;JC)V", VMType.CHAR
+                clazz, "putCharVolatile", "(Ljava/lang/Object;JC)V", VMType.of(vm, PrimitiveTypes.CHAR)
         ));
         clazz.injectMethod(cl, createUnsafeGetVolatileMethod(
-                clazz, "getLongVolatile", "(Ljava/lang/Object;J)J", VMType.LONG
+                clazz, "getLongVolatile", "(Ljava/lang/Object;J)J", VMType.of(vm, PrimitiveTypes.LONG)
         ));
         clazz.injectMethod(cl, createUnsafePutVolatileMethod(
-                clazz, "putLongVolatile", "(Ljava/lang/Object;JJ)V", VMType.LONG
+                clazz, "putLongVolatile", "(Ljava/lang/Object;JJ)V", VMType.of(vm, PrimitiveTypes.LONG)
         ));
         clazz.injectMethod(cl, createUnsafeGetVolatileMethod(
-                clazz, "getFloatVolatile", "(Ljava/lang/Object;J)F", VMType.FLOAT
+                clazz, "getFloatVolatile", "(Ljava/lang/Object;J)F", VMType.of(vm, PrimitiveTypes.FLOAT)
         ));
         clazz.injectMethod(cl, createUnsafePutVolatileMethod(
-                clazz, "putFloatVolatile", "(Ljava/lang/Object;JF)V", VMType.FLOAT
+                clazz, "putFloatVolatile", "(Ljava/lang/Object;JF)V", VMType.of(vm, PrimitiveTypes.FLOAT)
         ));
         clazz.injectMethod(cl, createUnsafeGetVolatileMethod(
-                clazz, "getDoubleVolatile", "(Ljava/lang/Object;J)D", VMType.DOUBLE
+                clazz, "getDoubleVolatile", "(Ljava/lang/Object;J)D", VMType.of(vm, PrimitiveTypes.DOUBLE)
         ));
         clazz.injectMethod(cl, createUnsafePutVolatileMethod(
-                clazz, "putDoubleVolatile", "(Ljava/lang/Object;JD)V", VMType.DOUBLE
+                clazz, "putDoubleVolatile", "(Ljava/lang/Object;JD)V", VMType.of(vm, PrimitiveTypes.DOUBLE)
         ));
 
         clazz.injectMethod(
@@ -485,7 +488,7 @@ public class InjectorUnsafe implements Injector
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMClassObject clazzObject = (VMClassObject) args[0];
-                        return VMBoolean.of(!clazzObject.getRepresentingClass().isInitialised());
+                        return VMBoolean.of(thread, !clazzObject.getRepresentingClass().isInitialised());
                     }
                 }
         );

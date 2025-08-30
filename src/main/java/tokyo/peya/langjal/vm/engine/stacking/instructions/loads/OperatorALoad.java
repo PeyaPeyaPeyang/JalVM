@@ -18,7 +18,7 @@ public class OperatorALoad extends AbstractInstructionOperator<VarInsnNode>
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull VarInsnNode operand)
     {
-        VMReferenceValue val1 = frame.getLocals().getType(operand.var, VMType.GENERIC_OBJECT, operand);
+        VMReferenceValue val1 = frame.getLocals().getType(operand.var, VMType.ofGenericObject(frame), operand);
         frame.getStack().push(val1);
     }
 }

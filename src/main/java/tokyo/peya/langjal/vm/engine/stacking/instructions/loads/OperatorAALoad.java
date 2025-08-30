@@ -17,6 +17,6 @@ public class OperatorAALoad extends AbstractInstructionOperator<InsnNode>
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand)
     {
-        OperatorXALoadSupporter.execute(frame, operand, VMType.GENERIC_OBJECT);
+        OperatorXALoadSupporter.execute(frame, operand, VMType.ofGenericObject(frame));
     }
 }

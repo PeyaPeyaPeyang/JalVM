@@ -19,6 +19,7 @@ public abstract class InjectedMethod extends VMMethod
     public InjectedMethod(@NotNull VMClass clazz, @NotNull MethodNode methodNode)
     {
         super(
+                clazz.getVm(),
                 clazz,
                 retrieveOriginalSlot(clazz, methodNode),
                 methodNode

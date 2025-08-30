@@ -1,6 +1,8 @@
 package tokyo.peya.langjal.vm.ffi;
 
 import org.jetbrains.annotations.NotNull;
+import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
+import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.engine.threading.VMThread;
 import tokyo.peya.langjal.vm.exceptions.LinkagePanic;
 import tokyo.peya.langjal.vm.exceptions.VMPanic;
@@ -28,12 +30,14 @@ public class NativeCaller
 {
     private static final Linker LINKER = Linker.nativeLinker();
 
+    private final JalVM vm;
     private final Arena arena = Arena.ofShared();
 
     private final Map<ClassReference, NativeLibrary> libraries;
 
-    public NativeCaller()
+    public NativeCaller(@NotNull JalVM vm)
     {
+        this.vm = vm;
         this.libraries = new HashMap<>();
     }
 
@@ -99,7 +103,7 @@ public class NativeCaller
 
         MemoryLayout[] arguments = createFunctionLayouts(returningType, args);
         FunctionDescriptor layout;
-        if (returningType.equals(VMType.VOID))
+        if (returningType.equals(VMType.of(this.vm, PrimitiveTypes.VOID)))
             layout = FunctionDescriptor.ofVoid(arguments);
         else
             layout = FunctionDescriptor.of(createFunctionLayout(returningType), arguments);
@@ -133,7 +137,7 @@ public class NativeCaller
         try
         {
             Object result = methodHandle.invokeExact(convertedArgs);
-            return VMValue.fromJavaObject(order.getVm().getClassLoader(), result);  // TODO: cast
+            return VMValue.fromJavaObject(order.getVm(), result);  // TODO: cast
         }
         catch (Throwable e)
         {
@@ -157,24 +161,18 @@ public class NativeCaller
 
     private static MemoryLayout createFunctionLayout(@NotNull VMType<?> type)
     {
-        if (type == VMType.BOOLEAN)
-            return ValueLayout.JAVA_BOOLEAN;
-        else if (type == VMType.BYTE)
-            return ValueLayout.JAVA_BYTE;
-        else if (type == VMType.SHORT)
-            return ValueLayout.JAVA_SHORT;
-        else if (type == VMType.CHAR)
-            return ValueLayout.JAVA_CHAR;
-        else if (type == VMType.INTEGER)
-            return ValueLayout.JAVA_INT;
-        else if (type == VMType.LONG)
-            return ValueLayout.JAVA_LONG;
-        else if (type == VMType.FLOAT)
-            return ValueLayout.JAVA_FLOAT;
-        else if (type == VMType.DOUBLE)
-            return ValueLayout.JAVA_DOUBLE;
-        else
-            throw new VMPanic("Unsupported type for native function: " + type);
+        return switch (type.getType())
+        {
+            case PrimitiveTypes.BOOLEAN -> ValueLayout.JAVA_BOOLEAN;
+            case PrimitiveTypes.BYTE -> ValueLayout.JAVA_BYTE;
+            case PrimitiveTypes.SHORT -> ValueLayout.JAVA_SHORT;
+            case PrimitiveTypes.CHAR -> ValueLayout.JAVA_CHAR;
+            case PrimitiveTypes.INT -> ValueLayout.JAVA_INT;
+            case PrimitiveTypes.LONG -> ValueLayout.JAVA_LONG;
+            case PrimitiveTypes.FLOAT -> ValueLayout.JAVA_FLOAT;
+            case PrimitiveTypes.DOUBLE -> ValueLayout.JAVA_DOUBLE;
+            case null, default -> throw new VMPanic("Unsupported type for native function: " + type);
+        };
     }
 
     private record NativeLibrary(

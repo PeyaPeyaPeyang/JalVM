@@ -22,7 +22,7 @@ public class OperatorBIPush extends AbstractInstructionOperator<IntInsnNode>
         int value = operand.operand;
         if (value < Byte.MIN_VALUE || value > Byte.MAX_VALUE)
             throw new IllegalOperandPanic("Value out of range for byte: " + value);
-        VMByte vmShort = new VMByte((byte) value);
+        VMByte vmShort = new VMByte(frame, (byte) value);
         frame.getTracer().pushHistory(
                 ValueTracingEntry.generation(vmShort, frame.getMethod(), operand)
         );

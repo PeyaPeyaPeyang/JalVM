@@ -2,6 +2,8 @@ package tokyo.peya.langjal.vm.values.metaobjects.reflection;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
+import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
+import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.members.VMField;
 import tokyo.peya.langjal.vm.references.ClassReference;
@@ -15,24 +17,24 @@ import tokyo.peya.langjal.vm.values.metaobjects.VMStringObject;
 @Getter
 public class VMFieldObject extends VMObject
 {
-    private final VMSystemClassLoader classLoader;
+    private final JalVM vm;
     private final VMField field;
 
-    public VMFieldObject(@NotNull VMSystemClassLoader classLoader, @NotNull VMField field)
+    public VMFieldObject(@NotNull JalVM vm, @NotNull VMField field)
     {
-        super(classLoader.findClass(ClassReference.of("java/lang/reflect/Field")));
+        super(vm.getClassLoader().findClass(ClassReference.of("java/lang/reflect/Field")));
         this.field = field;
-        this.classLoader = classLoader;
+        this.vm = vm;
 
         this.setField("clazz", field.getOwningClass().getClassObject());
-        this.setField("name", VMStringObject.createString(classLoader, field.getName()));
+        this.setField("name", VMStringObject.createString(vm, field.getName()));
         this.setField("type", field.getClazz().getClassObject());
-        this.setField("modifiers", new VMInteger(field.getFieldNode().access));
-        this.setField("trustedFinal", VMBoolean.FALSE);
-        this.setField("slot", new VMInteger(field.getSlot()));
-        this.setField("signature", VMStringObject.createString(classLoader, field.getFieldNode().signature));
-        this.setField("annotations", new VMArray(classLoader, VMType.BYTE, 0));
+        this.setField("modifiers", new VMInteger(vm, field.getFieldNode().access));
+        this.setField("trustedFinal", VMBoolean.ofFalse(vm));
+        this.setField("slot", new VMInteger(vm, field.getSlot()));
+        this.setField("signature", VMStringObject.createString(vm, field.getFieldNode().signature));
+        this.setField("annotations", new VMArray(vm, VMType.of(vm, PrimitiveTypes.BYTE), 0));
 
-        this.forceInitialise(classLoader);
+        this.forceInitialise(vm.getClassLoader());
     }
 }

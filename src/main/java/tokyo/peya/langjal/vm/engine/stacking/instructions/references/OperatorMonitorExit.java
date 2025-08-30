@@ -22,7 +22,7 @@ public class OperatorMonitorExit extends AbstractInstructionOperator<InsnNode>
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand)
     {
-        VMReferenceValue referenceValue = frame.getStack().popType(VMType.GENERIC_OBJECT);
+        VMReferenceValue referenceValue = frame.getStack().popType(VMType.ofGenericObject(frame));
         if (!(referenceValue instanceof VMObject vmObject))
             throw new VMPanic("MONITOREXIT requires an object reference, but got: " + referenceValue);
 

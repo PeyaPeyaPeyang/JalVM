@@ -3,6 +3,7 @@ package tokyo.peya.langjal.vm.values.metaobjects.reflection;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
@@ -15,13 +16,13 @@ import tokyo.peya.langjal.vm.values.VMValue;
 @Getter
 public class VMConstructorObject extends VMMethodObject
 {
-    private final VMSystemClassLoader classLoader;
+    private final JalVM vm;
     private final VMMethod method;
 
-    public VMConstructorObject(@NotNull VMSystemClassLoader classLoader, @NotNull VMMethod method)
+    public VMConstructorObject(@NotNull JalVM vm, @NotNull VMMethod method)
     {
-        super(classLoader, method, classLoader.findClass(ClassReference.of("java/lang/reflect/Constructor")));
-        this.classLoader = classLoader;
+        super(vm, method, vm.getClassLoader().findClass(ClassReference.of("java/lang/reflect/Constructor")));
+        this.vm = vm;
         this.method = method;
     }
 

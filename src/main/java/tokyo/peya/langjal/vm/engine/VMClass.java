@@ -12,6 +12,8 @@ import tokyo.peya.langjal.compiler.jvm.AccessAttribute;
 import tokyo.peya.langjal.compiler.jvm.AccessAttributeSet;
 import tokyo.peya.langjal.compiler.jvm.AccessLevel;
 import tokyo.peya.langjal.compiler.jvm.MethodDescriptor;
+import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
+import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.injections.InjectedField;
 import tokyo.peya.langjal.vm.engine.injections.InjectedMethod;
@@ -37,6 +39,8 @@ import java.util.Map;
 @Getter
 public class VMClass extends VMType<VMReferenceValue> implements AccessibleObject
 {
+    private final JalVM vm;
+
     protected final ClassReference reference;
     protected final ClassNode clazz;
 
@@ -61,14 +65,11 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
     private VMClassObject classObject;
     protected VMClass superLink;
 
-    // Primitive は static final で持っておきたい。
-    @Setter
-    protected VMSystemClassLoader classLoader;
 
-    public VMClass(@Nullable VMSystemClassLoader classLoader, @NotNull ClassNode clazz)
+    public VMClass(@NotNull JalVM vm, @NotNull ClassNode clazz, @Nullable VMType<?> componentType)
     {
-        super(ClassReference.of(clazz));
-        this.classLoader = classLoader;
+        super(vm, ClassReference.of(clazz), componentType);
+        this.vm = vm;
         this.reference = ClassReference.of(clazz);
         this.clazz = clazz;
 
@@ -82,11 +83,22 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
         this.staticFields = new HashMap<>();
     }
 
+    public VMClass(@NotNull JalVM vm, @NotNull ClassNode clazz)
+    {
+        this(vm, clazz, null);
+    }
+
+
+    public VMClass(@NotNull JalVM vm, @NotNull VMType<?> componentType)
+    {
+        this(vm, componentType.getLinkedClass().clazz, componentType);
+    }
+
     public VMClassObject getClassObject()
     {
         // 遅延評価しないと，ロード時に StackOverflowError が発生する可能性がある
         if (this.classObject == null)
-            this.classObject = new VMClassObject(this.classLoader, this, this);
+            this.classObject = new VMClassObject(this.vm, this, this);
         return this.classObject;
     }
 
@@ -100,7 +112,7 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
             throw new IllegalStateException("Cannot create instance of class without super class link: " + this.reference.getFullQualifiedName());
 
         if (this.clazz.name.equals("java/lang/String"))
-            return new VMStringObject(this.classLoader);
+            return new VMStringObject(this.vm);
         else
             return new VMObject(this, null);
     }
@@ -127,8 +139,6 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
             }
         }
 
-        method.linkTypes(cl);
-
         // 新しいメソッドを追加
         this.methods.add(method);
     }
@@ -147,8 +157,6 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
                 break;
             }
         }
-
-        field.linkType(cl); // フィールドの型をリンク
 
         // 既存のフィールドを削除
         this.fields.removeIf(existingField -> existingField.getName().equals(field.getName()));
@@ -193,17 +201,19 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
         }
         return false;
     }
-    public void link(@NotNull VMSystemClassLoader cl)
+
+    @Override
+    public void link(@NotNull JalVM vm)
     {
         if (this.isLinked)
             return; // 既にリンク済みなら何もしない
 
+        VMSystemClassLoader cl = vm.getClassLoader();
         // リンク処理 -> クラスのスーパクラスやメンバの参照を解決
-        this.linkClass(cl);
+        super.link(vm);
         this.linkInner(cl);
         this.linkSuper(cl);
         this.linkInterfaces(cl);
-        this.linkMembers(cl);
 
         this.isLinked = true; // リンク済みフラグを立てる
     }
@@ -211,15 +221,15 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
     @Override
     public boolean isAssignableFrom(@NotNull VMType<?> other)
     {
-        VMClass linkedClass = other.getLinkedClass();
+        VMClass otherClass = other.getLinkedClass();
 
-        boolean isSubclass = linkedClass.isSubclassOf(this);
+        boolean isSubclass = otherClass.isSubclassOf(this);
         if (isSubclass)
             return true; // 他のクラスがこのクラスのサブクラスである場合はtrue
 
-        for (VMClass iface : linkedClass.interfaceLinks)
+        for (VMClass iface : otherClass.interfaceLinks)
         {
-            if (iface.equals(this) || this.isAssignableFrom(iface))
+            if (this.isAssignableFrom(iface))
                 return true; // 他のクラスがこのクラスのインターフェースを実装している場合はtrue
         }
 
@@ -270,14 +280,6 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
         this.superLink = cl.findClass(ClassReference.of(superName));
     }
 
-    private void linkMembers(@NotNull VMSystemClassLoader cl)
-    {
-        for (VMMethod method : this.methods)
-            method.linkTypes(cl);
-        for (VMField field : this.fields)
-            field.linkType(cl);
-    }
-
     private void linkInterfaces(@NotNull VMSystemClassLoader cl)
     {
         for (String interfaceName : this.clazz.interfaces)
@@ -297,11 +299,11 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
             FieldNode fieldNode = fields[i];
             String descString = fieldNode.desc;
             vmFields.add(new VMField(
-                    this.classLoader,
+                    this.vm,
                     this,
                     i,
                     id += 16, // フィールドIDをインクリメント
-                    VMType.of(descString),
+                    VMType.of(this.vm, descString),
                     fieldNode
             ));
         }
@@ -322,7 +324,7 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
         for (int i = 0; i < classNode.methods.size(); i++)
         {
             MethodNode methodNode = classNode.methods.get(i);
-            vmMethods.add(new VMMethod(this, i, methodNode));
+            vmMethods.add(new VMMethod(this.vm, this, i, methodNode));
         }
 
         return vmMethods;
@@ -331,7 +333,7 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
     @Nullable
     public VMMethod findConstructor(@Nullable VMClass caller, @NotNull VMClass owner, @NotNull VMType<?>... args)
     {
-        return this.findSuitableMethod(caller, owner, "<init>", VMType.VOID, args);
+        return this.findSuitableMethod(caller, owner, "<init>", VMType.of(this.vm, PrimitiveTypes.VOID), args);
     }
 
     public VMMethod findEntryPoint()
@@ -361,7 +363,7 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
         {
             if (method.getName().equals("<clinit>")
                     && method.getAccessAttributes().has(AccessAttribute.STATIC)
-                    && method.getReturnType().equals(VMType.VOID)
+                    && method.getReturnType().equals(VMType.of(this.vm, PrimitiveTypes.VOID))
                     && method.getParameterTypes().length == 0)
                 return method; // 静的初期化メソッドを見つけたら返す
         }
@@ -583,7 +585,7 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
         return Collections.unmodifiableList(this.methods);
     }
 
-    public String getTypeDescriptor()
+    public @NotNull String getTypeDescriptor()
     {
         return "L" + this.reference.getFullQualifiedName() + ";";
     }

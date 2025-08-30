@@ -44,7 +44,7 @@ public class InjectorFloat implements Injector
                         VMFloat value = (VMFloat) args[0];
                         float floatValue = value.asNumber().floatValue();
                         int bits = Float.floatToIntBits(floatValue);
-                        return new VMInteger(bits);
+                        return new VMInteger(thread, bits);
                     }
                 }
         );
@@ -66,7 +66,7 @@ public class InjectorFloat implements Injector
                         VMInteger bitsValue = (VMInteger) args[0];
                         int bits = bitsValue.asNumber().intValue();
                         float floatValue = Float.intBitsToFloat(bits);
-                        return new VMFloat(floatValue);
+                        return new VMFloat(thread, floatValue);
                     }
                 }
         );

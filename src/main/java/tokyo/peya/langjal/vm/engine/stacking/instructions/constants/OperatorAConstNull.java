@@ -3,6 +3,7 @@ package tokyo.peya.langjal.vm.engine.stacking.instructions.constants;
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.InsnNode;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
+import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
 import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
@@ -20,7 +21,7 @@ public class OperatorAConstNull extends AbstractInstructionOperator<InsnNode>
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull InsnNode operand)
     {
-        VMNull<VMVoid> vmNull = new VMNull<>(VMType.VOID);
+        VMNull<VMVoid> vmNull = new VMNull<>(VMType.of(frame, PrimitiveTypes.VOID));
         frame.getTracer().pushHistory(
                 ValueTracingEntry.generation(vmNull, frame.getMethod(), operand)
         );

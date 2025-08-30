@@ -20,7 +20,7 @@ public class OperatorIfNull extends AbstractInstructionOperator<JumpInsnNode>
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull JumpInsnNode operand)
     {
-        VMReferenceValue value = frame.getStack().popType(VMType.GENERIC_OBJECT);
+        VMReferenceValue value = frame.getStack().popType(VMType.ofGenericObject(frame));
         if (value instanceof VMNull)
             frame.jumpTo(operand.label.getLabel(), operand);
     }

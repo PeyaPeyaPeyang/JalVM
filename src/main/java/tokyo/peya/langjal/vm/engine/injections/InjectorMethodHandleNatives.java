@@ -163,6 +163,10 @@ public class InjectorMethodHandleNatives implements Injector
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMObject memberName = (VMObject) args[0];
+                        int flags = ((VMInteger) memberName.getField("flags")).asNumber().intValue();
+                        if (isField(flags))
+                            return memberName;  // フィールドは解決不要
+
                         VMClass clazz = ((VMClassObject) memberName.getField("clazz")).getRepresentingClass();
                         String methodName = ((VMStringObject) memberName.getField("name")).getString();
 

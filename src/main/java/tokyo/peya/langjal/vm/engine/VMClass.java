@@ -59,7 +59,7 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
     protected boolean isInitialised;
     @Getter(lombok.AccessLevel.NONE)
     private VMClassObject classObject;
-    private VMClass superLink;
+    protected VMClass superLink;
 
     // Primitive は static final で持っておきたい。
     @Setter

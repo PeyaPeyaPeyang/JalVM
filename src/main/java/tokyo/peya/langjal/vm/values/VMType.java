@@ -63,7 +63,7 @@ public class VMType<T extends VMValue>
     {
         this.type = type;
         this.componentType = componentType;
-        this.isPrimitive = type.isPrimitive();
+        this.isPrimitive = type.isPrimitive() && componentType == null;
         if (type instanceof PrimitiveTypes primitive)
             this.linkedClass = new VMPrimitiveClass(this, primitive);
         else if (componentType != null)

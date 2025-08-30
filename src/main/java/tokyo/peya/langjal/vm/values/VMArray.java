@@ -3,6 +3,7 @@ package tokyo.peya.langjal.vm.values;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
+import tokyo.peya.langjal.vm.engine.VMArrayClass;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.exceptions.VMPanic;
 import tokyo.peya.langjal.vm.references.ClassReference;
@@ -19,12 +20,14 @@ public class VMArray extends VMObject implements VMValue, VMReferenceValue
 
     public VMArray(@NotNull VMSystemClassLoader classLoader, @NotNull VMType<?> elementType, int size)
     {
-        super(classLoader.findClass(ClassReference.of("java/util/Collection")));
+        super(new VMArrayClass(
+                classLoader,
+                VMType.of("[" + elementType.getTypeDescriptor()).linkClass(classLoader),
+                elementType.getLinkedClass()
+        ));
 
         if (size < 0)
             throw new VMPanic("Size cannot be negative: " + size);
-        else if (elementType.getComponentType() != null)
-            throw new VMPanic("Cannot create an array of arrays: " + elementType.getTypeDescriptor());
 
         this.elementType = elementType;
         this.elements = new VMValue[size];
@@ -42,18 +45,12 @@ public class VMArray extends VMObject implements VMValue, VMReferenceValue
 
     public VMArray(@NotNull VMClass objectType, VMType<?> elementType, VMValue[] elements, @NotNull VMType<?> arrayType)
     {
-        super(objectType);
+        super(arrayType.getLinkedClass());
         this.elementType = elementType;
         this.elements = elements;
         this.arrayType = arrayType;
 
         this.forceInitialise(objectType.getClassLoader());
-    }
-
-    @Override
-    public VMClass getObjectType()
-    {
-        return this.arrayType.getLinkedClass();
     }
 
     private void fillDefaults()
@@ -64,9 +61,6 @@ public class VMArray extends VMObject implements VMValue, VMReferenceValue
 
     public void linkClass(@NotNull VMSystemClassLoader cl)
     {
-        if (this.elementType.getComponentType() != null)
-            throw new VMPanic("Cannot link an array of arrays: " + this.elementType.getTypeDescriptor());
-
         // 配列の型をリンクする
         this.arrayType.linkClass(cl);
 
@@ -83,21 +77,26 @@ public class VMArray extends VMObject implements VMValue, VMReferenceValue
         return new VMArray(this.getObjectType(), this.elementType, clonedElements, this.arrayType);
     }
 
-    public VMArray(@NotNull VMSystemClassLoader classLoader, @NotNull VMType<?> objectType, @NotNull VMValue[] values)
+    public VMArray(@NotNull VMSystemClassLoader classLoader, @NotNull VMType<?> elementType, @NotNull VMValue[] values)
     {
-        super(classLoader.findClass(ClassReference.of("java/util/Collection")));
+        super(new VMArrayClass(
+                      classLoader,
+                      VMType.of("[" + elementType.getTypeDescriptor()).linkClass(classLoader),
+                      elementType.getLinkedClass()
+              ));
 
         // 値チェック
         for (VMValue value : values)
-            if (!objectType.isAssignableFrom(value.type()))
+            if (!elementType.isAssignableFrom(value.type()))
                 throw new VMPanic("VM BUG!!! Incompatible type in array: " + value.type()
-                                                                                  .getTypeDescriptor() + " for " + objectType.getTypeDescriptor());
+                                                                                  .getTypeDescriptor() + " for " + elementType.getTypeDescriptor());
 
-        this.elementType = objectType;
+        this.elementType = elementType;
         this.elements = values;
 
-        this.arrayType = VMType.of("[" + objectType.getTypeDescriptor());
+        this.arrayType = VMType.of("[" + elementType.getTypeDescriptor());
     }
+
 
     @NotNull
     public VMValue get(int index)

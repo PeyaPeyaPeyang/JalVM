@@ -55,6 +55,7 @@ public class VMArrayClass extends VMClass
         this.interfaceLinks.add(cl.findClass(ClassReference.of("java/util/Collection")));
         this.arrayType.linkClass(cl);
         this.componentClass.link(cl);
+        this.superLink = cl.findClass(ClassReference.of("java/lang/Object"));
 
         this.isLinked = true;
         this.isInitialised = true;

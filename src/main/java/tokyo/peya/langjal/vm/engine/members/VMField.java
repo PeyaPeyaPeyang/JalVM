@@ -8,13 +8,15 @@ import tokyo.peya.langjal.compiler.jvm.AccessLevel;
 import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
+import tokyo.peya.langjal.vm.engine.VMComponent;
 import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
 import tokyo.peya.langjal.vm.values.metaobjects.reflection.VMFieldObject;
 
 @Getter
-public class VMField implements AccessibleObject
+public class VMField implements AccessibleObject, VMComponent
 {
+    @Getter(lombok.AccessLevel.NONE)
     private final JalVM vm;
 
     private final VMClass clazz;
@@ -60,7 +62,7 @@ public class VMField implements AccessibleObject
         if (fieldDefaultValue == null)
             return this.type.defaultValue();
 
-        VMValue value = VMValue.fromJavaObject(this.vm, fieldDefaultValue);
+        VMValue value = VMValue.fromJavaObject(this, fieldDefaultValue);
         return value.conformValue(this.type);
     }
 
@@ -76,5 +78,11 @@ public class VMField implements AccessibleObject
         return this.name + "@" + this.clazz.getReference().getFullQualifiedName() +
                 " (" + this.type.getType().getDescriptor() + ")" +
                 " [" + this.accessLevel + "]";
+    }
+
+    @Override
+    public @NotNull JalVM getVM()
+    {
+        return this.vm;
     }
 }

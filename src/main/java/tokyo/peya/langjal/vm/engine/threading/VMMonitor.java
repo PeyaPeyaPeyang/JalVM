@@ -41,8 +41,8 @@ public class VMMonitor
         }
 
         VMThreadMonitorAcquireListedEvent listedEvent =
-                new VMThreadMonitorAcquireListedEvent(thread.getVm(), thread, this, this.acquireWaitlist.size());
-        thread.getVm().getEventManager().dispatchEvent(listedEvent);
+                new VMThreadMonitorAcquireListedEvent(thread.getVM(), thread, this, this.acquireWaitlist.size());
+        thread.getVM().getEventManager().dispatchEvent(listedEvent);
 
         this.acquireWaitlist.add(VMThreadWaitingEntry.acquire(thread));
 
@@ -52,8 +52,8 @@ public class VMMonitor
     public void waitFor(@NotNull VMThread thread)
     {
         VMThreadWaitingEvent waitingEvent =
-                new VMThreadWaitingEvent(thread.getVm(), thread, this, Duration.ZERO);
-        thread.getVm().getEventManager().dispatchEvent(waitingEvent);
+                new VMThreadWaitingEvent(thread.getVM(), thread, this, Duration.ZERO);
+        thread.getVM().getEventManager().dispatchEvent(waitingEvent);
 
         thread.setState(VMThreadState.WAITING);
         this.notifyWaitlist.add(VMThreadWaitingEntry.wait(thread));
@@ -62,8 +62,8 @@ public class VMMonitor
     public void waitForTimed(@NotNull VMThread thread, @NotNull Duration duration)
     {
         VMThreadWaitingEvent waitingEvent =
-                new VMThreadWaitingEvent(thread.getVm(), thread, this, duration);
-        thread.getVm().getEventManager().dispatchEvent(waitingEvent);
+                new VMThreadWaitingEvent(thread.getVM(), thread, this, duration);
+        thread.getVM().getEventManager().dispatchEvent(waitingEvent);
 
         thread.setState(VMThreadState.TIMED_WAITING);
         this.notifyWaitlist.add(VMThreadWaitingEntry.waitTimed(thread, duration));
@@ -88,8 +88,8 @@ public class VMMonitor
             return;
 
         VMThreadNotifiedEvent notifiedEvent =
-                new VMThreadNotifiedEvent(thread.getVm(), thread, this);
-        thread.getVm().getEventManager().dispatchEvent(notifiedEvent);
+                new VMThreadNotifiedEvent(thread.getVM(), thread, this);
+        thread.getVM().getEventManager().dispatchEvent(notifiedEvent);
 
         thread.setState(VMThreadState.RUNNABLE); // スレッドを実行可能状態に設定
     }
@@ -157,8 +157,8 @@ public class VMMonitor
     private void setOwner(@NotNull VMThread thread)
     {
         VMThreadMonitorAcquiredEvent acquiredEvent =
-                new VMThreadMonitorAcquiredEvent(thread.getVm(), thread, this);
-        thread.getVm().getEventManager().dispatchEvent(acquiredEvent);
+                new VMThreadMonitorAcquiredEvent(thread.getVM(), thread, this);
+        thread.getVM().getEventManager().dispatchEvent(acquiredEvent);
         this.owner = thread; // スレッドをモニタの所有者として設定
     }
 

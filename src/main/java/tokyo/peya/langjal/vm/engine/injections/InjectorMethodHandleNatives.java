@@ -196,7 +196,7 @@ public class InjectorMethodHandleNatives implements Injector
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMObject memberName = (VMObject) args[0];
-                        VMArray arr = new VMArray(thread.getVm(), VMType.ofGenericObject(thread), 2);
+                        VMArray arr = new VMArray(thread, VMType.ofGenericObject(thread), 2);
                         VMClassObject clazzObj = (VMClassObject) memberName.getField("clazz");
                         int flags = ((VMInteger) memberName.getField("flags")).asNumber().intValue();
 

@@ -1,5 +1,6 @@
 package tokyo.peya.langjal.vm.engine;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -22,8 +23,9 @@ import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
 
 @Getter
-public class VMFrame
+public class VMFrame implements VMComponent
 {
+    @Getter(AccessLevel.NONE)
     private final JalVM vm;
     private final VMThread thread;
     private final boolean isVMDecree;
@@ -166,6 +168,12 @@ public class VMFrame
                 this.args.length + " arguments in frame of " + this.thread.getName() +
                 (this.isVMDecree ? " (VM Decree)" : "") +
                 (this.prevFrame != null ? ", previous frame: " + this.prevFrame.method.getMethodNode().name : "");
+    }
+
+    @Override
+    public @NotNull JalVM getVM()
+    {
+        return this.vm;
     }
 
     private static void checkArgumentTypes(@NotNull VMMethod method, @NotNull VMValue[] args)

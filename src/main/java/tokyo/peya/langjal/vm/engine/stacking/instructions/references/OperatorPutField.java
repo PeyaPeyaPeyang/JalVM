@@ -27,7 +27,7 @@ public class OperatorPutField extends AbstractInstructionOperator<FieldInsnNode>
     public void execute(@NotNull VMFrame frame, @NotNull FieldInsnNode operand)
     {
         String owner = operand.owner;
-        VMClass clazz = frame.getVm().getClassLoader().findClass(ClassReference.of(owner));
+        VMClass clazz = frame.getClassLoader().findClass(ClassReference.of(owner));
         String name = operand.name;
 
         VMValue value = frame.getStack().pop();

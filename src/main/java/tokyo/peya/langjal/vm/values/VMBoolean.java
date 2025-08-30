@@ -3,6 +3,7 @@ package tokyo.peya.langjal.vm.values;
 import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 import tokyo.peya.langjal.vm.JalVM;
+import tokyo.peya.langjal.vm.engine.VMComponent;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.threading.VMThread;
 
@@ -15,40 +16,20 @@ public final class VMBoolean extends AbstractVMPrimitive
 
     private final JalVM vm;
 
-    private VMBoolean(@NotNull JalVM vm, final boolean value)
+    private VMBoolean(@NotNull VMComponent component, final boolean value)
     {
-        super(VMType.of(vm, PrimitiveTypes.BOOLEAN), value ? 1: 0);
-        this.vm = vm;
+        super(VMType.of(component, PrimitiveTypes.BOOLEAN), value ? 1: 0);
+        this.vm = component.getVM();
     }
 
-    public static VMBoolean ofTrue(@NotNull VMThread thread)
+    public static VMBoolean ofTrue(@NotNull VMComponent component)
     {
-        return ofTrue(thread.getVm());
+        return TRUES.computeIfAbsent(component.getVM(), k -> new VMBoolean(component, true));
     }
 
-    public static VMBoolean ofFalse(@NotNull VMThread thread)
+    public static VMBoolean ofFalse(@NotNull VMComponent component)
     {
-        return ofFalse(thread.getVm());
-    }
-
-    public static VMBoolean ofTrue(@NotNull VMFrame frame)
-    {
-        return ofTrue(frame.getVm());
-    }
-
-    public static VMBoolean ofFalse(@NotNull VMFrame frame)
-    {
-        return ofFalse(frame.getVm());
-    }
-
-    public static VMBoolean ofTrue(@NotNull JalVM vm)
-    {
-        return TRUES.computeIfAbsent(vm, k -> new VMBoolean(vm, true));
-    }
-
-    public static VMBoolean ofFalse(@NotNull JalVM vm)
-    {
-        return FALSES.computeIfAbsent(vm, k -> new VMBoolean(vm, false));
+        return FALSES.computeIfAbsent(component.getVM(), k -> new VMBoolean(component, false));
     }
 
     @Override
@@ -78,19 +59,9 @@ public final class VMBoolean extends AbstractVMPrimitive
         return this.asNumber().intValue() == 0 ? "false": "true";
     }
 
-    public static VMBoolean of(@NotNull JalVM vm, final boolean value)
+    public static VMBoolean of(@NotNull VMComponent component, final boolean value)
     {
-        return value ? ofTrue(vm) : ofFalse(vm);
-    }
-
-    public static VMBoolean of(@NotNull VMFrame frame, final boolean value)
-    {
-        return of(frame.getVm(), value);
-    }
-
-    public static VMBoolean of(@NotNull VMThread thread, final boolean value)
-    {
-        return of(thread.getVm(), value);
+        return value ? ofTrue(component) : ofFalse(component);
     }
 
     @Override

@@ -7,6 +7,7 @@ import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
 import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.VMHeap;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
+import tokyo.peya.langjal.vm.engine.VMComponent;
 import tokyo.peya.langjal.vm.exceptions.VMPanic;
 import tokyo.peya.langjal.vm.values.metaobjects.VMClassObject;
 import tokyo.peya.langjal.vm.values.metaobjects.VMStringObject;
@@ -34,8 +35,9 @@ public interface VMValue
             throw new VMPanic("Cannot convert " + this.getClass().getName());
     }
 
-    static VMValue fromJavaObject(@NotNull JalVM vm, @NotNull Object value)
+    static VMValue fromJavaObject(@NotNull VMComponent component, @NotNull Object value)
     {
+        JalVM vm = component.getVM();
         return switch (value)
         {
             case Integer intValue -> new VMInteger(vm, intValue);
@@ -72,7 +74,7 @@ public interface VMValue
 
     default VMValue conformValue( @NotNull VMType<?> expectedType)
     {
-        if (expectedType.equals(VMType.ofGenericObject(expectedType.getVm())) || this.type().equals(expectedType))
+        if (expectedType.equals(VMType.ofGenericObject(expectedType.getVM())) || this.type().equals(expectedType))
             return this;  // Object 型にはすべての型が適合する，また型が同じならそのまま返す
 
         throw new VMPanic("Cannot conform " + this.type() + " to " + expectedType);

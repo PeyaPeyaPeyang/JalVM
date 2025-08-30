@@ -34,7 +34,7 @@ public class OperatorInvokeInterface extends AbstractInstructionOperator<MethodI
             return;  // TODO: Reference を読み込む
 
         VMClass caller = frame.getMethod().getClazz();
-        VMClass clazz = frame.getVm().getClassLoader().findClass(ClassReference.of(owner));
+        VMClass clazz = frame.getClassLoader().findClass(ClassReference.of(owner));
 
         MethodDescriptor methodDescriptor = MethodDescriptor.parse(desc);
         InvocationHelper.InvocationContext ctxt = InvocationHelper.retrieveCtxt(owner, methodDescriptor, frame);

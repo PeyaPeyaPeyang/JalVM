@@ -30,7 +30,7 @@ public class OperatorMultiANewArray extends AbstractInstructionOperator<MultiANe
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull MultiANewArrayInsnNode operand)
     {
-        JalVM vm = frame.getVm();
+        JalVM vm = frame.getVM();
 
         String descriptor = operand.desc;
         if (descriptor.startsWith("["))

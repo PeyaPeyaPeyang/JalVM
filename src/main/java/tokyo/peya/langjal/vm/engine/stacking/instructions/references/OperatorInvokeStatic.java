@@ -27,7 +27,7 @@ public class OperatorInvokeStatic extends AbstractInstructionOperator<MethodInsn
         String desc = operand.desc;
 
         VMClass caller = frame.getMethod().getClazz();
-        VMClass clazz = frame.getVm().getClassLoader().findClass(ClassReference.of(owner));
+        VMClass clazz = frame.getClassLoader().findClass(ClassReference.of(owner));
         if (!clazz.isInitialised())
         {
             // クラスが初期化されていない場合は初期化をして，この命令を再実行する

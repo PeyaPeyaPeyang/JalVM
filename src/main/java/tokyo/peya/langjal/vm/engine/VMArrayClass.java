@@ -41,13 +41,13 @@ public class VMArrayClass extends VMClass
     private final VMType<?> arrayType;
     private final VMClass componentClass;
 
-    public VMArrayClass(@NotNull JalVM vm, @NotNull VMType<?> arrayType, @NotNull VMClass componentClass)
+    public VMArrayClass(@NotNull VMComponent component, @NotNull VMType<?> arrayType, @NotNull VMClass componentClass)
     {
-        super(vm, componentClass.getClazz(), arrayType.getComponentType());
+        super(component, componentClass.getClazz(), arrayType.getComponentType());
         this.arrayType = arrayType;
         this.componentClass = componentClass;
 
-        vm.getClassLoader().linkType(this);
+        component.getClassLoader().linkType(this);
     }
 
     @Override

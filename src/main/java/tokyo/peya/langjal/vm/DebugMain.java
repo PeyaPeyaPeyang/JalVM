@@ -222,7 +222,7 @@ public class DebugMain
                 {
                     case "show", "z" ->
                     {
-                        this.printFrame(event.getFrame(), event.getFrame().getVm().getEngine());
+                        this.printFrame(event.getFrame(), event.getFrame().getVM().getEngine());
                     }
                     case "next", "x" ->
                     {
@@ -259,7 +259,7 @@ public class DebugMain
         // @VMEventHandler
         public void onThreadDestroy(@NotNull VMThreadDeathEvent event)
         {
-            VMEngine engine = event.getVm().getEngine();
+            VMEngine engine = event.getVM().getEngine();
             System.out.printf("Thread %s has terminated.%n", event.getThread().getName());
             VMThreadTracer threadTracer = engine.getTracer();
             List<ThreadTracingEntry> history = threadTracer.getHistory(event.getThread());

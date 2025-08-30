@@ -32,7 +32,7 @@ public class OperatorCheckCast extends AbstractInstructionOperator<TypeInsnNode>
         if (object instanceof VMNull<?>)
             return;  // null はなんでも OK
 
-        int checkTypeResult = OperatorInstanceOf.checkType(frame.getVm(), object, operand);
+        int checkTypeResult = OperatorInstanceOf.checkType(frame.getVM(), object, operand);
         if (checkTypeResult == 0)
             throw new VMPanic("Cannot cast " + object.type() + " to " + operand.desc);
     }

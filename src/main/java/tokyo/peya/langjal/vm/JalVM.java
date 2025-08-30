@@ -6,6 +6,7 @@ import tokyo.peya.langjal.compiler.jvm.MethodDescriptor;
 import tokyo.peya.langjal.vm.api.VMEventManager;
 import tokyo.peya.langjal.vm.api.VMPluginLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
+import tokyo.peya.langjal.vm.engine.VMComponent;
 import tokyo.peya.langjal.vm.engine.VMEngine;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
@@ -16,7 +17,7 @@ import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMType;
 
 @Getter
-public class JalVM
+public class JalVM implements VMComponent
 {
     private final VMHeap heap;
     private final ClassPaths classPaths;
@@ -105,5 +106,11 @@ public class JalVM
                                                     + clazz.getReference().getFullQualifiedName());
 
         this.startJVM(mainMethod, args);
+    }
+
+    @Override
+    public @NotNull JalVM getVM()
+    {
+        return this;
     }
 }

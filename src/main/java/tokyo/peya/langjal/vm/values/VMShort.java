@@ -3,23 +3,20 @@ package tokyo.peya.langjal.vm.values;
 import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 import tokyo.peya.langjal.vm.JalVM;
+import tokyo.peya.langjal.vm.engine.VMComponent;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 
 public final class VMShort extends VMInteger
 {
-    public VMShort(@NotNull JalVM vm, final short value)
+    public VMShort(@NotNull VMComponent component, final short value)
     {
-        super(vm, VMType.of(vm, PrimitiveTypes.SHORT), value);
+        super(component, VMType.of(component, PrimitiveTypes.SHORT), value);
     }
 
-    public VMShort(@NotNull VMFrame frame, final short value)
-    {
-        super(frame.getVm(), VMType.of(frame, PrimitiveTypes.SHORT), value);
-    }
 
-    public static VMShort ofZero(@NotNull JalVM vm)
+    public static VMShort ofZero(@NotNull VMComponent component)
     {
-        return new VMShort(vm, (short) 0);
+        return new VMShort(component, (short) 0);
     }
 
 

@@ -70,7 +70,7 @@ public class VMPrimitiveClass extends VMClass
     @Override
     public boolean isSubclassOf(@NotNull VMClass maySuper)
     {
-        return maySuper == this || maySuper == VMType.ofGenericObject(maySuper.getVm()).getLinkedClass()
+        return maySuper == this || maySuper == VMType.ofGenericObject(maySuper.getVM()).getLinkedClass()
                 || this.getReference().equals(maySuper.getReference());
     }
 

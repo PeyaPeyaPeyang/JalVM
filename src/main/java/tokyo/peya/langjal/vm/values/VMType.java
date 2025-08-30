@@ -1,5 +1,6 @@
 package tokyo.peya.langjal.vm.values;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -12,6 +13,7 @@ import tokyo.peya.langjal.vm.VMHeap;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMArrayClass;
 import tokyo.peya.langjal.vm.engine.VMClass;
+import tokyo.peya.langjal.vm.engine.VMComponent;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.VMPrimitiveClass;
 import tokyo.peya.langjal.vm.engine.threading.VMThread;
@@ -21,8 +23,9 @@ import tokyo.peya.langjal.vm.references.ClassReference;
 import java.util.Objects;
 
 @Getter
-public class VMType<T extends VMValue>
+public class VMType<T extends VMValue> implements VMComponent
 {
+    @Getter(AccessLevel.NONE)
     private final JalVM vm;
     private final Type type;
     private final VMType<?> componentType;  // 配列型の場合，1次元減らした型
@@ -41,28 +44,34 @@ public class VMType<T extends VMValue>
             vm.getClassLoader().linkType(this);
     }
 
-    private VMType(@NotNull JalVM vm, @NotNull PrimitiveTypes type)
+    private VMType(@NotNull VMComponent component, @NotNull PrimitiveTypes type)
     {
-        this.vm = vm;
+        this.vm = component.getVM();
         this.type = type;
         this.componentType = null;
         this.isPrimitive = true;
     }
 
 
-    public VMType(@NotNull JalVM vm, @NotNull ClassReference reference)
+    public VMType(@NotNull VMComponent component, @NotNull ClassReference reference)
     {
-        this(vm, reference, null);
+        this(component, reference, null);
     }
 
-    public VMType(@NotNull JalVM vm, @NotNull ClassReference reference, @Nullable VMType<?> componentType)
+    public VMType(@NotNull VMComponent component, @NotNull ClassReference reference, @Nullable VMType<?> componentType)
     {
-        this.vm = vm;
+        this.vm = component.getVM();
         this.type = ClassReferenceType.parse(reference.getFullQualifiedName());
         this.componentType = componentType;
         this.isPrimitive = false;
         if (this.getClass() == VMType.class)
-            vm.getClassLoader().linkType(this);
+            component.getClassLoader().linkType(this);
+    }
+
+    @Override
+    public @NotNull JalVM getVM()
+    {
+        return this.vm;
     }
 
     public static void initVM(@NotNull JalVM vm)
@@ -89,40 +98,16 @@ public class VMType<T extends VMValue>
     }
 
     @NotNull
-    public static <T extends VMPrimitive> VMType<T> of(@NotNull VMFrame frame, @NotNull PrimitiveTypes primitive)
-    {
-        return of(frame.getVm(), primitive);
-    }
-
-    @NotNull
     @SuppressWarnings("unchecked")
-    public static <T extends VMPrimitive> VMType<T> of(@NotNull JalVM vm, @NotNull PrimitiveTypes primitive)
+    public static <T extends VMPrimitive> VMType<T> of(@NotNull VMComponent component, @NotNull PrimitiveTypes primitive)
     {
-        return (VMType<T>) vm.getHeap().getType(primitive.getDescriptor());
+        return (VMType<T>) component.getVM().getHeap().getType(primitive.getDescriptor());
     }
 
     @NotNull
-    public static <T extends VMPrimitive> VMType<T> of(@NotNull VMThread thread, @NotNull PrimitiveTypes primitive)
+    public static VMType<VMReferenceValue> ofGenericObject(@NotNull VMComponent component)
     {
-        return of(thread.getVm(), primitive);
-    }
-
-    @NotNull
-    public static VMType<VMReferenceValue> ofGenericObject(@NotNull VMFrame frame)
-    {
-        return ofGenericObject(frame.getVm().getHeap());
-    }
-
-    @NotNull
-    public static VMType<VMReferenceValue> ofGenericObject(@NotNull VMThread thread)
-    {
-        return ofGenericObject(thread.getVm().getHeap());
-    }
-
-    @NotNull
-    public static VMType<VMReferenceValue> ofGenericObject(@NotNull JalVM vm)
-    {
-        return ofGenericObject(vm.getHeap());
+        return ofGenericObject(component.getVM().getHeap());
     }
 
     @NotNull
@@ -133,9 +118,9 @@ public class VMType<T extends VMValue>
     }
 
     @NotNull
-    public static VMType<VMArray> ofGenericArray(@NotNull VMFrame frame)
+    public static VMType<VMArray> ofGenericArray(@NotNull VMComponent component)
     {
-        return ofGenericArray(frame.getVm().getHeap());
+        return ofGenericArray(component.getVM().getHeap());
     }
 
     @NotNull
@@ -146,8 +131,9 @@ public class VMType<T extends VMValue>
     }
 
     @SuppressWarnings("unchecked")
-    public static <T extends VMValue> VMType<T> of(@NotNull JalVM vm, @NotNull TypeDescriptor desc)
+    public static <T extends VMValue> VMType<T> of(@NotNull VMComponent component, @NotNull TypeDescriptor desc)
     {
+        JalVM vm = component.getVM();
         if (desc.getBaseType().isPrimitive() && !desc.isArray())
             return (VMType<T>) VMType.of(vm, (PrimitiveTypes) desc.getBaseType());
 
@@ -163,11 +149,6 @@ public class VMType<T extends VMValue>
         return (VMType<T>) created;
     }
 
-    public static <T extends VMValue> VMType<T> of(@NotNull VMFrame vm, @NotNull TypeDescriptor desc)
-    {
-        return of(vm.getVm(), desc);
-    }
-
     public VMValue defaultValue()
     {
         // 非プリミティブまたは配列は「参照型」であるから， null
@@ -177,15 +158,15 @@ public class VMType<T extends VMValue>
         // プリミティブ型のデフォルト値を返す
         return switch ((PrimitiveTypes) this.type)
         {
-            case BOOLEAN -> VMBoolean.ofFalse(this.vm);
-            case BYTE -> VMByte.ofZero(this.vm);
-            case CHAR -> VMChar.ofZero(this.vm);
-            case SHORT -> VMShort.ofZero(this.vm);
-            case INT -> VMInteger.ofZero(this.vm);
-            case LONG -> VMLong.ofZero(this.vm);
-            case FLOAT -> VMFloat.ofZero(this.vm);
-            case DOUBLE -> VMDouble.ofZero(this.vm);
-            case VOID -> VMVoid.instance(this.vm);
+            case BOOLEAN -> VMBoolean.ofFalse(this);
+            case BYTE -> VMByte.ofZero(this);
+            case CHAR -> VMChar.ofZero(this);
+            case SHORT -> VMShort.ofZero(this);
+            case INT -> VMInteger.ofZero(this);
+            case LONG -> VMLong.ofZero(this);
+            case FLOAT -> VMFloat.ofZero(this);
+            case DOUBLE -> VMDouble.ofZero(this);
+            case VOID -> VMVoid.instance(this);
         };
     }
 
@@ -312,24 +293,20 @@ public class VMType<T extends VMValue>
         return this.linkedClass.createInstance();
     }
 
-    public static <T extends VMValue> VMType<T> of(@NotNull JalVM vm, @NotNull String typeDescriptor)
+    public static <T extends VMValue> VMType<T> of(@NotNull VMComponent component, @NotNull String typeDescriptor)
     {
-        return of(vm, TypeDescriptor.parse(typeDescriptor));
+        return of(component, TypeDescriptor.parse(typeDescriptor));
     }
 
-    public static VMType<VMObject> ofClassName(@NotNull JalVM vm, @NotNull String className)
+    public static VMType<VMObject> ofClassName(@NotNull VMComponent component, @NotNull String className)
     {
-        return of(vm, TypeDescriptor.className(className));
+        return of(component, TypeDescriptor.className(className));
     }
 
-    public static VMType<? extends VMPrimitive> getPrimitiveType(@NotNull VMThread thread, @NotNull String name)
-    {
-        return getPrimitiveType(thread.getVm(), name);
-    }
 
-    public static VMType<? extends VMPrimitive> getPrimitiveType(@NotNull JalVM vm, @NotNull String name)
+    public static VMType<? extends VMPrimitive> getPrimitiveType(@NotNull VMComponent component, @NotNull String name)
     {
-        return of(vm, switch (name)
+        return of(component, switch (name)
         {
             case "void" -> PrimitiveTypes.VOID;
             case "boolean" -> PrimitiveTypes.BOOLEAN;
@@ -344,8 +321,9 @@ public class VMType<T extends VMValue>
         });
     }
 
-    public static VMType<?> convertASMType(@NotNull JalVM vm, @NotNull org.objectweb.asm.Type type)
+    public static VMType<?> convertASMType(@NotNull VMComponent component, @NotNull org.objectweb.asm.Type type)
     {
+        JalVM vm = component.getVM();
         return switch (type.getSort())
         {
             case org.objectweb.asm.Type.VOID -> VMType.of(vm, PrimitiveTypes.VOID);

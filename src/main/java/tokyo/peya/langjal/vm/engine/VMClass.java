@@ -37,8 +37,9 @@ import java.util.List;
 import java.util.Map;
 
 @Getter
-public class VMClass extends VMType<VMReferenceValue> implements AccessibleObject
+public class VMClass extends VMType<VMReferenceValue> implements AccessibleObject, VMComponent
 {
+    @Getter(lombok.AccessLevel.NONE)
     private final JalVM vm;
 
     protected final ClassReference reference;
@@ -66,10 +67,10 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
     protected VMClass superLink;
 
 
-    public VMClass(@NotNull JalVM vm, @NotNull ClassNode clazz, @Nullable VMType<?> componentType)
+    public VMClass(@NotNull VMComponent component, @NotNull ClassNode clazz, @Nullable VMType<?> componentType)
     {
-        super(vm, ClassReference.of(clazz), componentType);
-        this.vm = vm;
+        super(component, ClassReference.of(clazz), componentType);
+        this.vm = component.getVM();
         this.reference = ClassReference.of(clazz);
         this.clazz = clazz;
 

@@ -5,6 +5,7 @@ import org.jetbrains.annotations.Nullable;
 import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
+import tokyo.peya.langjal.vm.engine.VMComponent;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.threading.VMThread;
 import tokyo.peya.langjal.vm.exceptions.VMPanic;
@@ -28,28 +29,28 @@ public class VMStringObject extends VMObject
 
     private static final Map<String, VMValue> STRING_CACHE = new HashMap<>();
 
-    private VMStringObject(@NotNull JalVM vm, @NotNull String content)
+    private VMStringObject(@NotNull VMComponent component, @NotNull String content)
     {
-        super(vm.getClassLoader().findClass(ClassReference.of("java/lang/String")));
+        super(component.getClassLoader().findClass(ClassReference.of("java/lang/String")));
 
-        this.createString0(vm, content);
+        this.createString0(component, content);
     }
 
-    public VMStringObject(@NotNull JalVM vm)
+    public VMStringObject(@NotNull VMComponent component)
     {
-        super(vm.getClassLoader().findClass(ClassReference.of("java/lang/String")));
+        super(component.getClassLoader().findClass(ClassReference.of("java/lang/String")));
     }
 
-    private void createString0(@NotNull JalVM vm, @NotNull String value)
+    private void createString0(@NotNull VMComponent component, @NotNull String value)
     {
         final int len = value.length();
         if (len == 0)
         {
-            this.setField("value", new VMArray(vm, VMType.of(vm, PrimitiveTypes.BYTE), new VMByte[0]));
-            this.setField("hash", new VMInteger(vm, 0));
-            this.setField("hashIsZero", VMBoolean.ofTrue(vm));
-            this.setField("coder", new VMByte(vm, LATIN1)); // JDK でも空文字は coder=LATIN1
-            this.forceInitialise(vm.getClassLoader());
+            this.setField("value", new VMArray(component, VMType.of(component, PrimitiveTypes.BYTE), new VMByte[0]));
+            this.setField("hash", new VMInteger(component, 0));
+            this.setField("hashIsZero", VMBoolean.ofTrue(component));
+            this.setField("coder", new VMByte(component, LATIN1)); // JDK でも空文字は coder=LATIN1
+            this.forceInitialise(component.getClassLoader());
             return;
         }
 
@@ -75,7 +76,7 @@ public class VMStringObject extends VMObject
             for (int i = 0; i < len; i++)
             {
                 char c = value.charAt(i);
-                vmBytes[i] = new VMByte(vm, (byte) (c & 0xFF));
+                vmBytes[i] = new VMByte(component, (byte) (c & 0xFF));
             }
         }
         else
@@ -89,8 +90,8 @@ public class VMStringObject extends VMObject
                 byte hi = (byte) ((c >>> 8) & 0xFF);
                 byte lo = (byte) (c & 0xFF);
                 int base = i * 2;
-                vmBytes[base]     = new VMByte(vm, hi); // 上位バイト
-                vmBytes[base + 1] = new VMByte(vm, lo); // 下位バイト
+                vmBytes[base]     = new VMByte(component, hi); // 上位バイト
+                vmBytes[base + 1] = new VMByte(component, lo); // 下位バイト
             }
         }
 
@@ -99,46 +100,35 @@ public class VMStringObject extends VMObject
 
         this.setField(
                 "value",
-                new VMArray(vm, VMType.of(vm, PrimitiveTypes.BYTE), vmBytes)
+                new VMArray(component, VMType.of(component, PrimitiveTypes.BYTE), vmBytes)
         );
-        this.setField("hash", new VMInteger(vm, hash));
-        this.setField("hashIsZero", VMBoolean.of(vm, hashIsZero));
-        this.setField("coder", new VMByte(vm, coder));
+        this.setField("hash", new VMInteger(component, hash));
+        this.setField("hashIsZero", VMBoolean.of(component, hashIsZero));
+        this.setField("coder", new VMByte(component, coder));
 
-        this.forceInitialise(vm.getClassLoader());
+        this.forceInitialise(component.getClassLoader());
     }
 
-    public static VMValue createString(@NotNull VMThread thread, @NotNull String value)
-    {
-        return createString(thread.getVm(), value);
-    }
-
-    public static VMValue createString(@NotNull VMFrame frame, @Nullable String value)
-    {
-        return createString(frame.getVm(), value);
-    }
-
-
-    public static VMValue createString(@NotNull JalVM vm, @Nullable String value)
+    public static VMValue createString(@NotNull VMComponent component, @Nullable String value)
     {
         if (value == null)
-            return new VMNull<>(VMType.ofClassName(vm, "java/lang/String"));
+            return new VMNull<>(VMType.ofClassName(component, "java/lang/String"));
         if (STRING_CACHE.containsKey(value))
             return STRING_CACHE.get(value);
 
-        VMStringObject stringValue = new VMStringObject(vm, value);
+        VMStringObject stringValue = new VMStringObject(component, value);
         STRING_CACHE.put(value, stringValue);
 
         return stringValue;
     }
 
-    public static VMArray createStringArray(@NotNull JalVM vm, @NotNull String[] values)
+    public static VMArray createStringArray(@NotNull VMComponent component, @NotNull String[] values)
     {
         VMValue[] stringArray = new VMValue[values.length];
         for (int i = 0; i < values.length; i++)
-            stringArray[i] = createString(vm, values[i]);
+            stringArray[i] = createString(component, values[i]);
 
-        return new VMArray(vm, VMType.ofClassName(vm, "java/lang/String"), stringArray);
+        return new VMArray(component, VMType.ofClassName(component, "java/lang/String"), stringArray);
     }
 
     public String getString()

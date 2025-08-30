@@ -31,7 +31,7 @@ public class OperatorGetField extends AbstractInstructionOperator<FieldInsnNode>
         String name = operand.name;
 
         // Retrieve the static field value from the class
-        VMClass clazz = frame.getVm().getClassLoader().findClass(ClassReference.of(owner));
+        VMClass clazz = frame.getClassLoader().findClass(ClassReference.of(owner));
         VMField field = clazz.findField(name);
         if (!field.canAccessFrom(frame.getMethod().getClazz()))
             throw new VMPanic("Field " + name + " cannot be accessed from method "

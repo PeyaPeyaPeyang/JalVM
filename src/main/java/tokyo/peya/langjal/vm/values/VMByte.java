@@ -3,26 +3,27 @@ package tokyo.peya.langjal.vm.values;
 import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 import tokyo.peya.langjal.vm.JalVM;
+import tokyo.peya.langjal.vm.engine.VMComponent;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 
 public final class VMByte extends VMInteger
 {
     private final JalVM vm;
 
-    public VMByte(@NotNull JalVM vm, final byte value)
+    public VMByte(@NotNull VMComponent component, final byte value)
     {
-        super(vm, VMType.of(vm, PrimitiveTypes.BYTE), value);
-        this.vm = vm;
+        super(component, VMType.of(component, PrimitiveTypes.BYTE), value);
+        this.vm = component.getVM();
     }
 
     public VMByte(@NotNull VMFrame frame, final byte value)
     {
-        this(frame.getVm(), value);
+        this(frame.getVM(), value);
     }
 
-    public static VMByte ofZero(@NotNull JalVM vm)
+    public static VMByte ofZero(@NotNull VMComponent component)
     {
-        return new VMByte(vm, (byte) 0);
+        return new VMByte(component, (byte) 0);
     }
 
     @Override

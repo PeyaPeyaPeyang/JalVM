@@ -117,13 +117,11 @@ public class InjectorSystemPropsRaw implements Injector
     @Override
     public void inject(@NotNull VMSystemClassLoader cl, @NotNull VMClass clazz)
     {
-        JalVM vm = cl.getVm();
-
         String[] platformProperties = createPlatformProperties();
         String[] vmProperties = createVMProperties();
 
-        VMArray platformPropsArray = VMStringObject.createStringArray(vm, platformProperties);
-        VMArray vmPropsArray = VMStringObject.createStringArray(vm, vmProperties);
+        VMArray platformPropsArray = VMStringObject.createStringArray(cl, platformProperties);
+        VMArray vmPropsArray = VMStringObject.createStringArray(cl, vmProperties);
 
         clazz.injectMethod(
                 cl,

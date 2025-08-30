@@ -46,7 +46,7 @@ public class InjectorString implements Injector
                         VMStringObject stringInstance = (VMStringObject) instance;
                         assert stringInstance != null;
 
-                        VMHeap heap = thread.getVm().getHeap();
+                        VMHeap heap = thread.getVM().getHeap();
                         return heap.internString(stringInstance);
                     }
                 }

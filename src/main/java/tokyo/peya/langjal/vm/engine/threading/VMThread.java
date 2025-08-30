@@ -1,5 +1,6 @@
 package tokyo.peya.langjal.vm.engine.threading;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -8,6 +9,7 @@ import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.api.events.VMFrameInEvent;
 import tokyo.peya.langjal.vm.api.events.VMFrameOutEvent;
 import tokyo.peya.langjal.vm.api.events.VMThreadChangeStateEvent;
+import tokyo.peya.langjal.vm.engine.VMComponent;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.VMInterruptingFrame;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
@@ -25,11 +27,12 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 @Getter
-public class VMThread
+public class VMThread implements VMComponent
 {
+    @Getter(AccessLevel.NONE)
+    protected final JalVM vm;
     protected final String name;
     protected final int currentFrameIndex;
-    protected final JalVM vm;
     protected final VMFrameTracer tracer;
     protected final VMThreadObject threadObject;
 
@@ -218,5 +221,11 @@ public class VMThread
     public Stream<VMFrame> getFrames()
     {
         return Stream.iterate(this.firstFrame, Objects::nonNull, VMFrame::getNextFrame);
+    }
+
+    @Override
+    public @NotNull JalVM getVM()
+    {
+        return this.vm;
     }
 }

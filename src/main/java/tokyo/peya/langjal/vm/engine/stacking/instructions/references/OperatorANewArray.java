@@ -28,7 +28,7 @@ public class OperatorANewArray extends AbstractInstructionOperator<TypeInsnNode>
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull TypeInsnNode operand)
     {
-        VMSystemClassLoader cl = frame.getVm().getClassLoader();
+        VMSystemClassLoader cl = frame.getClassLoader();
 
         String descriptor = operand.desc;
         ClassReferenceType classReferenceType = ClassReferenceType.parse(descriptor);
@@ -39,7 +39,7 @@ public class OperatorANewArray extends AbstractInstructionOperator<TypeInsnNode>
         if (length < 0)
             throw new VMPanic("Array length cannot be negative: " + length);
 
-        VMArray array = new VMArray(frame.getVm(), vmClass, length);
+        VMArray array = new VMArray(frame.getVM(), vmClass, length);
         frame.getTracer().pushHistory(
                 ValueTracingEntry.generation(
                         array,

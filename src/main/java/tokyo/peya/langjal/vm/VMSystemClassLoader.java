@@ -7,6 +7,7 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
 import tokyo.peya.langjal.vm.api.events.VMDefineClassEvent;
 import tokyo.peya.langjal.vm.engine.VMClass;
+import tokyo.peya.langjal.vm.engine.VMComponent;
 import tokyo.peya.langjal.vm.engine.injections.InjectorManager;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMType;
@@ -14,9 +15,8 @@ import tokyo.peya.langjal.vm.values.VMType;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
-public class VMSystemClassLoader
+public class VMSystemClassLoader implements VMComponent
 {
-    @Getter
     private final JalVM vm;
     private final VMHeap heap;
     private final InjectorManager injector;
@@ -128,5 +128,11 @@ public class VMSystemClassLoader
         }
 
         return this.defineClass(classNode);
+    }
+
+    @Override
+    public @NotNull JalVM getVM()
+    {
+        return this.vm;
     }
 }

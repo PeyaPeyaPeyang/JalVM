@@ -3,6 +3,7 @@ package tokyo.peya.langjal.vm.values;
 import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 import tokyo.peya.langjal.vm.JalVM;
+import tokyo.peya.langjal.vm.engine.VMComponent;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.threading.VMThread;
 import tokyo.peya.langjal.vm.exceptions.IllegalOperandPanic;
@@ -11,25 +12,15 @@ public final class VMDouble extends AbstractVMPrimitive
 {
     private final JalVM vm;
 
-    public VMDouble(@NotNull JalVM vm, final double value)
+    public VMDouble(@NotNull VMComponent component, final double value)
     {
-        super(VMType.of(vm, PrimitiveTypes.DOUBLE), value);
-        this.vm = vm;
+        super(VMType.of(component, PrimitiveTypes.DOUBLE), value);
+        this.vm = component.getVM();
     }
 
-    public VMDouble(@NotNull VMFrame frame, final double value)
+    public static @NotNull VMDouble ofZero(@NotNull VMComponent component)
     {
-        this(frame.getVm(), value);
-    }
-
-    public VMDouble(@NotNull VMThread thread, final double value)
-    {
-        this(thread.getVm(), value);
-    }
-
-    public static @NotNull VMDouble ofZero(@NotNull JalVM vm)
-    {
-        return new VMDouble(vm, 0.0);
+        return new VMDouble(component, 0.0);
     }
 
     public static @NotNull VMDouble ofNaN(@NotNull JalVM vm)

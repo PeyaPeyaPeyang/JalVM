@@ -3,23 +3,19 @@ package tokyo.peya.langjal.vm.values;
 import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 import tokyo.peya.langjal.vm.JalVM;
+import tokyo.peya.langjal.vm.engine.VMComponent;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 
 public final class VMChar extends VMInteger
 {
-    public VMChar(@NotNull JalVM vm, final char value)
+    public VMChar(@NotNull VMComponent component, final char value)
     {
-        super(vm, VMType.of(vm, PrimitiveTypes.CHAR), value);
+        super(component, VMType.of(component, PrimitiveTypes.CHAR), value);
     }
 
-    public VMChar(@NotNull VMFrame frame, final char value)
+    public static VMChar ofZero(@NotNull VMComponent component)
     {
-        super(frame.getVm(), VMType.of(frame.getVm(), PrimitiveTypes.CHAR), value);
-    }
-
-    public static VMChar ofZero(@NotNull JalVM vm)
-    {
-        return new VMChar(vm, (char) 0);
+        return new VMChar(component, (char) 0);
     }
 
     @Override

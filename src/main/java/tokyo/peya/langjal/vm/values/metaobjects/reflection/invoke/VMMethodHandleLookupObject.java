@@ -91,14 +91,14 @@ public class VMMethodHandleLookupObject extends VMObject
 
             if (lookup == null)
                 lookup = new VMMethodHandleLookupObject(
-                        frame.getVm(),
+                        frame.getVM(),
                         currentLookupClass,
                         previousLookupClass,
                         MethodHandles.Lookup.PUBLIC | MethodHandles.Lookup.PROTECTED | MethodHandles.Lookup.PACKAGE | MethodHandles.Lookup.PRIVATE
                 );
             else
                 lookup = new VMMethodHandleLookupObject(
-                        frame.getVm(),
+                        frame.getVM(),
                         currentLookupClass,
                         previousLookupClass,
                         lookup.getAllowedModes()

@@ -3,6 +3,7 @@ package tokyo.peya.langjal.vm.values;
 import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 import tokyo.peya.langjal.vm.JalVM;
+import tokyo.peya.langjal.vm.engine.VMComponent;
 import tokyo.peya.langjal.vm.exceptions.VMPanic;
 
 import java.util.HashMap;
@@ -13,14 +14,14 @@ public class VMVoid implements VMPrimitive
 
     private final JalVM vm;
 
-    private VMVoid(@NotNull JalVM vm)
+    private VMVoid(@NotNull VMComponent component)
     {
-        this.vm = vm;
+        this.vm = component.getVM();
     }
 
-    public static VMVoid instance(@NotNull JalVM vm)
+    public static VMVoid instance(@NotNull VMComponent component)
     {
-        return INSTANCES.computeIfAbsent(vm, VMVoid::new);
+        return INSTANCES.computeIfAbsent(component.getVM(), VMVoid::new);
     }
 
     @Override

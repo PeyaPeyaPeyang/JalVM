@@ -22,14 +22,14 @@ public class InvocationHelper
         VMType<?>[] argumentTypes = new VMType[argumentTypeDescriptors.length];
         for (int i = arguments.length - 1; i >= 0; i--)  // スタックの順序は逆なので、最後からポップする
         {
-            argumentTypes[i] = VMType.of(frame.getVm(), argumentTypeDescriptors[i]);
+            argumentTypes[i] = VMType.of(frame, argumentTypeDescriptors[i]);
             arguments[i] = frame.getStack().popType(argumentTypes[i]);
         }
 
         return new InvocationContext(
                 arguments,
                 argumentTypes,
-                findOwner(frame.getVm(), owner)
+                findOwner(frame.getVM(), owner)
         );
     }
 

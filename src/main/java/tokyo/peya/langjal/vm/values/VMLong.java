@@ -3,6 +3,7 @@ package tokyo.peya.langjal.vm.values;
 import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 import tokyo.peya.langjal.vm.JalVM;
+import tokyo.peya.langjal.vm.engine.VMComponent;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.threading.VMThread;
 import tokyo.peya.langjal.vm.exceptions.IllegalOperandPanic;
@@ -11,25 +12,16 @@ public final class VMLong extends AbstractVMPrimitive
 {
     private final JalVM vm;
 
-    public VMLong(@NotNull JalVM vm, final long value)
+    public VMLong(@NotNull VMComponent component, final long value)
     {
-        super(VMType.of(vm, PrimitiveTypes.LONG), value);
-        this.vm = vm;
+        super(VMType.of(component, PrimitiveTypes.LONG), value);
+        this.vm = component.getVM();
     }
 
-    public VMLong(@NotNull VMThread thread, final long value)
-    {
-        this(thread.getVm(), value);
-    }
 
-    public VMLong(@NotNull VMFrame frame, final long value)
+    public static @NotNull VMLong ofZero(@NotNull VMComponent component)
     {
-        this(frame.getVm(), value);
-    }
-
-    public static @NotNull VMLong ofZero(@NotNull JalVM vm)
-    {
-        return new VMLong(vm, 0L);
+        return new VMLong(component, 0L);
     }
 
     @Override

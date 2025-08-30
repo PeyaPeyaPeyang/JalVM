@@ -3,6 +3,7 @@ package tokyo.peya.langjal.vm.values;
 import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 import tokyo.peya.langjal.vm.JalVM;
+import tokyo.peya.langjal.vm.engine.VMComponent;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.threading.VMThread;
 import tokyo.peya.langjal.vm.exceptions.IllegalOperandPanic;
@@ -11,40 +12,30 @@ public final class VMFloat extends AbstractVMPrimitive
 {
     private final JalVM vm;
 
-    public VMFloat(@NotNull JalVM vm, final float value)
+    public VMFloat(@NotNull VMComponent component, final float value)
     {
-        super(VMType.of(vm, PrimitiveTypes.FLOAT), value);
-        this.vm = vm;
+        super(VMType.of(component, PrimitiveTypes.FLOAT), value);
+        this.vm = component.getVM();
     }
 
-    public VMFloat(@NotNull VMFrame frame, final float value)
+    public static @NotNull VMFloat ofZero(@NotNull VMComponent component)
     {
-        this(frame.getVm(), value);
+        return new VMFloat(component, 0.0f);
     }
 
-    public VMFloat(@NotNull VMThread thread, final float value)
+    public static @NotNull VMFloat ofNaN(@NotNull VMComponent component)
     {
-        this(thread.getVm(), value);
+        return new VMFloat(component, Float.NaN);
     }
 
-    public static @NotNull VMFloat ofZero(@NotNull JalVM vm)
+    public static @NotNull VMFloat ofPositiveInfinity(@NotNull VMComponent component)
     {
-        return new VMFloat(vm, 0.0f);
+        return new VMFloat(component, Float.POSITIVE_INFINITY);
     }
 
-    public static @NotNull VMFloat ofNaN(@NotNull JalVM vm)
+    public static @NotNull VMFloat ofNegativeInfinity(@NotNull VMComponent component)
     {
-        return new VMFloat(vm, Float.NaN);
-    }
-
-    public static @NotNull VMFloat ofPositiveInfinity(@NotNull JalVM vm)
-    {
-        return new VMFloat(vm, Float.POSITIVE_INFINITY);
-    }
-
-    public static @NotNull VMFloat ofNegativeInfinity(@NotNull JalVM vm)
-    {
-        return new VMFloat(vm, Float.NEGATIVE_INFINITY);
+        return new VMFloat(component, Float.NEGATIVE_INFINITY);
     }
 
     @Override

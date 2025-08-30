@@ -14,7 +14,7 @@ public class VMStepInEvent extends VMFrameEvent
 
     public VMStepInEvent(@NotNull VMFrame frame, @NotNull AbstractInsnNode instruction)
     {
-        super(frame.getVm(), frame);
+        super(frame.getVM(), frame);
         this.instruction = instruction;
     }
 }

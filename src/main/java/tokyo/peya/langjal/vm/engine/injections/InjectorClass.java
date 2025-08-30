@@ -219,7 +219,7 @@ public class InjectorClass implements Injector
                                                         .toArray(VMFieldObject[]::new);
 
                         return new VMArray(
-                                thread.getVm(),
+                                thread,
                                 cl.findClass(ClassReference.of("java/lang/reflect/Field")),
                                 fieldObjects
                         );
@@ -257,7 +257,7 @@ public class InjectorClass implements Injector
                                                             .toArray(VMMethodObject[]::new);
 
                         return new VMArray(
-                                thread.getVm(),
+                                thread,
                                 cl.findClass(ClassReference.of("java/lang/reflect/Method")),
                                 methodObjects
                         );
@@ -297,7 +297,7 @@ public class InjectorClass implements Injector
                                                              .toArray(VMMethodObject[]::new);
 
                         return new VMArray(
-                                thread.getVm(),
+                                thread,
                                 cl.findClass(ClassReference.of("java/lang/reflect/Constructor")),
                                 methodObjects
                         );
@@ -327,7 +327,7 @@ public class InjectorClass implements Injector
                                                                         .toArray(VMClassObject[]::new);
 
                         return new VMArray(
-                                thread.getVm(),
+                                thread,
                                 cl.findClass(ClassReference.of("java/lang/Class")),
                                 classObjects
                         );
@@ -428,7 +428,7 @@ public class InjectorClass implements Injector
                         String outerMethod = node.outerMethod;
                         String outerMethodDesc = node.outerMethodDesc;
 
-                        VMArray result = new VMArray(thread.getVm(), VMType.ofGenericObject(thread), 3);
+                        VMArray result = new VMArray(thread, VMType.ofGenericObject(thread), 3);
                         if (outerClass == null)
                             return new VMNull<>(VMType.ofGenericObject(thread));
                         else

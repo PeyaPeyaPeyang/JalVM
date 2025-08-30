@@ -32,7 +32,7 @@ public class OperatorInstanceOf extends AbstractInstructionOperator<TypeInsnNode
     public void execute(@NotNull VMFrame frame, @NotNull TypeInsnNode operand)
     {
         VMReferenceValue object = frame.getStack().popType(VMType.ofGenericObject(frame));
-        VMInteger result = new VMInteger(frame, checkType(frame.getVm(), object, operand));
+        VMInteger result = new VMInteger(frame, checkType(frame.getVM(), object, operand));
         frame.getTracer().pushHistory(
                 ValueTracingEntry.generation(
                         result,
@@ -84,7 +84,7 @@ public class OperatorInstanceOf extends AbstractInstructionOperator<TypeInsnNode
             return 1;
 
         VMClass typeClass = type.getLinkedClass();
-        if (typeClass.equals(VMType.ofGenericObject(type.getVm()).getLinkedClass()))
+        if (typeClass.equals(VMType.ofGenericObject(type.getVM()).getLinkedClass()))
             return 1;  // Object はなんでも OK
 
         switch (obj)

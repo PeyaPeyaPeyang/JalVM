@@ -25,13 +25,13 @@ public class OperatorNewArray extends AbstractInstructionOperator<IntInsnNode>
     public void execute(@NotNull VMFrame frame, @NotNull IntInsnNode operand)
     {
         int typeCode = operand.operand;
-        VMInteger sizeValue = frame.getStack().popType(VMType.of(frame.getVm(), PrimitiveTypes.INT));
+        VMInteger sizeValue = frame.getStack().popType(VMType.of(frame.getVM(), PrimitiveTypes.INT));
         int size = sizeValue.asNumber().intValue();
         if (size < 0)
             throw new VMPanic("Array size cannot be negative: " + size);
 
         VMType<?> arrayType = getArrayType(frame, typeCode);
-        VMArray array = new VMArray(frame.getVm(), arrayType, size);
+        VMArray array = new VMArray(frame.getVM(), arrayType, size);
         frame.getTracer().pushHistory(
                 ValueTracingEntry.generation(array, frame.getMethod(), operand)
         );
@@ -41,7 +41,7 @@ public class OperatorNewArray extends AbstractInstructionOperator<IntInsnNode>
 
     private static VMType<?> getArrayType(@NotNull VMFrame frame, int typeCode)
     {
-        JalVM vm = frame.getVm();
+        JalVM vm = frame.getVM();
         return switch (typeCode)
         {
             case EOpcodes.T_BOOLEAN -> VMType.of(vm, PrimitiveTypes.BOOLEAN);

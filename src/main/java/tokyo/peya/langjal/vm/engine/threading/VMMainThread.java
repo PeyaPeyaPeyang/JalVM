@@ -20,7 +20,7 @@ public class VMMainThread extends VMThread
         this.firstFrame = this.createFrame(
                 entryPointMethod,
                 true,
-                VMStringObject.createStringArray(this.vm, args)
+                VMStringObject.createStringArray(this, args)
         );
         this.currentFrame = this.firstFrame;
 

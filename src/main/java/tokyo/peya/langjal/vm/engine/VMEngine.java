@@ -18,8 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Getter
-public class VMEngine
+public class VMEngine implements VMComponent
 {
+    @Getter(AccessLevel.NONE)
     private final JalVM vm;
 
     private final VMThreadTracer tracer;
@@ -65,7 +66,7 @@ public class VMEngine
             }
 
             // その他状態の更新は，heartbeat内で行う
-            this.getVm().getEventManager().dispatchEvent(new VMThreadHeartbeatEvent(this.vm, thread));
+            this.vm.getEventManager().dispatchEvent(new VMThreadHeartbeatEvent(this.vm, thread));
             try
             {
                 thread.heartbeat();
@@ -93,7 +94,7 @@ public class VMEngine
         if (this.threads.contains(thread))
             throw new IllegalStateException("Thread already exists in the engine.");
 
-        this.getVm().getEventManager().dispatchEvent(new VMThreadStartEvent(this.getVm(), thread));
+        this.vm.getEventManager().dispatchEvent(new VMThreadStartEvent(this.vm, thread));
 
         this.threads.add(thread);
         this.tracer.pushHistory(
@@ -117,6 +118,13 @@ public class VMEngine
                 )
         );
 
-        this.getVm().getEventManager().dispatchEvent(new VMThreadDeathEvent(this.getVm(), thread));
+        this.vm.getEventManager().dispatchEvent(new VMThreadDeathEvent(this.vm, thread));
+    }
+
+    @Override
+    public @NotNull JalVM getVM()
+    {
+
+        return this.vm;
     }
 }

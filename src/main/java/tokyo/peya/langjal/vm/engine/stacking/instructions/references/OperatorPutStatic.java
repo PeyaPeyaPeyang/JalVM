@@ -26,7 +26,7 @@ public class OperatorPutStatic extends AbstractInstructionOperator<FieldInsnNode
         String owner = operand.owner;
         String name = operand.name;
 
-        VMClass clazz = frame.getVm().getClassLoader().findClass(ClassReference.of(owner));
+        VMClass clazz = frame.getClassLoader().findClass(ClassReference.of(owner));
         if (!clazz.isInitialised())
         {
             // クラスが初期化されていない場合は初期化をして，この命令を再実行する

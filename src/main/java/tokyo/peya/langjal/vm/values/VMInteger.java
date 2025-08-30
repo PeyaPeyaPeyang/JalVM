@@ -3,6 +3,7 @@ package tokyo.peya.langjal.vm.values;
 import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 import tokyo.peya.langjal.vm.JalVM;
+import tokyo.peya.langjal.vm.engine.VMComponent;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.threading.VMThread;
 import tokyo.peya.langjal.vm.exceptions.IllegalOperandPanic;
@@ -11,30 +12,20 @@ public sealed class VMInteger extends AbstractVMPrimitive permits VMByte, VMChar
 {
     protected final JalVM vm;
 
-    protected VMInteger(@NotNull JalVM vm, @NotNull VMType<?> type, final int value)
+    protected VMInteger(@NotNull VMComponent component, @NotNull VMType<?> type, final int value)
     {
         super(type, value);
-        this.vm = vm;
+        this.vm = component.getVM();
     }
 
-    public VMInteger(@NotNull JalVM vm, final int value)
+    public VMInteger(@NotNull VMComponent component, final int value)
     {
-        this(vm, VMType.of(vm, PrimitiveTypes.INT), value);
+        this(component, VMType.of(component, PrimitiveTypes.INT), value);
     }
 
-    public VMInteger(@NotNull VMThread thread, final int value)
+    public static VMInteger ofZero(@NotNull VMComponent component)
     {
-        this(thread.getVm(), VMType.of(thread, PrimitiveTypes.INT), value);
-    }
-
-    public VMInteger(@NotNull VMFrame frame, final int value)
-    {
-        this(frame.getVm(), VMType.of(frame, PrimitiveTypes.INT), value);
-    }
-
-    public static VMInteger ofZero(@NotNull JalVM vm)
-    {
-        return new VMInteger(vm, 0);
+        return new VMInteger(component, 0);
     }
 
     @NotNull

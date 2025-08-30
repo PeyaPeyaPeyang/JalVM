@@ -416,7 +416,7 @@ public class InjectorUnsafe implements Injector
                 }
         );
 
-        JalVM vm = cl.getVm();
+        JalVM vm = cl.getVM();
         clazz.injectMethod(cl, createUnsafeGetVolatileMethod(
                 clazz, "getReferenceVolatile", "(Ljava/lang/Object;J)Ljava/lang/Object;", VMType.ofGenericObject(vm)
         ));

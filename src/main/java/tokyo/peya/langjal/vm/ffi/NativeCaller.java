@@ -137,7 +137,7 @@ public class NativeCaller
         try
         {
             Object result = methodHandle.invokeExact(convertedArgs);
-            return VMValue.fromJavaObject(order.getVm(), result);  // TODO: cast
+            return VMValue.fromJavaObject(order, result);  // TODO: cast
         }
         catch (Throwable e)
         {

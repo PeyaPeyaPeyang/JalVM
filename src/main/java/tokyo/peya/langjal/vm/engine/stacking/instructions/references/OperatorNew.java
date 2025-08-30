@@ -30,7 +30,7 @@ public class OperatorNew extends AbstractInstructionOperator<TypeInsnNode>
         String descriptor = operand.desc;
         ClassReferenceType classReferenceType = ClassReferenceType.parse(descriptor);
 
-        VMClass clazz = frame.getVm().getClassLoader().findClass(ClassReference.of(classReferenceType));
+        VMClass clazz = frame.getClassLoader().findClass(ClassReference.of(classReferenceType));
         if (!clazz.isInitialised())
         {
             // クラスが初期化されていない場合は初期化をして，この命令を再実行する

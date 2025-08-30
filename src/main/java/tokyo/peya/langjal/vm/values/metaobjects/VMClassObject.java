@@ -31,7 +31,7 @@ public class VMClassObject extends VMObject
 
     public VMClassObject(@NotNull VMType<?> typeOf)
     {
-        this(typeOf.getVm(), typeOf.getLinkedClass(), typeOf);
+        this(typeOf.getVM(), typeOf.getLinkedClass(), typeOf);
     }
 
     @Override

@@ -7,6 +7,7 @@ import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMObject;
+import tokyo.peya.langjal.vm.values.VMReferenceValue;
 import tokyo.peya.langjal.vm.values.VMType;
 
 @Getter
@@ -32,6 +33,13 @@ public class VMClassObject extends VMObject
     public VMClassObject(@NotNull VMType<?> typeOf)
     {
         this(typeOf.getVM(), typeOf.getLinkedClass(), typeOf);
+    }
+
+    public void updateClassData()
+    {
+        VMReferenceValue classData = this.representingClass.getClassData();
+        if (classData != null)
+            this.setField("classData", this.representingClass.getClassData());
     }
 
     @Override

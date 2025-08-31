@@ -63,7 +63,7 @@ public interface VMValue
                 case Type.DOUBLE: new VMClassObject(VMType.of(vm, PrimitiveTypes.DOUBLE));
                 case Type.ARRAY, Type.OBJECT: {
                     VMType<?> vmType = VMType.of(vm, TypeDescriptor.parse(asmType.getDescriptor()));
-                    yield new VMClassObject(vmType);
+                    yield vmType.getLinkedClass().getClassObject();
                 }
 
                 default:

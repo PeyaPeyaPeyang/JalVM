@@ -66,6 +66,7 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
     private VMClassObject classObject;
     protected VMClass superLink;
 
+    private VMReferenceValue classData;
 
     public VMClass(@NotNull VMComponent component, @NotNull ClassNode clazz, @Nullable VMType<?> componentType)
     {
@@ -89,10 +90,16 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
         this(vm, clazz, null);
     }
 
-
     public VMClass(@NotNull JalVM vm, @NotNull VMType<?> componentType)
     {
         this(vm, componentType.getLinkedClass().clazz, componentType);
+    }
+
+    public void setClassData(@NotNull VMReferenceValue classData)
+    {
+        this.classData = classData;
+        if (this.classObject != null)
+            this.classObject.updateClassData();
     }
 
     public VMClassObject getClassObject()
@@ -100,6 +107,9 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
         // 遅延評価しないと，ロード時に StackOverflowError が発生する可能性がある
         if (this.classObject == null)
             this.classObject = new VMClassObject(this.vm, this, this);
+
+        this.classObject.updateClassData();
+
         return this.classObject;
     }
 

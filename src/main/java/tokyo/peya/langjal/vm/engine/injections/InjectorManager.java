@@ -27,6 +27,7 @@ public class InjectorManager
                 new InjectorArray(),
                 new InjectorCDS(),
                 new InjectorClass(),
+                new InjectorClassLoader(),
                 new InjectorConsole(),
                 new InjectorDouble(),
                 this.fdInjector,

@@ -233,6 +233,49 @@ public class InjectorMethodHandleNatives implements Injector
                     }
                 }
         );
+        clazz.injectMethod(
+                cl,
+                new InjectedMethod(
+                        clazz, new MethodNode(
+                        EOpcodes.ACC_STATIC | EOpcodes.ACC_NATIVE,
+                        "staticFieldOffset",
+                        "(Ljava/lang/invoke/MemberName;)J",
+                        null,
+                        null
+                )
+                )
+                {
+                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
+                    {
+                        VMObject memberName = (VMObject) args[0];
+                        VMClassObject clazzObj = (VMClassObject) memberName.getField("clazz");
+                        String fieldName = ((VMStringObject) memberName.getField("name")).getString();
+                        VMField field = clazzObj.getRepresentingClass().findField(fieldName);
+                        return new VMLong(thread, field.getFieldID());
+                    }
+                }
+        );
+        clazz.injectMethod(
+                cl,
+                new InjectedMethod(
+                        clazz, new MethodNode(
+                        EOpcodes.ACC_STATIC | EOpcodes.ACC_NATIVE,
+                        "staticFieldBase",
+                        "(Ljava/lang/invoke/MemberName;)Ljava/lang/Object;",
+                        null,
+                        null
+                )
+                )
+                {
+                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
+                    {
+                        VMObject memberName = (VMObject) args[0];
+                        return (VMClassObject) memberName.getField("clazz");
+                    }
+                }
+        );
     }
 
     private static int calcMethodFlags(int modifier, boolean isConstructor)

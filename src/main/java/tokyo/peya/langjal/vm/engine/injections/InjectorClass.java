@@ -493,6 +493,32 @@ public class InjectorClass implements Injector
                     }
                 }
         );
+        clazz.injectMethod(
+                cl,
+                new InjectedMethod(
+                        clazz, new MethodNode(
+                        EOpcodes.ACC_PUBLIC | EOpcodes.ACC_NATIVE,
+                        "isInstance",
+                        "(Ljava/lang/Object;)Z",
+                        null,
+                        null
+                ))
+                {
+                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
+                    {
+                        VMValue obj = args[0];
+                        if (obj instanceof VMNull)
+                            return VMBoolean.ofFalse(thread);
+                        VMObject objInstance = (VMObject) obj;
+                        assert instance != null;
+                        VMClassObject classObject = (VMClassObject) instance;
+                        return VMBoolean.of(thread,
+                                            classObject.getRepresentingClass().isAssignableFrom(objInstance.getObjectType())
+                        );
+                    }
+                }
+        );
     }
 
 }

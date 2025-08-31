@@ -42,26 +42,17 @@ public class OperatorMultiANewArray extends AbstractInstructionOperator<MultiANe
         if (dimensions < 1)
             throw new VMPanic("Array dimensions must be greater or equal to 1: " + dimensions);
 
-        VMArray array = new VMArray(vm, vmClass, 0);
-        for (int i = dimensions - 1; i >= 0; i--)
+        int[] sizes = new int[dimensions];
+        for (int d = dimensions - 1; d >= 0; d--)
         {
-            int count = frame.getStack().popType(VMType.of(vm, PrimitiveTypes.INT)).asNumber().intValue();
-            if (count < 0)
-                throw new VMPanic("Array length cannot be negative: " + count);
-
-            VMArray newArray = new VMArray(vm, array.getArrayType().getLinkedClass(), count);
-            for (int j = 0; j < count; j++)
-                newArray.set(j, array);
-            frame.getTracer().pushHistory(
-                    ValueTracingEntry.generation(
-                            newArray,
-                            frame.getMethod(),
-                            operand
-                    )
-            );
-            array = newArray;
+            sizes[d] = frame.getStack().popType(VMType.of(vm, PrimitiveTypes.INT))
+                            .asNumber()
+                            .intValue();
+            if (sizes[d] <= 1)
+                throw new VMPanic("Array length must be greater or equal to 1: " + sizes[d]);
         }
 
+        VMArray array = createMultiArrayRecursive(vm, vmClass, frame, sizes, 0, operand);
         frame.getTracer().pushHistory(
                 ValueTracingEntry.generation(
                         array,
@@ -70,5 +61,24 @@ public class OperatorMultiANewArray extends AbstractInstructionOperator<MultiANe
                 )
         );
         frame.getStack().push(array);
+    }
+
+    private VMArray createMultiArrayRecursive(JalVM vm, VMClass vmClass, VMFrame frame,
+                                              int[] sizes, int depth, MultiANewArrayInsnNode operand)
+    {
+        VMArray array = new VMArray(vm, vmClass, sizes[depth]);
+        if (depth >= sizes.length - 1)
+            return array;
+
+        VMClass componentClass = array.getArrayType().getLinkedClass();
+        for (int i = 0; i < sizes[depth]; i++)
+        {
+            VMArray child = createMultiArrayRecursive(vm, componentClass, frame, sizes, depth + 1, operand);
+            array.set(i, child);
+            frame.getTracer().pushHistory(
+                    ValueTracingEntry.generation(child, frame.getMethod(), operand)
+            );
+        }
+        return array;
     }
 }

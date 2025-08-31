@@ -39,6 +39,12 @@ public final class VMFloat extends AbstractVMPrimitive
     }
 
     @Override
+    public int identityHashCode()
+    {
+        return Float.hashCode(this.asNumber().floatValue());
+    }
+
+    @Override
     public boolean isCompatibleTo(@NotNull VMValue other)
     {
         return other instanceof VMFloat;

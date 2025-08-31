@@ -19,6 +19,12 @@ public class VMVoid implements VMPrimitive
         this.vm = component.getVM();
     }
 
+    @Override
+    public int identityHashCode()
+    {
+        return 0;  // Void は常に同じインスタンスなので，ハッシュコードも同じで良い
+    }
+
     public static VMVoid instance(@NotNull VMComponent component)
     {
         return INSTANCES.computeIfAbsent(component.getVM(), VMVoid::new);

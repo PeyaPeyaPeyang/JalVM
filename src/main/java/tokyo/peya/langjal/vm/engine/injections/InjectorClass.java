@@ -373,7 +373,7 @@ public class InjectorClass implements Injector
                         assert obj != null;
                         VMType<?> type = obj.getTypeOf();
                         String name;
-                        if (type.getComponentType() != null)
+                        if (type.getComponentType() == null)
                             name = type.getLinkedClass().getReference().getFullQualifiedDotName();
                         else
                             name = type.getTypeDescriptor();
@@ -472,6 +472,24 @@ public class InjectorClass implements Injector
                             VMClass outerClazz = cl.findClass(ClassReference.of(outerClass));
                             return outerClazz.getClassObject();
                         }
+                    }
+                }
+        );
+        clazz.injectMethod(
+                cl,
+                new InjectedMethod(
+                        clazz, new MethodNode(
+                        EOpcodes.ACC_PUBLIC | EOpcodes.ACC_NATIVE,
+                        "isHidden",
+                        "()Z",
+                        null,
+                        null
+                ))
+                {
+                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
+                    {
+                        return VMBoolean.ofFalse(thread);  // TODO: Implement hidden classes
                     }
                 }
         );

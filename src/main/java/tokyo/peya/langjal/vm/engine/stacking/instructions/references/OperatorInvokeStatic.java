@@ -41,7 +41,7 @@ public class OperatorInvokeStatic extends AbstractInstructionOperator<MethodInsn
 
         VMMethod method = clazz.findSuitableMethod(
                 caller,
-                clazz,
+                null,
                 name,
                 null,
                 ctxt.argumentTypes()

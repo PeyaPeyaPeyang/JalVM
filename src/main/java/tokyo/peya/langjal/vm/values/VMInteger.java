@@ -35,6 +35,12 @@ public sealed class VMInteger extends AbstractVMPrimitive permits VMByte, VMChar
     }
 
     @Override
+    public int identityHashCode()
+    {
+        return Integer.hashCode(this.asNumber().intValue());
+    }
+
+    @Override
     public boolean isCompatibleTo(@NotNull VMValue other)
     {
         return other instanceof VMInteger;

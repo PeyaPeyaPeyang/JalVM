@@ -13,12 +13,10 @@ public final class VMShort extends VMInteger
         super(component, VMType.of(component, PrimitiveTypes.SHORT), value);
     }
 
-
     public static VMShort ofZero(@NotNull VMComponent component)
     {
         return new VMShort(component, (short) 0);
     }
-
 
     @Override
     public boolean isCompatibleTo(@NotNull VMValue other)

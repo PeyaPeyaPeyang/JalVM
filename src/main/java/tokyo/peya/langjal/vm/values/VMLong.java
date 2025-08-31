@@ -18,6 +18,11 @@ public final class VMLong extends AbstractVMPrimitive
         this.vm = component.getVM();
     }
 
+    @Override
+    public int identityHashCode()
+    {
+        return Long.hashCode(this.asNumber().longValue());
+    }
 
     public static @NotNull VMLong ofZero(@NotNull VMComponent component)
     {

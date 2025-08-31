@@ -33,6 +33,12 @@ public final class VMBoolean extends AbstractVMPrimitive
     }
 
     @Override
+    public int identityHashCode()
+    {
+        return Boolean.hashCode(this.asBoolean());
+    }
+
+    @Override
     public boolean isCompatibleTo(@NotNull VMValue other)
     {
         if (other instanceof VMBoolean)

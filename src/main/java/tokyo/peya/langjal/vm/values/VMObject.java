@@ -16,14 +16,18 @@ import tokyo.peya.langjal.vm.exceptions.VMPanic;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Random;
 
 public class VMObject implements VMValue, VMReferenceValue
 {
+    private static final Random RANDOM = new Random();
+
     private final VMObject owner;
     @Getter
     private final VMClass objectType;
     @Getter
     private final VMMonitor monitor;
+    private final int hashCode;
 
     private final Map<VMField, VMValue> fields;
 
@@ -37,6 +41,9 @@ public class VMObject implements VMValue, VMReferenceValue
         this.objectType = objectType;
         this.monitor = new VMMonitor(this);
         this.fields = createFields();
+
+        // ランダム
+        this.hashCode = RANDOM.nextInt();
     }
 
     public VMObject(@NotNull VMClass objectType)
@@ -53,6 +60,9 @@ public class VMObject implements VMValue, VMReferenceValue
         this.superObject = superObject;
         this.fields = fields;
         this.isInitialised = isInitialised;
+
+        // ランダム
+        this.hashCode = RANDOM.nextInt();
     }
 
     public VMObject getSuperObject()
@@ -101,6 +111,12 @@ public class VMObject implements VMValue, VMReferenceValue
             // フィールドのデフォルト値を設定
             this.fields.put(field, field.defaultValue());
         }
+    }
+
+    @Override
+    public int identityHashCode()
+    {
+        return this.hashCode;
     }
 
     public void initialiseInstance(@NotNull VMThread thread, @NotNull VMClass caller, @NotNull VMMethod constructor,
@@ -259,19 +275,6 @@ public class VMObject implements VMValue, VMReferenceValue
             clonedSuperObject = clonedSuperObject.cloneValue(); // スーパークラスのオブジェクトもクローンする
 
         return new VMObject(this.objectType, clonedSuperObject, clonedFields, this.isInitialised);
-    }
-
-    public int insideHashCode()
-    {
-        int hash = 7;
-        for (Map.Entry<VMField, VMValue> entry : this.fields.entrySet())
-        {
-            VMField field = entry.getKey();
-            VMValue value = entry.getValue();
-            hash = 31 * hash + (field == null ? 0 : field.getName().hashCode());
-            hash = 31 * hash + (value == null ? 0 : value.hashCode());
-        }
-        return hash;
     }
 
     @Override

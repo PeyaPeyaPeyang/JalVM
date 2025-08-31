@@ -220,6 +220,26 @@ public class InjectorSystem implements Injector
                     }
                 }
         );
+        clazz.injectMethod(
+                cl,
+                new InjectedMethod(
+                        clazz, new MethodNode(
+                        EOpcodes.ACC_PUBLIC | EOpcodes.ACC_STATIC | EOpcodes.ACC_NATIVE,
+                        "identityHashCode",
+                        "(Ljava/lang/Object;)I",
+                        null,
+                        null
+                )
+                )
+                {
+                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
+                    {
+                        VMValue obj = args[0];
+                        return new VMInteger(thread, obj.identityHashCode());
+                    }
+                }
+        );
     }
 
 }

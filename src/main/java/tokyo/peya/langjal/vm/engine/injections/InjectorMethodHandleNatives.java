@@ -163,17 +163,29 @@ public class InjectorMethodHandleNatives implements Injector
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMObject memberName = (VMObject) args[0];
+                        VMClass clazz = ((VMClassObject) memberName.getField("clazz")).getRepresentingClass();
+
                         int flags = ((VMInteger) memberName.getField("flags")).asNumber().intValue();
                         if (isField(flags))
-                            return memberName;  // フィールドは解決不要
+                        {
+                            String fieldName = ((VMStringObject) memberName.getField("name")).getString();
+                            VMField field = clazz.findField(fieldName);
+                            int access = field.getFieldNode().access;
+                            flags = calcFieldFlags(access);
+                            memberName.setField("flags", new VMInteger(thread, flags));
+                            memberName.setField("type", field.getType().getLinkedClass().getClassObject());
+                            return memberName;
+                        }
 
-                        VMClass clazz = ((VMClassObject) memberName.getField("clazz")).getRepresentingClass();
                         String methodName = ((VMStringObject) memberName.getField("name")).getString();
 
                         VMMethod m = clazz.findMethod(methodName, null);
                         if (m == null)
                             throw new VMPanic("Cannot resolve method: " + clazz + "->" + methodName);
 
+                        int access = m.getMethodNode().access;
+                        flags = calcMethodFlags(access, m.getMethodNode().name.equals("<init>"));
+                        memberName.setField("flags", new VMInteger(thread, flags));
                         memberName.setField("method", new VMResolvedMethodName(cl, m));
 
                         return memberName;
@@ -203,7 +215,10 @@ public class InjectorMethodHandleNatives implements Injector
                         VMReferenceValue method = (VMReferenceValue) memberName.getField("method");
                         if (method instanceof VMResolvedMethodName resolved)
                         {
-                            arr.set(0, new VMLong(thread, resolved.getMethod().getSlot()));
+                            if (resolved.getMethod().getAccessAttributes().has(AccessAttribute.STATIC))
+                                arr.set(0, new VMLong(thread, -1));  // static の場合は -1
+                            else
+                                arr.set(0, new VMLong(thread, resolved.getMethod().getSlot()));
                             arr.set(1, memberName);
                         }
                         else if (isField(flags))
@@ -226,7 +241,7 @@ public class InjectorMethodHandleNatives implements Injector
         return calcFlags(
                 isConstructor ? 0x00020000 : 0x00010000,
                 modifier,
-                isStatic ? /* REF_getStatic */ 2 : /* REF_getField */ 1
+                isConstructor ? /* REF_newInvokeSpecial */ 8 : isStatic ? /* REF_invokeStatic */ 6 : /* REF_invokeVirtual */ 5
         );
     }
 

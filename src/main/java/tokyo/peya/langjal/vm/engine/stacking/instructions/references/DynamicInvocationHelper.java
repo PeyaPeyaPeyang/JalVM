@@ -420,6 +420,12 @@ public class DynamicInvocationHelper
         }
 
         @Override
+        public int identityHashCode()
+        {
+            return -1;
+        }
+
+        @Override
         public boolean isCompatibleTo(@NotNull VMValue other)
         {
             return false;
@@ -438,6 +444,12 @@ public class DynamicInvocationHelper
     {
         private final JalVM vm;
         private final ConstantDynamic constantDynamic;
+
+        @Override
+        public int identityHashCode()
+        {
+            return -1;
+        }
 
         @Override
         public @NotNull VMType<?> type()

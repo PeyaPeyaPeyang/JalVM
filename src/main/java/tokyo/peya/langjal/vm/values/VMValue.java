@@ -17,6 +17,7 @@ public interface VMValue
     @NotNull
     VMType<?> type();
 
+    int identityHashCode();
     boolean isCompatibleTo(@NotNull VMValue other);
 
     default boolean isCategory2()

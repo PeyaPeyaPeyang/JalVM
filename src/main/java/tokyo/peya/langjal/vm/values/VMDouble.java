@@ -39,6 +39,12 @@ public final class VMDouble extends AbstractVMPrimitive
     }
 
     @Override
+    public int identityHashCode()
+    {
+        return Double.hashCode(this.asNumber().doubleValue());
+    }
+
+    @Override
     public boolean isCompatibleTo(@NotNull VMValue other)
     {
         return other instanceof VMDouble;

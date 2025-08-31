@@ -66,6 +66,15 @@ public class VMArrayClass extends VMClass
     }
 
     @Override
+    public @Nullable VMMethod findSuitableMethod(@Nullable VMClass caller, @Nullable VMClass owner,
+                                                 @NotNull String methodName, @Nullable VMType<?> returnType,
+                                                 @NotNull VMType<?>... args)
+    {
+        // Object のメソッドを返す
+        return this.superLink.findSuitableMethod(caller, owner, methodName, returnType, args);
+    }
+
+    @Override
     public boolean isAssignableFrom(@NotNull VMType<?> other)
     {
         if (other.getComponentType() == null)

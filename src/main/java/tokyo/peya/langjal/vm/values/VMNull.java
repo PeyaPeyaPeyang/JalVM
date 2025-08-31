@@ -16,6 +16,12 @@ public record VMNull<T extends VMValue>(VMType<T> type) implements VMValue, VMRe
     }
 
     @Override
+    public int identityHashCode()
+    {
+        return 0;  // null は常に同じ。
+    }
+
+    @Override
     public boolean isCompatibleTo(@NotNull VMValue other)
     {
         return other instanceof VMNull || this.type.equals(other.type());

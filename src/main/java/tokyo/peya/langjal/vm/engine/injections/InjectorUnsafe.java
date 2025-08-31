@@ -8,6 +8,7 @@ import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
+import tokyo.peya.langjal.vm.engine.VMComponent;
 import tokyo.peya.langjal.vm.engine.members.VMField;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
 import tokyo.peya.langjal.vm.engine.threading.VMThread;
@@ -18,6 +19,7 @@ import tokyo.peya.langjal.vm.values.VMBoolean;
 import tokyo.peya.langjal.vm.values.VMInteger;
 import tokyo.peya.langjal.vm.values.VMLong;
 import tokyo.peya.langjal.vm.values.VMObject;
+import tokyo.peya.langjal.vm.values.VMPrimitive;
 import tokyo.peya.langjal.vm.values.VMReferenceValue;
 import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
@@ -417,59 +419,113 @@ public class InjectorUnsafe implements Injector
         );
 
         JalVM vm = cl.getVM();
-        clazz.injectMethod(cl, createUnsafeGetVolatileMethod(
+        clazz.injectMethod(cl, createUnsafeReferenceGetMethod(
                 clazz, "getReferenceVolatile", "(Ljava/lang/Object;J)Ljava/lang/Object;", VMType.ofGenericObject(vm)
         ));
-        clazz.injectMethod(cl, createUnsafePutVolatileMethod(
+        clazz.injectMethod(cl, createUnsafeReferencePutMethod(
                 clazz, "putReferenceVolatile", "(Ljava/lang/Object;JLjava/lang/Object;)V", VMType.ofGenericObject(vm)
         ));
-        clazz.injectMethod(cl, createUnsafeGetVolatileMethod(
+        clazz.injectMethod(cl, createUnsafeReferenceGetMethod(
                 clazz, "getIntVolatile", "(Ljava/lang/Object;J)I", VMType.of(vm, PrimitiveTypes.INT)
         ));
-        clazz.injectMethod(cl, createUnsafePutVolatileMethod(
-                        clazz, "putIntVolatile", "(Ljava/lang/Object;JI)V", VMType.of(vm, PrimitiveTypes.INT)
+        clazz.injectMethod(cl, createUnsafeReferencePutMethod(
+                clazz, "putIntVolatile", "(Ljava/lang/Object;JI)V", VMType.of(vm, PrimitiveTypes.INT)
         ));
-        clazz.injectMethod(cl, createUnsafeGetVolatileMethod(
+        clazz.injectMethod(cl, createUnsafeReferenceGetMethod(
                 clazz, "getBooleanVolatile", "(Ljava/lang/Object;J)Z", VMType.of(vm, PrimitiveTypes.BOOLEAN)
         ));
-        clazz.injectMethod(cl, createUnsafePutVolatileMethod(
+        clazz.injectMethod(cl, createUnsafeReferencePutMethod(
                 clazz, "putBooleanVolatile", "(Ljava/lang/Object;JZ)V", VMType.of(vm, PrimitiveTypes.BOOLEAN)
         ));
-        clazz.injectMethod(cl, createUnsafeGetVolatileMethod(
+        clazz.injectMethod(cl, createUnsafeReferenceGetMethod(
                 clazz, "getByteVolatile", "(Ljava/lang/Object;J)B", VMType.of(vm, PrimitiveTypes.BYTE)
         ));
-        clazz.injectMethod(cl, createUnsafePutVolatileMethod(
+        clazz.injectMethod(cl, createUnsafeReferencePutMethod(
                 clazz, "putByteVolatile", "(Ljava/lang/Object;JB)V", VMType.of(vm, PrimitiveTypes.BYTE)
         ));
-        clazz.injectMethod(cl, createUnsafeGetVolatileMethod(
+        clazz.injectMethod(cl, createUnsafeReferenceGetMethod(
                 clazz, "getShortVolatile", "(Ljava/lang/Object;J)S", VMType.of(vm, PrimitiveTypes.SHORT)
         ));
-        clazz.injectMethod(cl, createUnsafePutVolatileMethod(
+        clazz.injectMethod(cl, createUnsafeReferencePutMethod(
                 clazz, "putShortVolatile", "(Ljava/lang/Object;JS)V", VMType.of(vm, PrimitiveTypes.SHORT)
         ));
-        clazz.injectMethod(cl, createUnsafeGetVolatileMethod(
+        clazz.injectMethod(cl, createUnsafeReferenceGetMethod(
                 clazz, "getCharVolatile", "(Ljava/lang/Object;J)C", VMType.of(vm, PrimitiveTypes.CHAR)
         ));
-        clazz.injectMethod(cl, createUnsafePutVolatileMethod(
+        clazz.injectMethod(cl, createUnsafeReferencePutMethod(
                 clazz, "putCharVolatile", "(Ljava/lang/Object;JC)V", VMType.of(vm, PrimitiveTypes.CHAR)
         ));
-        clazz.injectMethod(cl, createUnsafeGetVolatileMethod(
+        clazz.injectMethod(cl, createUnsafeReferenceGetMethod(
                 clazz, "getLongVolatile", "(Ljava/lang/Object;J)J", VMType.of(vm, PrimitiveTypes.LONG)
         ));
-        clazz.injectMethod(cl, createUnsafePutVolatileMethod(
+        clazz.injectMethod(cl, createUnsafeReferencePutMethod(
                 clazz, "putLongVolatile", "(Ljava/lang/Object;JJ)V", VMType.of(vm, PrimitiveTypes.LONG)
         ));
-        clazz.injectMethod(cl, createUnsafeGetVolatileMethod(
+        clazz.injectMethod(cl, createUnsafeReferenceGetMethod(
                 clazz, "getFloatVolatile", "(Ljava/lang/Object;J)F", VMType.of(vm, PrimitiveTypes.FLOAT)
         ));
-        clazz.injectMethod(cl, createUnsafePutVolatileMethod(
+        clazz.injectMethod(cl, createUnsafeReferencePutMethod(
                 clazz, "putFloatVolatile", "(Ljava/lang/Object;JF)V", VMType.of(vm, PrimitiveTypes.FLOAT)
         ));
-        clazz.injectMethod(cl, createUnsafeGetVolatileMethod(
+        clazz.injectMethod(cl, createUnsafeReferenceGetMethod(
                 clazz, "getDoubleVolatile", "(Ljava/lang/Object;J)D", VMType.of(vm, PrimitiveTypes.DOUBLE)
         ));
-        clazz.injectMethod(cl, createUnsafePutVolatileMethod(
+        clazz.injectMethod(cl, createUnsafeReferencePutMethod(
                 clazz, "putDoubleVolatile", "(Ljava/lang/Object;JD)V", VMType.of(vm, PrimitiveTypes.DOUBLE)
+        ));
+        clazz.injectMethod(cl, createUnsafeReferenceGetMethod(
+                clazz, "getReference", "(Ljava/lang/Object;J)Ljava/lang/Object;", VMType.ofGenericObject(vm)
+        ));
+        clazz.injectMethod(cl, createUnsafeReferencePutMethod(
+                clazz, "putReference", "(Ljava/lang/Object;JLjava/lang/Object;)V", VMType.ofGenericObject(vm)
+        ));
+        clazz.injectMethod(cl, createUnsafeReferenceGetMethod(
+                clazz, "getInt", "(Ljava/lang/Object;J)I", VMType.of(vm, PrimitiveTypes.INT)
+        ));
+        clazz.injectMethod(cl, createUnsafeReferencePutMethod(
+                clazz, "putInt", "(Ljava/lang/Object;JI)V", VMType.of(vm, PrimitiveTypes.INT)
+        ));
+        clazz.injectMethod(cl, createUnsafeReferenceGetMethod(
+                clazz, "getBoolean", "(Ljava/lang/Object;J)Z", VMType.of(vm, PrimitiveTypes.BOOLEAN)
+        ));
+        clazz.injectMethod(cl, createUnsafeReferencePutMethod(
+                clazz, "putBoolean", "(Ljava/lang/Object;JZ)V", VMType.of(vm, PrimitiveTypes.BOOLEAN)
+        ));
+        clazz.injectMethod(cl, createUnsafeReferenceGetMethod(
+                clazz, "getByte", "(Ljava/lang/Object;J)B", VMType.of(vm, PrimitiveTypes.BYTE)
+        ));
+        clazz.injectMethod(cl, createUnsafeReferencePutMethod(
+                clazz, "putByte", "(Ljava/lang/Object;JB)V", VMType.of(vm, PrimitiveTypes.BYTE)
+        ));
+        clazz.injectMethod(cl, createUnsafeReferenceGetMethod(
+                clazz, "getShort", "(Ljava/lang/Object;J)S", VMType.of(vm, PrimitiveTypes.SHORT)
+        ));
+        clazz.injectMethod(cl, createUnsafeReferencePutMethod(
+                clazz, "putShort", "(Ljava/lang/Object;JS)V", VMType.of(vm, PrimitiveTypes.SHORT)
+        ));
+        clazz.injectMethod(cl, createUnsafeReferenceGetMethod(
+                clazz, "getChar", "(Ljava/lang/Object;J)C", VMType.of(vm, PrimitiveTypes.CHAR)
+        ));
+        clazz.injectMethod(cl, createUnsafeReferencePutMethod(
+                clazz, "putChar", "(Ljava/lang/Object;JC)V", VMType.of(vm, PrimitiveTypes.CHAR)
+        ));
+        clazz.injectMethod(cl, createUnsafeReferenceGetMethod(
+                clazz, "getLong", "(Ljava/lang/Object;J)J", VMType.of(vm, PrimitiveTypes.LONG)
+        ));
+        clazz.injectMethod(cl, createUnsafeReferencePutMethod(
+                clazz, "putLong", "(Ljava/lang/Object;JJ)V", VMType.of(vm, PrimitiveTypes.LONG)
+        ));
+        clazz.injectMethod(cl, createUnsafeReferenceGetMethod(
+                clazz, "getFloat", "(Ljava/lang/Object;J)F", VMType.of(vm, PrimitiveTypes.FLOAT)
+        ));
+        clazz.injectMethod(cl, createUnsafeReferencePutMethod(
+                clazz, "putFloat", "(Ljava/lang/Object;JF)V", VMType.of(vm, PrimitiveTypes.FLOAT)
+        ));
+        clazz.injectMethod(cl, createUnsafeReferenceGetMethod(
+                clazz, "getDouble", "(Ljava/lang/Object;J)D", VMType.of(vm, PrimitiveTypes.DOUBLE)
+        ));
+        clazz.injectMethod(cl, createUnsafeReferencePutMethod(
+                clazz, "putDouble", "(Ljava/lang/Object;JD)V", VMType.of(vm, PrimitiveTypes.DOUBLE)
         ));
 
         clazz.injectMethod(
@@ -517,7 +573,7 @@ public class InjectorUnsafe implements Injector
         );
     }
 
-    private static InjectedMethod createUnsafeGetVolatileMethod(
+    private static InjectedMethod createUnsafeReferenceGetMethod(
             @NotNull VMClass clazz, @NotNull String methodName, @NotNull String descriptor, @NotNull VMType<?> returnType
     )
     {
@@ -538,14 +594,11 @@ public class InjectorUnsafe implements Injector
                 VMReferenceValue object = (VMReferenceValue) args[0];
                 long offset = ((VMLong) args[1]).asNumber().longValue();
                 if (object instanceof VMArray array)
-                {
-                    // 配列の場合は、配列の要素を取得
-                    int index = (int) (offset - getArrayBaseOffset()) / getArrayScale(array.getObjectType());
-                    if (index < 0 || index >= array.length())
-                        throw new VMPanic("Array index out of bounds: " + index);
-                    VMValue value = array.get(index);
-                    return value.conformValue(returnType);
-                }
+                    return read(thread,
+                                array,
+                                offset - getArrayBaseOffset(),
+                                getArrayScale(returnType)
+                    );
                 else if (object instanceof VMObject vmObject)
                 {
                     VMField field = vmObject.getObjectType().findField(offset);
@@ -558,7 +611,7 @@ public class InjectorUnsafe implements Injector
         };
     }
 
-    public static InjectedMethod createUnsafePutVolatileMethod(
+    public static InjectedMethod createUnsafeReferencePutMethod(
             @NotNull VMClass clazz, @NotNull String methodName, @NotNull String descriptor, @NotNull VMType<?> valueType
     )
     {
@@ -586,6 +639,7 @@ public class InjectorUnsafe implements Injector
         };
     }
 
+
     private static int getArrayBaseOffset()
     {
         return 16;  // とりあえず
@@ -608,5 +662,51 @@ public class InjectorUnsafe implements Injector
             case 'J', 'D' -> 8;
             default -> 4; // その他はとりあえず 4
         };
+    }
+
+    private static VMValue read(VMComponent com, @NotNull VMArray array, long offset, int size)
+    {
+        VMType<?> elementType = array.getElementType();
+        if (!elementType.isPrimitive())
+        {
+            if (size != 8)
+                throw new VMPanic("Unsupported size for reference type: " + size);
+
+            int index = Math.toIntExact(offset / getArrayScale(elementType));
+            return array.get(index);
+        }
+
+        VMValue[] elements = array.getElements();
+        int elementSize = getArrayScale(elementType);
+        int index = Math.toIntExact(offset / elementSize);
+
+        switch (size)
+        {
+            case 1: // byte
+                return new VMInteger(com, ((VMPrimitive) elements[index]).asNumber().intValue() & 0xFF);
+            case 2: // char / short
+            {
+                int lo = ((VMPrimitive) elements[index]).asNumber().intValue() & 0xFF;
+                int hi = ((VMPrimitive) elements[index + 1]).asNumber().intValue() & 0xFF;
+                return new VMInteger(com, (hi << 8) | lo);
+            }
+            case 4: // int / float
+            {
+                int b0 = ((VMPrimitive) elements[index]).asNumber().intValue() & 0xFF;
+                int b1 = ((VMPrimitive) elements[index + 1]).asNumber().intValue() & 0xFF;
+                int b2 = ((VMPrimitive) elements[index + 2]).asNumber().intValue() & 0xFF;
+                int b3 = ((VMPrimitive) elements[index + 3]).asNumber().intValue() & 0xFF;
+                return new VMInteger(com, (b3 << 24) | (b2 << 16) | (b1 << 8) | b0);
+            }
+            case 8: // long / double
+            {
+                long val = 0;
+                for (int i = 0; i < 8; i++)
+                    val |= ((long)((VMPrimitive) elements[index + i]).asNumber().intValue() & 0xFF) << (8 * i);
+                return new VMLong(com, val);
+            }
+            default:
+                throw new VMPanic("Unsupported size: " + size);
+        }
     }
 }

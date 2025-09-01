@@ -7,7 +7,6 @@ import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMFrame;
-import tokyo.peya.langjal.vm.engine.threading.VMThread;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMInteger;
 import tokyo.peya.langjal.vm.values.metaobjects.VMClassObject;
@@ -39,14 +38,13 @@ public class InjectorReflection implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         assert caller != null;
                         // caller を返せば一見良さそうだが，実際はもう一個上。
-                        VMFrame prevFrame = thread.getCurrentFrame()  // これ
-                                .getPrevFrame()  // Reflection.getCallerClass() を呼んだフレーム
-                                .getPrevFrame(); // そのまた呼び出し元
+                        VMFrame prevFrame = frame.getPrevFrame()  // Reflection.getCallerClass() を呼んだフレーム
+                                                 .getPrevFrame(); // そのまた呼び出し元
                         assert prevFrame != null;
 
                         return prevFrame.getMethod().getOwningClass().getClassObject();
@@ -65,12 +63,12 @@ public class InjectorReflection implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMClassObject obj = (VMClassObject) args[0];
                         int access = obj.getRepresentingClass().getClazz().access;
-                        return new VMInteger(thread, access);
+                        return new VMInteger(frame, access);
                     }
                 }
         );

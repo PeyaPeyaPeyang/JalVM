@@ -6,7 +6,7 @@ import org.objectweb.asm.tree.MethodNode;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
-import tokyo.peya.langjal.vm.engine.threading.VMThread;
+import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMBoolean;
 import tokyo.peya.langjal.vm.values.VMObject;
@@ -38,10 +38,10 @@ public class InjectorConsole implements Injector
                 )
                 {
                     @Override
-                    VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
-                                            @Nullable VMObject instance, @NotNull VMValue[] args)
+                    VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                                   @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
-                        return VMBoolean.ofTrue(thread);
+                        return VMBoolean.ofTrue(frame);
                     }
                 }
         );

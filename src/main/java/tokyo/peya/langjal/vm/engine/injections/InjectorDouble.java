@@ -6,11 +6,9 @@ import org.objectweb.asm.tree.MethodNode;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
-import tokyo.peya.langjal.vm.engine.threading.VMThread;
+import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMDouble;
-import tokyo.peya.langjal.vm.values.VMFloat;
-import tokyo.peya.langjal.vm.values.VMInteger;
 import tokyo.peya.langjal.vm.values.VMLong;
 import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMValue;
@@ -40,13 +38,13 @@ public class InjectorDouble implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMDouble doubleValue = (VMDouble) args[0];
                         double value = doubleValue.asNumber().doubleValue();
                         long bits = Double.doubleToRawLongBits(value);
-                        return new VMLong(thread, bits);
+                        return new VMLong(frame, bits);
                     }
                 }
         );
@@ -62,13 +60,13 @@ public class InjectorDouble implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMLong bitsValue = (VMLong) args[0];
                         long bits = bitsValue.asNumber().longValue();
                         double value = Double.longBitsToDouble(bits);
-                        return new VMDouble(thread, value);
+                        return new VMDouble(frame, value);
                     }
                 }
         );

@@ -7,9 +7,9 @@ import tokyo.peya.langjal.compiler.jvm.AccessAttribute;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
+import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.members.VMField;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
-import tokyo.peya.langjal.vm.engine.threading.VMThread;
 import tokyo.peya.langjal.vm.panics.VMPanic;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMArray;
@@ -55,7 +55,7 @@ public class InjectorMethodHandleNatives implements Injector
                 )
                 {
                     @Override
-                    @Nullable VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Nullable VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         return null;
@@ -74,11 +74,11 @@ public class InjectorMethodHandleNatives implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         if (!constantsClass.isInitialised())
-                            constantsClass.initialise(thread);
+                            constantsClass.initialise(frame.getThread());
                         // 本来は init されていなかったら，初期化する必要がある。
                         // しかし，定数を取るだけならそのままでも良い。
 
@@ -94,13 +94,13 @@ public class InjectorMethodHandleNatives implements Injector
                         if (field == null)
                         {
                             // 終端記号
-                            arr.set(0, new VMNull<>(VMType.ofGenericObject(thread)));
-                            return new VMInteger(thread, -1);
+                            arr.set(0, new VMNull<>(VMType.ofGenericObject(frame)));
+                            return new VMInteger(frame, -1);
                         }
 
                         VMValue value = constantsClass.getStaticFieldValue(field);
                         String fieldName = field.getName();
-                        arr.set(0, VMStringObject.createString(thread, fieldName));
+                        arr.set(0, VMStringObject.createString(frame, fieldName));
 
                         return value;
                     }
@@ -118,7 +118,7 @@ public class InjectorMethodHandleNatives implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMObject memberName = (VMObject) args[0];
@@ -140,7 +140,7 @@ public class InjectorMethodHandleNatives implements Injector
                             default -> flags = 0;
                         }
 
-                        memberName.setField("flags", new VMInteger(thread, flags));
+                        memberName.setField("flags", new VMInteger(frame, flags));
                         memberName.setField("clazz", lookup.getField("clazz"));
 
                         return null;
@@ -159,7 +159,7 @@ public class InjectorMethodHandleNatives implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMObject memberName = (VMObject) args[0];
@@ -172,7 +172,7 @@ public class InjectorMethodHandleNatives implements Injector
                             VMField field = clazz.findField(fieldName);
                             int access = field.getFieldNode().access;
                             flags = calcFieldFlags(access);
-                            memberName.setField("flags", new VMInteger(thread, flags));
+                            memberName.setField("flags", new VMInteger(frame, flags));
                             memberName.setField("type", field.getType().getLinkedClass().getClassObject());
                             return memberName;
                         }
@@ -185,7 +185,7 @@ public class InjectorMethodHandleNatives implements Injector
 
                         int access = m.getMethodNode().access;
                         flags = calcMethodFlags(access, m.getMethodNode().name.equals("<init>"));
-                        memberName.setField("flags", new VMInteger(thread, flags));
+                        memberName.setField("flags", new VMInteger(frame, flags));
                         memberName.setField("method", new VMResolvedMethodName(cl, m));
 
                         return memberName;
@@ -204,11 +204,11 @@ public class InjectorMethodHandleNatives implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMObject memberName = (VMObject) args[0];
-                        VMArray arr = new VMArray(thread, VMType.ofGenericObject(thread), 2);
+                        VMArray arr = new VMArray(frame, VMType.ofGenericObject(frame), 2);
                         VMClassObject clazzObj = (VMClassObject) memberName.getField("clazz");
                         int flags = ((VMInteger) memberName.getField("flags")).asNumber().intValue();
 
@@ -216,16 +216,16 @@ public class InjectorMethodHandleNatives implements Injector
                         if (method instanceof VMResolvedMethodName resolved)
                         {
                             if (resolved.getMethod().getAccessAttributes().has(AccessAttribute.STATIC))
-                                arr.set(0, new VMLong(thread, -1));  // static の場合は -1
+                                arr.set(0, new VMLong(frame, -1));  // static の場合は -1
                             else
-                                arr.set(0, new VMLong(thread, resolved.getMethod().getSlot()));
+                                arr.set(0, new VMLong(frame, resolved.getMethod().getSlot()));
                             arr.set(1, memberName);
                         }
                         else if (isField(flags))
                         {
                             String fieldName = ((VMStringObject) memberName.getField("name")).getString();
                             VMField field = clazzObj.getRepresentingClass().findField(fieldName);
-                            arr.set(0, new VMLong(thread, field.getSlot()));
+                            arr.set(0, new VMLong(frame, field.getSlot()));
                             arr.set(1, clazzObj);
                         }
 
@@ -245,14 +245,14 @@ public class InjectorMethodHandleNatives implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMObject memberName = (VMObject) args[0];
                         VMClassObject clazzObj = (VMClassObject) memberName.getField("clazz");
                         String fieldName = ((VMStringObject) memberName.getField("name")).getString();
                         VMField field = clazzObj.getRepresentingClass().findField(fieldName);
-                        return new VMLong(thread, field.getFieldID());
+                        return new VMLong(frame, field.getFieldID());
                     }
                 }
         );
@@ -268,7 +268,7 @@ public class InjectorMethodHandleNatives implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMObject memberName = (VMObject) args[0];

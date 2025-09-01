@@ -6,6 +6,7 @@ import org.objectweb.asm.tree.MethodNode;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
+import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.threading.VMMonitor;
 import tokyo.peya.langjal.vm.engine.threading.VMThread;
 import tokyo.peya.langjal.vm.panics.VMPanic;
@@ -42,7 +43,7 @@ public class InjectorObject implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         assert instance != null : "Instance must not be null";
@@ -62,11 +63,11 @@ public class InjectorObject implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         assert instance != null : "Instance must not be null";
-                        return new VMInteger(thread, instance.identityHashCode());
+                        return new VMInteger(frame, instance.identityHashCode());
                     }
                 }
         );
@@ -82,13 +83,15 @@ public class InjectorObject implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         assert instance != null : "Instance must not be null";
                         VMLong timeout = (VMLong) args[0];
                         long timeoutMillis = timeout.asNumber().longValue();
                         VMMonitor monitor = instance.getMonitor();
+
+                        VMThread thread = frame.getThread();
                         if (!monitor.isOwner(thread))
                             throw new VMPanic(
                                     "Thread " + thread.getName() + " is not the owner of the monitor for " +
@@ -117,11 +120,12 @@ public class InjectorObject implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         assert instance != null : "Instance must not be null";
                         VMMonitor monitor = instance.getMonitor();
+                        VMThread thread = frame.getThread();
                         if (!monitor.isOwner(thread))
                             throw new VMPanic(
                                     "Thread " + thread.getName() + " is not the owner of the monitor for " +
@@ -146,11 +150,13 @@ public class InjectorObject implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         assert instance != null : "Instance must not be null";
                         VMMonitor monitor = instance.getMonitor();
+                        VMThread thread = frame.getThread();
+
                         if (!monitor.isOwner(thread))
                             throw new VMPanic(
                                     "Thread " + thread.getName() + " is not the owner of the monitor for " +
@@ -175,7 +181,7 @@ public class InjectorObject implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         assert instance != null : "Instance must not be null";

@@ -6,7 +6,7 @@ import org.objectweb.asm.tree.MethodNode;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
-import tokyo.peya.langjal.vm.engine.threading.VMThread;
+import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.panics.VMPanic;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMBoolean;
@@ -122,7 +122,7 @@ public class InjectorFileDescriptor implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         return null;
@@ -142,12 +142,12 @@ public class InjectorFileDescriptor implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMInteger fdValue = (VMInteger) args[0];
                         int fd = fdValue.asNumber().intValue();
-                        return new VMLong(thread, InjectorFileDescriptor.this.fdToHandleNums.get(fd));
+                        return new VMLong(frame, InjectorFileDescriptor.this.fdToHandleNums.get(fd));
                     }
                 }
         );
@@ -164,12 +164,12 @@ public class InjectorFileDescriptor implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMInteger fdValue = (VMInteger) args[0];
                         int fd = fdValue.asNumber().intValue();
-                        return VMBoolean.of(thread, InjectorFileDescriptor.this.appends.get(fd));
+                        return VMBoolean.of(frame, InjectorFileDescriptor.this.appends.get(fd));
                     }
                 }
         );
@@ -185,7 +185,7 @@ public class InjectorFileDescriptor implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         assert instance != null;
@@ -217,7 +217,7 @@ public class InjectorFileDescriptor implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         assert instance != null;

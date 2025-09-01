@@ -10,10 +10,10 @@ import tokyo.peya.langjal.compiler.jvm.AccessAttributeSet;
 import tokyo.peya.langjal.compiler.jvm.AccessLevel;
 import tokyo.peya.langjal.compiler.jvm.MethodDescriptor;
 import tokyo.peya.langjal.vm.JalVM;
+import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.VMInterpreter;
 import tokyo.peya.langjal.vm.engine.BytecodeInterpreter;
 import tokyo.peya.langjal.vm.engine.VMClass;
-import tokyo.peya.langjal.vm.engine.threading.VMThread;
 import tokyo.peya.langjal.vm.panics.AccessRestrictedPanic;
 import tokyo.peya.langjal.vm.panics.invocation.NonStaticInvocationPanic;
 import tokyo.peya.langjal.vm.values.VMObject;
@@ -78,34 +78,34 @@ public class VMMethod implements AccessibleObject
         return new BytecodeInterpreter(this.vm, this.methodNode);
     }
 
-    public void invokeStatic(@Nullable MethodInsnNode operand, @NotNull VMThread thread, @Nullable VMClass caller, boolean isVMDecree,
+    public void invokeStatic(@Nullable MethodInsnNode operand, @NotNull VMFrame frame, @Nullable VMClass caller, boolean isVMDecree,
                              @NotNull VMValue... args)
     {
         if (!this.accessAttributes.has(AccessAttribute.STATIC))
-            throw new NonStaticInvocationPanic(thread, this);
+            throw new NonStaticInvocationPanic(frame.getThread(), this);
         else if (!this.canAccessFrom(caller))
             throw new AccessRestrictedPanic(caller, this);
 
-        thread.invokeMethod(this, isVMDecree, null,args);
+        frame.getThread().invokeMethod(this, isVMDecree, null,args);
     }
 
-    public void invokeBypassAccess(@NotNull VMThread thread, @Nullable VMClass caller, @NotNull VMValue... args)
+    public void invokeBypassAccess(@NotNull VMFrame frame, @Nullable VMClass caller, @NotNull VMValue... args)
     {
         if (!this.accessAttributes.has(AccessAttribute.STATIC))
-            throw new NonStaticInvocationPanic(thread, this);
+            throw new NonStaticInvocationPanic(frame.getThread(), this);
 
-        thread.invokeInterrupting(this, (_) -> {}, args);
+        frame.getThread().invokeInterrupting(this, (_) -> {}, args);
     }
 
-    public void invokeInstanceMethod(@Nullable MethodInsnNode operand, @NotNull VMThread thread, @Nullable VMClass caller,
+    public void invokeInstanceMethod(@Nullable MethodInsnNode operand, @NotNull VMFrame frame, @Nullable VMClass caller,
                                      @NotNull VMObject instance, boolean isVMDecree, @NotNull VMValue... args)
     {
         if (this.accessAttributes.has(AccessAttribute.STATIC))
-            throw new NonStaticInvocationPanic(thread, this);
+            throw new NonStaticInvocationPanic(frame.getThread(), this);
         else if (!this.canAccessFrom(caller))
             throw new AccessRestrictedPanic(caller, this);
 
-        thread.invokeMethod(this, isVMDecree, instance, args);
+        frame.getThread().invokeMethod(this, isVMDecree, instance, args);
     }
 
     @NotNull

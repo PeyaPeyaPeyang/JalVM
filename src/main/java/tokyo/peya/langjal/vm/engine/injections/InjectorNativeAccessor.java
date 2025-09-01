@@ -6,7 +6,7 @@ import org.objectweb.asm.tree.MethodNode;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
-import tokyo.peya.langjal.vm.engine.threading.VMThread;
+import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMArray;
 import tokyo.peya.langjal.vm.values.VMObject;
@@ -39,7 +39,7 @@ public class InjectorNativeAccessor implements Injector
                 )
                 {
                     @Override
-                    VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                    @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         assert caller != null;
@@ -51,7 +51,7 @@ public class InjectorNativeAccessor implements Injector
                         else
                             callingArgs = new VMValue[0];
 
-                        constructor.call(thread, caller, obj, callingArgs, false);
+                        constructor.call(frame, caller, obj, callingArgs, false);
                         return obj;
                     }
                 }

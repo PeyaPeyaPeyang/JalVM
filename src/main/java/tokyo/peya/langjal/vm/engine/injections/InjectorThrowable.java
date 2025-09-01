@@ -7,19 +7,12 @@ import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMFrame;
-import tokyo.peya.langjal.vm.engine.members.VMMethod;
-import tokyo.peya.langjal.vm.engine.threading.VMThread;
 import tokyo.peya.langjal.vm.panics.PanicCreator;
-import tokyo.peya.langjal.vm.panics.VMPanic;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMArray;
 import tokyo.peya.langjal.vm.values.VMInteger;
 import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMValue;
-import tokyo.peya.langjal.vm.values.metaobjects.VMStackTraceElementObject;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class InjectorThrowable implements Injector
 {
@@ -47,12 +40,12 @@ public class InjectorThrowable implements Injector
                 )
                 {
                     @Override
-                    VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
-                                            @Nullable VMObject instance, @NotNull VMValue[] args)
+                    VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                                   @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         assert instance != null;
                         int depth = ((VMInteger) args[0]).asNumber().intValue();
-                        VMArray array = PanicCreator.collectStackTrace(thread.getCurrentFrame(), depth);
+                        VMArray array = PanicCreator.collectStackTrace(frame, depth);
                         instance.setField("stackTrace", array);
                         return null;
                     }

@@ -2,30 +2,20 @@ package tokyo.peya.langjal.vm.engine.injections;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
-import tokyo.peya.langjal.compiler.jvm.AccessAttribute;
-import tokyo.peya.langjal.compiler.jvm.AccessLevel;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
-import tokyo.peya.langjal.vm.engine.VMArrayClass;
 import tokyo.peya.langjal.vm.engine.VMClass;
-import tokyo.peya.langjal.vm.engine.members.VMField;
-import tokyo.peya.langjal.vm.engine.members.VMMethod;
-import tokyo.peya.langjal.vm.engine.threading.VMThread;
+import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMArray;
 import tokyo.peya.langjal.vm.values.VMBoolean;
 import tokyo.peya.langjal.vm.values.VMInteger;
-import tokyo.peya.langjal.vm.values.VMNull;
 import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMReferenceValue;
-import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
 import tokyo.peya.langjal.vm.values.metaobjects.VMClassObject;
 import tokyo.peya.langjal.vm.values.metaobjects.VMStringObject;
-import tokyo.peya.langjal.vm.values.metaobjects.reflection.VMFieldObject;
-import tokyo.peya.langjal.vm.values.metaobjects.reflection.VMMethodObject;
 
 public class InjectorClassLoader implements Injector
 {
@@ -52,7 +42,7 @@ public class InjectorClassLoader implements Injector
                 ))
                 {
                     @Override
-                    @Nullable VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Nullable VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         return null;
@@ -71,7 +61,7 @@ public class InjectorClassLoader implements Injector
                 ))
                 {
                     @Override
-                    @Nullable VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Nullable VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMReferenceValue loader = (VMReferenceValue) args[0];
@@ -89,9 +79,9 @@ public class InjectorClassLoader implements Injector
                         for (int i = 0; i < length; i++)
                             data[i] = ((VMInteger) array.get(i + offset)).asNumber().byteValue();
 
-                        VMClass clazz = thread.getClassLoader().defineClass(data);
+                        VMClass clazz = frame.getClassLoader().defineClass(data);
                         if (initialise)
-                            clazz.initialise(thread);
+                            clazz.initialise(frame.getThread());
                         clazz.setClassData(classData);
 
                         return clazz.getClassObject();

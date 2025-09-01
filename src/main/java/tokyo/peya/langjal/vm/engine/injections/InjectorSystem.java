@@ -6,7 +6,7 @@ import org.objectweb.asm.tree.MethodNode;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
-import tokyo.peya.langjal.vm.engine.threading.VMThread;
+import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMArray;
 import tokyo.peya.langjal.vm.values.VMInteger;
@@ -67,7 +67,7 @@ public class InjectorSystem implements Injector
                 )
                 {
                     @Override
-                    @Nullable VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Nullable VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         return null;
@@ -86,11 +86,11 @@ public class InjectorSystem implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         long currentTime = System.currentTimeMillis();
-                        return new VMLong(thread, currentTime);
+                        return new VMLong(frame, currentTime);
                     }
                 }
         );
@@ -106,11 +106,11 @@ public class InjectorSystem implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         long currentTime = System.nanoTime();
-                        return new VMLong(thread, currentTime);
+                        return new VMLong(frame, currentTime);
                     }
                 }
         );
@@ -126,7 +126,7 @@ public class InjectorSystem implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         if (args.length != 5)
@@ -165,7 +165,7 @@ public class InjectorSystem implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMObject inputStream = (VMObject) args[0];
@@ -186,7 +186,7 @@ public class InjectorSystem implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMObject printStream = (VMObject) args[0];
@@ -207,7 +207,7 @@ public class InjectorSystem implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMObject printStream = (VMObject) args[0];
@@ -228,11 +228,11 @@ public class InjectorSystem implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMValue obj = args[0];
-                        return new VMInteger(thread, obj.identityHashCode());
+                        return new VMInteger(frame, obj.identityHashCode());
                     }
                 }
         );

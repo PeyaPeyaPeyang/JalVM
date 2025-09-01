@@ -6,6 +6,7 @@ import org.jetbrains.annotations.Nullable;
 import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
+import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
 import tokyo.peya.langjal.vm.engine.threading.VMThread;
 import tokyo.peya.langjal.vm.references.ClassReference;
@@ -26,11 +27,11 @@ public class VMConstructorObject extends VMMethodObject
         this.method = method;
     }
 
-    public void call(@NotNull VMThread thread, @NotNull VMClass caller, @NotNull VMObject instance,
+    public void call(@NotNull VMFrame frame, @NotNull VMClass caller, @NotNull VMObject instance,
                      @NotNull VMValue[] args, boolean isVMDecree)
     {
         instance.initialiseInstance(
-                thread,
+                frame,
                 caller,
                 this.method,
                 args,

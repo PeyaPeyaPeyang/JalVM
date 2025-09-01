@@ -6,7 +6,7 @@ import org.objectweb.asm.tree.MethodNode;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
-import tokyo.peya.langjal.vm.engine.threading.VMThread;
+import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMFloat;
 import tokyo.peya.langjal.vm.values.VMInteger;
@@ -38,13 +38,13 @@ public class InjectorFloat implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMFloat value = (VMFloat) args[0];
                         float floatValue = value.asNumber().floatValue();
                         int bits = Float.floatToIntBits(floatValue);
-                        return new VMInteger(thread, bits);
+                        return new VMInteger(frame, bits);
                     }
                 }
         );
@@ -60,13 +60,13 @@ public class InjectorFloat implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMInteger bitsValue = (VMInteger) args[0];
                         int bits = bitsValue.asNumber().intValue();
                         float floatValue = Float.intBitsToFloat(bits);
-                        return new VMFloat(thread, floatValue);
+                        return new VMFloat(frame, floatValue);
                     }
                 }
         );

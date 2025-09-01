@@ -65,7 +65,7 @@ public class OperatorInvokeInterface extends AbstractInstructionOperator<MethodI
 
         method.invokeInstanceMethod(
                 operand,
-                frame.getThread(),
+                frame,
                 caller,
                 instance,
                 frame.isVMDecree(),

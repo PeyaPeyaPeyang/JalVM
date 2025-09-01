@@ -54,7 +54,7 @@ public class OperatorInvokeStatic extends AbstractInstructionOperator<MethodInsn
 
         method.invokeStatic(
                 operand,
-                frame.getThread(),
+                frame,
                 caller,
                 frame.isVMDecree(),
                 ctxt.arguments()

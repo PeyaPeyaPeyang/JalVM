@@ -6,7 +6,7 @@ import org.objectweb.asm.tree.MethodNode;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
-import tokyo.peya.langjal.vm.engine.threading.VMThread;
+import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMInteger;
 import tokyo.peya.langjal.vm.values.VMLong;
@@ -97,13 +97,13 @@ public class InjectorSignal implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMStringObject signalNameObject = (VMStringObject) args[0];
                         String signalName = signalNameObject.getString();
                         int handle = InjectorSignal.this.getSignalOrCreateHandle(signalName);
-                        return new VMInteger(thread, handle);
+                        return new VMInteger(frame, handle);
                     }
                 }
         );
@@ -119,7 +119,7 @@ public class InjectorSignal implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMInteger signalHandleValue = (VMInteger) args[0];
@@ -130,7 +130,7 @@ public class InjectorSignal implements Injector
                         Long current = InjectorSignal.this.signalHandler.put(signalHandle, handler);
                         // すでにハンドラが登録されている場合は、古いハンドラを返す
                         // 新しいハンドラを登録した場合は、0を返す
-                        return new VMLong(thread, Objects.requireNonNullElse(current, 0L));
+                        return new VMLong(frame, Objects.requireNonNullElse(current, 0L));
                     }
                 }
         );

@@ -119,7 +119,7 @@ public class VMObject implements VMValue, VMReferenceValue
         return this.hashCode;
     }
 
-    public void initialiseInstance(@NotNull VMThread thread, @NotNull VMClass caller, @NotNull VMMethod constructor,
+    public void initialiseInstance(@NotNull VMFrame frame, @NotNull VMClass caller, @NotNull VMMethod constructor,
                                    @NotNull VMValue[] args, boolean isVMDecree)
     {
         if (!constructor.isConstructor())
@@ -130,13 +130,9 @@ public class VMObject implements VMValue, VMReferenceValue
         VMObject targetObject = findSuitableTarget(targetClass, this.owner);
 
         boolean isOuterInitialise = false;
-        VMFrame frame = thread.getCurrentFrame();
-        if (frame != null)
-        {
-            VMMethod prevMethod = frame.getMethod();
-            if (prevMethod == null || !(prevMethod.getClazz().equals(targetClass) && prevMethod.isConstructor()))
-                isOuterInitialise = true;
-        }
+        VMMethod prevMethod = frame.getMethod();
+        if (prevMethod == null || !(prevMethod.getClazz().equals(targetClass) && prevMethod.isConstructor()))
+            isOuterInitialise = true;
 
         if (isOuterInitialise)
         {
@@ -150,7 +146,7 @@ public class VMObject implements VMValue, VMReferenceValue
         // コンストラクタを実行
         constructor.invokeInstanceMethod(
                 null,
-                thread,
+                frame,
                 caller,
                 this.owner,
                 isVMDecree,
@@ -158,7 +154,7 @@ public class VMObject implements VMValue, VMReferenceValue
         );
     }
 
-    public void initialiseInstance(@NotNull VMThread thread, @Nullable VMClass caller, @NotNull VMClass owner,
+    public void initialiseInstance(@NotNull VMFrame frame, @Nullable VMClass caller, @NotNull VMClass owner,
                                    @NotNull VMType<?>[] argTypes, @NotNull VMValue[] args, boolean isVMDecree)
     {
         // 初期化を呼び出す
@@ -170,7 +166,7 @@ public class VMObject implements VMValue, VMReferenceValue
         if (caller == null)
             caller = this.objectType;
 
-        this.initialiseInstance(thread, caller, constructorMethod, args, isVMDecree);
+        this.initialiseInstance(frame, caller, constructorMethod, args, isVMDecree);
     }
 
     private static @NotNull VMObject findSuitableTarget(@NotNull VMClass targetClass, @NotNull VMObject owner)

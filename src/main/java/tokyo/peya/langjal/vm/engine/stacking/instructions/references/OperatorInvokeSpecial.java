@@ -43,7 +43,7 @@ public class OperatorInvokeSpecial extends AbstractInstructionOperator<MethodIns
         if (name.equals("<init>"))
         {
             instance.initialiseInstance(
-                    frame.getThread(),
+                    frame,
                     caller,
                     clazz,
                     ctxt.argumentTypes(),
@@ -71,7 +71,7 @@ public class OperatorInvokeSpecial extends AbstractInstructionOperator<MethodIns
 
         method.invokeInstanceMethod(
                 operand,
-                frame.getThread(),
+                frame,
                 caller,
                 instance,
                 frame.isVMDecree(),

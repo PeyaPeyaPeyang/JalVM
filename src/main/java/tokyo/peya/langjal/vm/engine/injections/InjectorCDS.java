@@ -6,7 +6,7 @@ import org.objectweb.asm.tree.MethodNode;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
-import tokyo.peya.langjal.vm.engine.threading.VMThread;
+import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMInteger;
 import tokyo.peya.langjal.vm.values.VMLong;
@@ -38,10 +38,10 @@ public class InjectorCDS implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
-                        return new VMInteger(thread, 0); // 0 = CDS無効
+                        return new VMInteger(frame, 0); // 0 = CDS無効
                     }
                 }
         );
@@ -58,7 +58,7 @@ public class InjectorCDS implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         return null; // なにもしない
@@ -78,7 +78,7 @@ public class InjectorCDS implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         String release   = System.getProperty("java.runtime.version");
@@ -89,7 +89,7 @@ public class InjectorCDS implements Injector
                         int security     = Runtime.version().update();
                         int patch        = Runtime.version().patch();
                         return new VMLong(
-                                thread,
+                                frame,
                                 getRandomSeedForDumping(release, dbgLevel, version, major, minor, security, patch)
                         );
                     }

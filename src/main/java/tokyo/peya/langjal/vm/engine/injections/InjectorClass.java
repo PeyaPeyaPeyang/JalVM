@@ -10,9 +10,9 @@ import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMArrayClass;
 import tokyo.peya.langjal.vm.engine.VMClass;
+import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.members.VMField;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
-import tokyo.peya.langjal.vm.engine.threading.VMThread;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMArray;
 import tokyo.peya.langjal.vm.values.VMBoolean;
@@ -51,7 +51,7 @@ public class InjectorClass implements Injector
                 ))
                 {
                     @Override
-                    @Nullable VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Nullable VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         return null;
@@ -69,10 +69,10 @@ public class InjectorClass implements Injector
                         null
                 ))
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
-                        return VMBoolean.ofTrue(thread);
+                        return VMBoolean.ofTrue(frame);
                     }
                 }
         );
@@ -87,12 +87,12 @@ public class InjectorClass implements Injector
                         null
                 ))
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMStringObject string = (VMStringObject) args[0];
                         String str = string.getString();
-                        return VMType.getPrimitiveType(thread,str)
+                        return VMType.getPrimitiveType(frame, str)
                                      .getLinkedClass()
                                      .getClassObject();
                     }
@@ -109,12 +109,12 @@ public class InjectorClass implements Injector
                         null
                 ))
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         assert instance != null: "Instance must be a VMObject";
                         VMClassObject instanceClass = (VMClassObject) instance;
-                        return VMBoolean.of(thread, instanceClass.getTypeOf().isPrimitive());
+                        return VMBoolean.of(frame, instanceClass.getTypeOf().isPrimitive());
                     }
                 }
         );
@@ -129,7 +129,7 @@ public class InjectorClass implements Injector
                         null
                 ))
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMStringObject classNameObject = (VMStringObject) args[0];
@@ -138,7 +138,7 @@ public class InjectorClass implements Injector
                         ClassReference classReference = ClassReference.of(classNameObject.getString());
                         VMClass loadedClass = cl.findClass(classReference);
                         if (initialize)
-                            loadedClass.initialise(thread);
+                            loadedClass.initialise(frame.getThread());
 
                         return loadedClass.getClassObject();
                     }
@@ -155,14 +155,15 @@ public class InjectorClass implements Injector
                         null
                 ))
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMClassObject instanceClass = (VMClassObject) instance;
                         assert instanceClass != null: "Instance must be a VMClassObject";
 
-                        return VMBoolean.of(thread,
-                                            instanceClass.getRepresentingClass().getAccessAttributes().has(AccessAttribute.INTERFACE)
+                        return VMBoolean.of(
+                                frame,
+                                instanceClass.getRepresentingClass().getAccessAttributes().has(AccessAttribute.INTERFACE)
                         );
                     }
                 }
@@ -178,13 +179,13 @@ public class InjectorClass implements Injector
                         null
                 ))
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMClassObject instanceClass = (VMClassObject) instance;
                         assert instanceClass != null: "Instance must be a VMClassObject";
                         VMClass representingClass = instanceClass.getRepresentingClass();
-                        return VMBoolean.of(thread, representingClass instanceof VMArrayClass);
+                        return VMBoolean.of(frame, representingClass instanceof VMArrayClass);
                     }
                 }
         );
@@ -199,7 +200,7 @@ public class InjectorClass implements Injector
                         null
                 ))
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMClassObject instanceClass = (VMClassObject) instance;
@@ -219,7 +220,7 @@ public class InjectorClass implements Injector
                                                         .toArray(VMFieldObject[]::new);
 
                         return new VMArray(
-                                thread,
+                                frame,
                                 cl.findClass(ClassReference.of("java/lang/reflect/Field")),
                                 fieldObjects
                         );
@@ -237,7 +238,7 @@ public class InjectorClass implements Injector
                         null
                 ))
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMClassObject instanceClass = (VMClassObject) instance;
@@ -257,7 +258,7 @@ public class InjectorClass implements Injector
                                                             .toArray(VMMethodObject[]::new);
 
                         return new VMArray(
-                                thread,
+                                frame,
                                 cl.findClass(ClassReference.of("java/lang/reflect/Method")),
                                 methodObjects
                         );
@@ -275,7 +276,7 @@ public class InjectorClass implements Injector
                         null
                 ))
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMClassObject instanceClass = (VMClassObject) instance;
@@ -297,7 +298,7 @@ public class InjectorClass implements Injector
                                                              .toArray(VMMethodObject[]::new);
 
                         return new VMArray(
-                                thread,
+                                frame,
                                 cl.findClass(ClassReference.of("java/lang/reflect/Constructor")),
                                 methodObjects
                         );
@@ -315,7 +316,7 @@ public class InjectorClass implements Injector
                         null
                 ))
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMClassObject instanceClass = (VMClassObject) instance;
@@ -327,7 +328,7 @@ public class InjectorClass implements Injector
                                                                         .toArray(VMClassObject[]::new);
 
                         return new VMArray(
-                                thread,
+                                frame,
                                 cl.findClass(ClassReference.of("java/lang/Class")),
                                 classObjects
                         );
@@ -345,13 +346,13 @@ public class InjectorClass implements Injector
                         null
                 ))
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMClassObject obj = (VMClassObject) instance;
                         assert obj != null;
                         int access = obj.getRepresentingClass().getClazz().access;
-                        return new VMInteger(thread, access);
+                        return new VMInteger(frame, access);
                     }
                 }
         );
@@ -366,7 +367,7 @@ public class InjectorClass implements Injector
                         null
                 ))
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMClassObject obj = (VMClassObject) instance;
@@ -378,7 +379,7 @@ public class InjectorClass implements Injector
                         else
                             name = type.getTypeDescriptor();
 
-                        VMValue nameObj = VMStringObject.createString(thread, name);
+                        VMValue nameObj = VMStringObject.createString(frame, name);
                         obj.setField("name", nameObj);
                         return nameObj;
                     }
@@ -395,14 +396,14 @@ public class InjectorClass implements Injector
                         null
                 ))
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMClassObject obj = (VMClassObject) instance;
                         assert obj != null;
                         VMClassObject other = (VMClassObject) args[0];
 
-                        return VMBoolean.of(thread, obj.getTypeOf().isAssignableFrom(other.getTypeOf()));
+                        return VMBoolean.of(frame, obj.getTypeOf().isAssignableFrom(other.getTypeOf()));
                     }
                 }
         );
@@ -417,7 +418,7 @@ public class InjectorClass implements Injector
                         null
                 ))
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMClassObject obj = (VMClassObject) instance;
@@ -428,18 +429,18 @@ public class InjectorClass implements Injector
                         String outerMethod = node.outerMethod;
                         String outerMethodDesc = node.outerMethodDesc;
 
-                        VMArray result = new VMArray(thread, VMType.ofGenericObject(thread), 3);
+                        VMArray result = new VMArray(frame, VMType.ofGenericObject(frame), 3);
                         if (outerClass == null)
-                            return new VMNull<>(VMType.ofGenericObject(thread));
+                            return new VMNull<>(VMType.ofGenericObject(frame));
                         else
                         {
                             VMClass outerClazz = cl.findClass(ClassReference.of(outerClass));
                             result.set(0, outerClazz.getClassObject());
                         }
                         if (outerMethod != null)
-                            result.set(1, VMStringObject.createString(thread, outerMethod));
+                            result.set(1, VMStringObject.createString(frame, outerMethod));
                         if (outerMethodDesc != null)
-                            result.set(2, VMStringObject.createString(thread, outerMethodDesc));
+                            result.set(2, VMStringObject.createString(frame, outerMethodDesc));
 
                         return result;
                     }
@@ -456,7 +457,7 @@ public class InjectorClass implements Injector
                         null
                 ))
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMClassObject obj = (VMClassObject) instance;
@@ -466,7 +467,7 @@ public class InjectorClass implements Injector
                         String outerClass = node.outerClass;
 
                         if (outerClass == null)
-                            return new VMNull<>(VMType.ofGenericObject(thread));
+                            return new VMNull<>(VMType.ofGenericObject(frame));
                         else
                         {
                             VMClass outerClazz = cl.findClass(ClassReference.of(outerClass));
@@ -486,10 +487,10 @@ public class InjectorClass implements Injector
                         null
                 ))
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
-                        return VMBoolean.ofFalse(thread);  // TODO: Implement hidden classes
+                        return VMBoolean.ofFalse(frame);  // TODO: Implement hidden classes
                     }
                 }
         );
@@ -504,17 +505,18 @@ public class InjectorClass implements Injector
                         null
                 ))
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMValue obj = args[0];
                         if (obj instanceof VMNull)
-                            return VMBoolean.ofFalse(thread);
+                            return VMBoolean.ofFalse(frame);
                         VMObject objInstance = (VMObject) obj;
                         assert instance != null;
                         VMClassObject classObject = (VMClassObject) instance;
-                        return VMBoolean.of(thread,
-                                            classObject.getRepresentingClass().isAssignableFrom(objInstance.getObjectType())
+                        return VMBoolean.of(
+                                frame,
+                                classObject.getRepresentingClass().isAssignableFrom(objInstance.getObjectType())
                         );
                     }
                 }

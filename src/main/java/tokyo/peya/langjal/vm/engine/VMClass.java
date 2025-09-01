@@ -278,7 +278,7 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
             return;  // 静的初期化メソッドがない場合は何もしない
 
         // 静的初期化メソッドを呼び出す
-        staticInitMethod.invokeBypassAccess(callerThread, null);
+        staticInitMethod.invokeBypassAccess(callerThread.getCurrentFrame(), null);
     }
 
     private void linkSuper(@NotNull VMSystemClassLoader cl)

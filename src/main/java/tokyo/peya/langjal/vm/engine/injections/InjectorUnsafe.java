@@ -9,8 +9,8 @@ import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMComponent;
+import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.members.VMField;
-import tokyo.peya.langjal.vm.engine.threading.VMThread;
 import tokyo.peya.langjal.vm.panics.VMPanic;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMArray;
@@ -51,7 +51,7 @@ public class InjectorUnsafe implements Injector
                 )
                 {
                     @Override
-                    @Nullable VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Nullable VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         return null;
@@ -70,10 +70,10 @@ public class InjectorUnsafe implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
-                        return new VMInteger(thread, getArrayBaseOffset());
+                        return new VMInteger(frame, getArrayBaseOffset());
                     }
                 }
         );
@@ -89,12 +89,12 @@ public class InjectorUnsafe implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMClassObject clazzObject = (VMClassObject) args[0];
                         int scale = getArrayScale(clazzObject.getRepresentingClass());
-                        return new VMInteger(thread, scale);
+                        return new VMInteger(frame, scale);
                     }
                 }
         );
@@ -110,14 +110,14 @@ public class InjectorUnsafe implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMClassObject clazzObject = (VMClassObject) args[0];
                         VMStringObject fieldNameObject = (VMStringObject) args[1];
                         String fieldNameStr = fieldNameObject.getString();
                         VMField field = clazzObject.getTypeOf().getLinkedClass().findField(fieldNameStr);
-                        return new VMLong(thread, field.getFieldID());
+                        return new VMLong(frame, field.getFieldID());
                     }
                 }
         );
@@ -134,7 +134,7 @@ public class InjectorUnsafe implements Injector
                 )
                 {
                     @Override
-                    @Nullable VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Nullable VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         return null;
@@ -154,7 +154,7 @@ public class InjectorUnsafe implements Injector
                 )
                 {
                     @Override
-                    @Nullable VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Nullable VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMReferenceValue object = (VMReferenceValue) args[0];
@@ -185,7 +185,7 @@ public class InjectorUnsafe implements Injector
                         else
                             throw new VMPanic("Unsupported object type for compareAndSet: " + object.getClass().getName());
 
-                        return VMBoolean.of(thread, success);
+                        return VMBoolean.of(frame, success);
                     }
                 }
         );
@@ -201,7 +201,7 @@ public class InjectorUnsafe implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMObject object = (VMObject) args[0];
@@ -230,7 +230,7 @@ public class InjectorUnsafe implements Injector
                 )
                 {
                     @Override
-                    @Nullable VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Nullable VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMObject object = (VMObject) args[0];
@@ -240,13 +240,13 @@ public class InjectorUnsafe implements Injector
 
                         VMField field = object.getObjectType().findField(offset);
                         VMValue currentValue = object.getField(field.getName());
-                        VMInteger convertedCurrentValue = (VMInteger) currentValue.conformValue(VMType.of(thread, PrimitiveTypes.INT));
+                        VMInteger convertedCurrentValue = (VMInteger) currentValue.conformValue(VMType.of(frame, PrimitiveTypes.INT));
                         int currentIntValue = convertedCurrentValue.asNumber().intValue();
                         boolean success = currentIntValue == expected;
                         if (success)
-                            object.setField(field, new VMInteger(thread, newValue));
+                            object.setField(field, new VMInteger(frame, newValue));
 
-                        return VMBoolean.of(thread, success);
+                        return VMBoolean.of(frame, success);
                     }
                 }
         );
@@ -262,7 +262,7 @@ public class InjectorUnsafe implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMObject object = (VMObject) args[0];
@@ -272,13 +272,13 @@ public class InjectorUnsafe implements Injector
 
                         VMField field = object.getObjectType().findField(offset);
                         VMValue currentValue = object.getField(field.getName());
-                        VMInteger convertedCurrentValue = (VMInteger) currentValue.conformValue(VMType.of(thread, PrimitiveTypes.INT));
+                        VMInteger convertedCurrentValue = (VMInteger) currentValue.conformValue(VMType.of(frame, PrimitiveTypes.INT));
                         int currentIntValue = convertedCurrentValue.asNumber().intValue();
                         boolean success = currentIntValue == expected;
                         if (success)
-                            object.setField(field, new VMInteger(thread, newValue));
+                            object.setField(field, new VMInteger(frame, newValue));
 
-                        return new VMInteger(thread, success ? currentIntValue : expected);
+                        return new VMInteger(frame, success ? currentIntValue : expected);
                     }
                 }
         );
@@ -295,7 +295,7 @@ public class InjectorUnsafe implements Injector
                 )
                 {
                     @Override
-                    @Nullable VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Nullable VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMObject object = (VMObject) args[0];
@@ -305,13 +305,13 @@ public class InjectorUnsafe implements Injector
 
                         VMField field = object.getObjectType().findField(offset);
                         VMValue currentValue = object.getField(field.getName());
-                        VMLong convertedCurrentValue = (VMLong) currentValue.conformValue(VMType.of(thread, PrimitiveTypes.LONG));
+                        VMLong convertedCurrentValue = (VMLong) currentValue.conformValue(VMType.of(frame, PrimitiveTypes.LONG));
                         long currentIntValue = convertedCurrentValue.asNumber().longValue();
                         boolean success = currentIntValue == expected;
                         if (success)
-                            object.setField(field, new VMLong(thread, newValue));
+                            object.setField(field, new VMLong(frame, newValue));
 
-                        return VMBoolean.of(thread, success);
+                        return VMBoolean.of(frame, success);
                     }
                 }
         );
@@ -327,7 +327,7 @@ public class InjectorUnsafe implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMObject object = (VMObject) args[0];
@@ -337,13 +337,13 @@ public class InjectorUnsafe implements Injector
 
                         VMField field = object.getObjectType().findField(offset);
                         VMValue currentValue = object.getField(field.getName());
-                        VMLong convertedCurrentValue = (VMLong) currentValue.conformValue(VMType.of(thread, PrimitiveTypes.LONG));
+                        VMLong convertedCurrentValue = (VMLong) currentValue.conformValue(VMType.of(frame, PrimitiveTypes.LONG));
                         long currentIntValue = convertedCurrentValue.asNumber().longValue();
                         boolean success = currentIntValue == expected;
                         if (success)
-                            object.setField(field, new VMLong(thread, newValue));
+                            object.setField(field, new VMLong(frame, newValue));
 
-                        return new VMLong(thread, success ? currentIntValue : expected);
+                        return new VMLong(frame, success ? currentIntValue : expected);
                     }
                 }
         );
@@ -359,7 +359,7 @@ public class InjectorUnsafe implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMObject object = (VMObject) args[0];
@@ -381,7 +381,7 @@ public class InjectorUnsafe implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMObject object = (VMObject) args[0];
@@ -405,14 +405,14 @@ public class InjectorUnsafe implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMObject object = (VMObject) args[0];
                         long offset = ((VMLong) args[1]).asNumber().longValue();
                         VMField field = object.getObjectType().findField(offset);
                         VMValue value = object.getField(field.getName());
-                        return value.conformValue(VMType.of(thread, PrimitiveTypes.INT));
+                        return value.conformValue(VMType.of(frame, PrimitiveTypes.INT));
                     }
                 }
         );
@@ -539,11 +539,11 @@ public class InjectorUnsafe implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMClassObject clazzObject = (VMClassObject) args[0];
-                        return VMBoolean.of(thread, !clazzObject.getRepresentingClass().isInitialised());
+                        return VMBoolean.of(frame, !clazzObject.getRepresentingClass().isInitialised());
                     }
                 }
         );
@@ -559,13 +559,13 @@ public class InjectorUnsafe implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMClassObject clazzObject = (VMClassObject) args[0];
                         VMClass repClass = clazzObject.getRepresentingClass();
                         if (!repClass.isInitialised())
-                            repClass.initialise(thread);
+                            repClass.initialise(frame.getThread());
                         return null;
                     }
                 }
@@ -587,16 +587,17 @@ public class InjectorUnsafe implements Injector
         )
         {
             @Override
-            public @Nullable VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+            public @Nullable VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                             @Nullable VMObject instance, @NotNull VMValue[] args)
             {
                 VMReferenceValue object = (VMReferenceValue) args[0];
                 long offset = ((VMLong) args[1]).asNumber().longValue();
                 if (object instanceof VMArray array)
-                    return read(thread,
-                                array,
-                                offset - getArrayBaseOffset(),
-                                getArrayScale(returnType)
+                    return read(
+                            frame,
+                            array,
+                            offset - getArrayBaseOffset(),
+                            getArrayScale(returnType)
                     );
                 else if (object instanceof VMObject vmObject)
                 {
@@ -625,7 +626,7 @@ public class InjectorUnsafe implements Injector
         )
         {
             @Override
-            public @Nullable VMValue invoke(@NotNull VMThread thread, @Nullable VMClass caller,
+            public @Nullable VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                             @Nullable VMObject instance, @NotNull VMValue[] args)
             {
                 VMObject object = (VMObject) args[0];

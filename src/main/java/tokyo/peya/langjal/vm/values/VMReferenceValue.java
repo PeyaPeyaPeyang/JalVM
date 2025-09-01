@@ -1,7 +1,7 @@
 package tokyo.peya.langjal.vm.values;
 
 import org.jetbrains.annotations.NotNull;
-import tokyo.peya.langjal.vm.exceptions.VMPanic;
+import tokyo.peya.langjal.vm.panics.VMPanic;
 
 public interface VMReferenceValue extends VMValue
 {

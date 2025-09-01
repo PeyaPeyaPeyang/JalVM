@@ -6,7 +6,7 @@ import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.VMStack;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
-import tokyo.peya.langjal.vm.exceptions.IllegalOperationPanic;
+import tokyo.peya.langjal.vm.panics.IllegalOperationPanic;
 import tokyo.peya.langjal.vm.values.VMValue;
 
 public class OperatorSwap extends AbstractInstructionOperator<InsnNode>

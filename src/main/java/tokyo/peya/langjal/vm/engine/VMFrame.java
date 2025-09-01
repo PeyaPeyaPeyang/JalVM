@@ -7,18 +7,18 @@ import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import tokyo.peya.langjal.compiler.jvm.AccessAttribute;
-import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.JalVM;
-import tokyo.peya.langjal.vm.VMInterpreter;
+import tokyo.peya.langjal.vm.api.events.VMPanicOccurredEvent;
 import tokyo.peya.langjal.vm.api.events.VMStepInEvent;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
 import tokyo.peya.langjal.vm.engine.stacking.VMStack;
 import tokyo.peya.langjal.vm.engine.stacking.VMStackMachine;
 import tokyo.peya.langjal.vm.engine.threading.VMThread;
-import tokyo.peya.langjal.vm.exceptions.VMPanic;
+import tokyo.peya.langjal.vm.panics.VMPanic;
 import tokyo.peya.langjal.vm.tracing.FrameTracingEntry;
 import tokyo.peya.langjal.vm.tracing.VMValueTracer;
 import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
+import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
 
@@ -84,7 +84,7 @@ public class VMFrame implements VMComponent
             );
     }
 
-    public void setNextFrame(@NotNull VMFrame nextFrame)
+    public void setNextFrame(@Nullable VMFrame nextFrame)
     {
         this.nextFrame = nextFrame;
     }
@@ -96,7 +96,7 @@ public class VMFrame implements VMComponent
         else if (this.interpreter != null)
             throw new VMPanic("Frame has already started by other interpreter.");
 
-        this.interpreter = this.method.createInterpreter(this.vm);
+        this.interpreter = this.method.createInterpreter();
         this.isRunning = true;
     }
 
@@ -110,33 +110,77 @@ public class VMFrame implements VMComponent
         if (!this.isRunning)
             throw new VMPanic("Frame is not running.");
 
-        if (this.interpreter.hasNextInstruction())
-        {
-            try
-            {
-                AbstractInsnNode next = this.interpreter.feedNextInstruction();
-                if (next == null)
-                    return;  // そういうこともある。
-
-                this.vm.getEventManager().dispatchEvent(new VMStepInEvent(
-                        this,
-                        next
-                ));
-
-                VMStackMachine.executeInstruction(this, next);
-            }
-            catch (Throwable e)
-            {
-                e.printStackTrace();
-                throw new VMPanic("Error while executing instruction in frame: " + e.getMessage(), e);
-            }
-        }
-        else
+        if (!this.interpreter.hasNextInstruction())
         {
             // 実行が終わったら，フレームを戻す
             this.isRunning = false;
             this.thread.restoreFrame();
+            return;
         }
+
+        try
+        {
+            AbstractInsnNode next = this.interpreter.feedNextInstruction();
+            if (next == null)
+                return; // そういうこともある。
+
+            this.vm.getEventManager().dispatchEvent(new VMStepInEvent(
+                    this,
+                    next
+            ));
+
+            VMStackMachine.executeInstruction(this, next);
+        }
+        catch (VMPanic p)
+        {
+            VMPanicOccurredEvent event = new VMPanicOccurredEvent(this, p);
+            this.vm.getEventManager().dispatchEvent(event);
+
+            boolean handled = this.handlePanic(p);
+            if (!handled)
+                throw p;  // 処理できなかった場合は，上に伝搬する
+
+            // なお，finally については何もしない。
+            // なぜならバイト・コード側が適切にジャンプを処理してくれるからである。
+        }
+        catch (Throwable e)
+        {
+            throw new IllegalStateException(
+                    "An unexpected internal VM error occurred in " + this.method
+                            + " at instruction " +
+                            this.interpreter.getCurrentInstructionIndex()
+                            + ".", e
+            );
+        }
+    }
+
+    public boolean handlePanic(@NotNull VMPanic panic)
+    {
+        VMObject associatedThrowableObject = panic.getAssociatedThrowable();
+        if (associatedThrowableObject == null)
+            return false;  // 例外オブジェクトがない場合は処理ができないので，他に伝搬
+
+        int currentIndex = this.interpreter.getCurrentInstructionIndex();
+        VMClass throwableClass = associatedThrowableObject.getObjectType();
+        ExceptionHandlerDirective handler =
+                this.interpreter.getExceptionHandlerFor(currentIndex, throwableClass);
+        if (handler == null)
+            return false;  // ハンドラが見つからなかった場合もダメ
+
+        this.thread.getTracer().pushHistory(
+                FrameTracingEntry.exceptionThrown(
+                        this,
+                        panic,
+                        handler
+                )
+        );
+
+        // 例外オブジェクトをスタックに積んで，ハンドラの位置に飛ばす
+        this.stack.push(associatedThrowableObject);
+        int handlerIndex = handler.startInstructionIndex();
+        this.interpreter.setCurrent(handlerIndex);
+
+        return true;
     }
 
     protected void setReturnValue0(@NotNull VMValue value)

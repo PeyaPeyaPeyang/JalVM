@@ -10,13 +10,12 @@ import tokyo.peya.langjal.compiler.jvm.AccessAttributeSet;
 import tokyo.peya.langjal.compiler.jvm.AccessLevel;
 import tokyo.peya.langjal.compiler.jvm.MethodDescriptor;
 import tokyo.peya.langjal.vm.JalVM;
-import tokyo.peya.langjal.vm.VMInterpreter;
-import tokyo.peya.langjal.vm.VMSystemClassLoader;
+import tokyo.peya.langjal.vm.engine.VMInterpreter;
 import tokyo.peya.langjal.vm.engine.BytecodeInterpreter;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.threading.VMThread;
-import tokyo.peya.langjal.vm.exceptions.AccessRestrictedPanic;
-import tokyo.peya.langjal.vm.exceptions.invocation.NonStaticInvocationPanic;
+import tokyo.peya.langjal.vm.panics.AccessRestrictedPanic;
+import tokyo.peya.langjal.vm.panics.invocation.NonStaticInvocationPanic;
 import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
@@ -74,11 +73,9 @@ public class VMMethod implements AccessibleObject
         return this.methodObject;
     }
 
-    public VMInterpreter createInterpreter(
-            @NotNull JalVM vm)
+    public VMInterpreter createInterpreter()
     {
-        return new BytecodeInterpreter(vm, this.methodNode);
-        // return new DebugInterpreter(vm, engine, frame);
+        return new BytecodeInterpreter(this.vm, this.methodNode);
     }
 
     public void invokeStatic(@Nullable MethodInsnNode operand, @NotNull VMThread thread, @Nullable VMClass caller, boolean isVMDecree,

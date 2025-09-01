@@ -51,6 +51,7 @@ public class InjectorManager
                 new InjectorSystem(),
                 new InjectorSystemPropsRaw(),
                 new InjectorThread(),
+                new InjectorThrowable(),
                 new InjectorUnsafe(),
                 new InjectorVM(),
                 new InjectorWin32ErrorMode()

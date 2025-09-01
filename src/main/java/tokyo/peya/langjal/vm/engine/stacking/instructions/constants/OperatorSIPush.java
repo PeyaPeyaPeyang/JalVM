@@ -5,7 +5,7 @@ import org.objectweb.asm.tree.IntInsnNode;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
-import tokyo.peya.langjal.vm.exceptions.IllegalOperandPanic;
+import tokyo.peya.langjal.vm.panics.IllegalOperandPanic;
 import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
 import tokyo.peya.langjal.vm.values.VMShort;
 

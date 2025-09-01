@@ -5,10 +5,8 @@ import org.objectweb.asm.Type;
 import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
 import tokyo.peya.langjal.vm.JalVM;
-import tokyo.peya.langjal.vm.VMHeap;
-import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMComponent;
-import tokyo.peya.langjal.vm.exceptions.VMPanic;
+import tokyo.peya.langjal.vm.panics.VMPanic;
 import tokyo.peya.langjal.vm.values.metaobjects.VMClassObject;
 import tokyo.peya.langjal.vm.values.metaobjects.VMStringObject;
 

@@ -6,7 +6,7 @@ import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
 import tokyo.peya.langjal.vm.engine.threading.VMMonitor;
-import tokyo.peya.langjal.vm.exceptions.VMPanic;
+import tokyo.peya.langjal.vm.panics.VMPanic;
 import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMReferenceValue;
 import tokyo.peya.langjal.vm.values.VMType;

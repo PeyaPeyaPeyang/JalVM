@@ -5,6 +5,7 @@ import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import tokyo.peya.langjal.compiler.jvm.AccessAttribute;
+import tokyo.peya.langjal.compiler.jvm.MethodDescriptor;
 import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.api.events.VMFrameInEvent;
 import tokyo.peya.langjal.vm.api.events.VMFrameOutEvent;
@@ -13,8 +14,9 @@ import tokyo.peya.langjal.vm.engine.VMComponent;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.VMInterruptingFrame;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
-import tokyo.peya.langjal.vm.exceptions.IllegalOperationPanic;
-import tokyo.peya.langjal.vm.exceptions.LinkagePanic;
+import tokyo.peya.langjal.vm.panics.IllegalOperationPanic;
+import tokyo.peya.langjal.vm.panics.LinkagePanic;
+import tokyo.peya.langjal.vm.panics.VMPanic;
 import tokyo.peya.langjal.vm.tracing.FrameTracingEntry;
 import tokyo.peya.langjal.vm.tracing.VMFrameTracer;
 import tokyo.peya.langjal.vm.values.VMObject;
@@ -88,9 +90,65 @@ public class VMThread implements VMComponent
                     break;
                 }
 
-                this.currentFrame.heartbeat();
+                this.heartbeatCurrentFrame();
                 break;
         }
+    }
+
+    private void heartbeatCurrentFrame()
+    {
+        try
+        {
+            this.currentFrame.heartbeat();
+        }
+        catch (VMPanic p)
+        {
+            boolean handled = this.handlePanic(this.currentFrame, p);
+            if (!handled)
+                this.handleUncaughtPanic(p);
+        }
+    }
+
+    private boolean handlePanic(@NotNull VMFrame occurred, @NotNull VMPanic p)
+    {
+        if (p.getAssociatedThrowable() == null)
+            return false;
+
+        VMFrame current = occurred.getPrevFrame();  // 親フレームから探索開始
+        while(current != null)
+        {
+            boolean handled = current.handlePanic(p);
+            if (handled)
+                return true;
+
+            current = current.getPrevFrame();
+            this.killFrame();  // ハンドルされなかったフレームは破棄していく
+        }
+
+        // どの親でもハンドルされなかった場合は，スレッドを終了させる
+        return false;
+    }
+
+    private void handleUncaughtPanic(@NotNull VMPanic panic)
+    {
+        VMObject associatedThrowable = panic.getAssociatedThrowable();
+        if (associatedThrowable == null)
+            throw new IllegalOperationPanic("Cannot handle uncaught panic without associated Throwable object.");
+
+        // Thread.dispatchUncaughtException() を呼び出す
+        VMMethod dispatchUncaught = this.threadObject.getObjectType().findMethod(
+                "dispatchUncaughtException",
+                MethodDescriptor.parse("(Ljava/lang/Throwable;)V")
+        );
+        if (dispatchUncaught == null)
+            throw new LinkagePanic("Cannot find Thread.dispatchUncaughtException(Throwable) method.");
+
+        this.invokeInterrupting(
+                dispatchUncaught,
+                (_) -> this.kill(),  // 呼び出しが終わったらスレッドを終了させる
+                this.threadObject,
+                associatedThrowable
+        );
     }
 
     public void invokeMethod(@NotNull VMMethod method, boolean isVMDecree, @Nullable VMObject thisObject, @NotNull VMValue... args)
@@ -109,7 +167,6 @@ public class VMThread implements VMComponent
             this.currentFrame.getStack().push(respond);
             return;
         }
-
 
         VMFrame newFrame = this.createFrame(method, isVMDecree, args);
         if (thisObject != null)
@@ -167,14 +224,13 @@ public class VMThread implements VMComponent
         return newFrame;
     }
 
-    public VMFrame restoreFrame()
+    public void restoreFrame()
     {
         if (this.currentFrame == null)
             throw new IllegalOperationPanic("Frame underflow.");
 
         // 親フレームと戻り値を，スタックに積んでおく
         VMValue returnValue = this.currentFrame.getReturnValue();
-        VMFrame prevFrame = this.currentFrame.getPrevFrame();
         if (this.currentFrame instanceof VMInterruptingFrame interruptingFrame)
             interruptingFrame.getCallback().accept(returnValue);
         else if (returnValue != null)
@@ -193,10 +249,19 @@ public class VMThread implements VMComponent
             while (returningFrame != null);
         }
 
-        this.tracer.pushHistory(FrameTracingEntry.frameOut(this.currentFrame));
+        // フレームを破棄して，親フレームに戻る
+        this.killFrame();
+    }
 
+    private void killFrame()
+    {
+        VMFrame prevFrame = this.currentFrame.getPrevFrame();
+        prevFrame.setNextFrame(null);
+
+        this.tracer.pushHistory(FrameTracingEntry.frameOut(this.currentFrame));
         this.vm.getEventManager().dispatchEvent(new VMFrameOutEvent(this.vm, this.currentFrame, prevFrame));
-        return this.currentFrame = prevFrame;
+
+        this.currentFrame = prevFrame;
     }
 
     public void kill()

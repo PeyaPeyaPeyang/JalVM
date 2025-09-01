@@ -1,9 +1,8 @@
 package tokyo.peya.langjal.vm.engine.stacking;
 
 import org.jetbrains.annotations.NotNull;
-import tokyo.peya.langjal.vm.exceptions.IllegalOperandPanic;
-import tokyo.peya.langjal.vm.exceptions.StackOverflowPanic;
-import tokyo.peya.langjal.vm.exceptions.StackUnderflowPanic;
+import tokyo.peya.langjal.vm.panics.IllegalOperandPanic;
+import tokyo.peya.langjal.vm.panics.StackUnderflowPanic;
 import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
 

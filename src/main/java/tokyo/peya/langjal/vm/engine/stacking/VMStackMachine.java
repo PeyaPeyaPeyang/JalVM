@@ -119,6 +119,7 @@ import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorLSub;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorLUShr;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.math.OperatorLXor;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorANewArray;
+import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorAThrow;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorArrayLength;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorCheckCast;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.references.OperatorGetField;
@@ -158,7 +159,7 @@ import tokyo.peya.langjal.vm.engine.stacking.instructions.stores.OperatorIStore;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.stores.OperatorLAStore;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.stores.OperatorLStore;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.stores.OperatorSAStore;
-import tokyo.peya.langjal.vm.exceptions.UnknownInstructionPanic;
+import tokyo.peya.langjal.vm.panics.UnknownInstructionPanic;
 
 public class VMStackMachine
 {
@@ -307,7 +308,6 @@ public class VMStackMachine
             new OperatorIfICmpLE(),  // 0xA4 - 164
             new OperatorIfACmpEQ(),  // 0xA5 - 165
             new OperatorIfACmpNE(),  // 0xA6 - 166
-            new OperatorCheckCast(), // 0xC0 - 192
             new OperatorIfNull(),  // 0xC6 - 198
             new OperatorIfNonNull(), // 0xC7 - 199
             // </editor-fold>
@@ -339,6 +339,8 @@ public class VMStackMachine
             new OperatorNewArray(), // 0xBC - 188
             new OperatorANewArray(), // 0xBD - 189
             new OperatorArrayLength(), // 0xBE - 190
+            new OperatorAThrow(), // 0xBF - 191
+            new OperatorCheckCast(), // 0xC0 - 192
             new OperatorInstanceOf(), // 0xC1 - 193
             new OperatorMonitorEnter(), // 0xC2 - 194
             new OperatorMonitorExit(), // 0xC3 - 195

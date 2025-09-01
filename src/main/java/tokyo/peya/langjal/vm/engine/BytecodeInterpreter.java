@@ -1,48 +1,73 @@
 package tokyo.peya.langjal.vm.engine;
 
-import lombok.Getter;
-import org.antlr.v4.codegen.model.chunk.ThisRulePropertyRef_ctx;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.LabelNode;
+import org.objectweb.asm.tree.LineNumberNode;
 import org.objectweb.asm.tree.MethodNode;
-import tokyo.peya.langjal.vm.JalVM;
-import tokyo.peya.langjal.vm.VMInterpreter;
-import tokyo.peya.langjal.vm.exceptions.VMPanic;
+import org.objectweb.asm.tree.TryCatchBlockNode;
+import tokyo.peya.langjal.vm.panics.VMPanic;
+import tokyo.peya.langjal.vm.references.ClassReference;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 
 public class BytecodeInterpreter implements VMInterpreter
 {
-    private final JalVM vm;
+    private final MethodNode method;
     private final List<AbstractInsnNode> instructions;
-    private final Map<Integer, Integer> labelToInstructionIndexMap;
+    private final LinkedHashMap<Integer, Label> labelToInstructionIndexMap;
+    private final LinkedHashMap<Label, Integer> labelToLineNumberMap;
+
+    private final List<ExceptionHandlerDirective> exceptionHandlers;
 
     private int currentInstructionIndex = -1; // -1: 未開始
 
-    public BytecodeInterpreter(@NotNull JalVM vm, @NotNull MethodNode method)
+    public BytecodeInterpreter(@NotNull VMComponent com, @NotNull MethodNode method)
     {
-        this.vm = vm;
+        this.method = method;
+
         this.instructions = new ArrayList<>();
-        this.labelToInstructionIndexMap = new HashMap<>();
+        this.labelToInstructionIndexMap = new LinkedHashMap<>();
+        this.labelToLineNumberMap = new LinkedHashMap<>();
+        this.exceptionHandlers = new LinkedList<>();
 
         int index = 0;
         for (AbstractInsnNode insn : method.instructions)
         {
             // ラベル → 次の実際命令の index をマッピング
             if (insn instanceof LabelNode ln)
-                this.labelToInstructionIndexMap.put(ln.getLabel().hashCode(), index);
+                this.labelToInstructionIndexMap.put(index, ln.getLabel());
+            else if (insn instanceof LineNumberNode line)
+                this.labelToLineNumberMap.put(line.start.getLabel(), line.line);
             else if (insn.getOpcode() != -1)
             {
                 this.instructions.add(insn); // 実際の命令だけ追加
                 index++;
             }
             // フレームや LineNumberNode は無視
+        }
+
+        // 例外ハンドラを読み込んでおく
+        for (TryCatchBlockNode tcb : method.tryCatchBlocks)
+        {
+            int startIdx = this.getLabelInstructionIndex(tcb.start.getLabel());
+            int endIdx = this.getLabelInstructionIndex(tcb.end.getLabel());
+            int handlerIdx = this.getLabelInstructionIndex(tcb.handler.getLabel());
+            VMClass exceptionType = tcb.type == null
+                    ? null
+                    : com.getClassLoader().findClass(ClassReference.of(tcb.type));
+            this.exceptionHandlers.add(new ExceptionHandlerDirective(
+                    startIdx,
+                    endIdx,
+                    handlerIdx,
+                    exceptionType
+            ));
         }
     }
 
@@ -59,6 +84,14 @@ public class BytecodeInterpreter implements VMInterpreter
             throw new VMPanic("No next instruction available.");
 
         this.currentInstructionIndex++;
+        return this.instructions.get(this.currentInstructionIndex);
+    }
+
+    @Override
+    public AbstractInsnNode getCurrentInstruction()
+    {
+        if (this.currentInstructionIndex < 0 || this.currentInstructionIndex >= this.instructions.size())
+            throw new VMPanic("No current instruction available.");
         return this.instructions.get(this.currentInstructionIndex);
     }
 
@@ -97,9 +130,54 @@ public class BytecodeInterpreter implements VMInterpreter
     @Override
     public int getLabelInstructionIndex(@NotNull Label label)
     {
-        Integer idx = this.labelToInstructionIndexMap.get(label.hashCode());
-        if (idx == null)
-            throw new VMPanic("Label not found: " + label);
-        return idx -1; // -1 するのは、LabelNode の index が実際の命令の index より 1 つ大きいから
+        int idx = this.labelToInstructionIndexMap.entrySet().stream()
+                                                 .filter(e -> e.getValue().equals(label))
+                                                 .map(Map.Entry::getKey)
+                                                 .findFirst()
+                                                 .orElseThrow(() -> new VMPanic("Label not found in method instructions: " + label));
+
+        return idx - 1; // -1 するのは、LabelNode の index が実際の命令の index より 1 つ大きいから
+    }
+
+    @Override
+    @Nullable
+    public Label getInstructionLabel(int instructionIndex)
+    {
+        Integer current = null;
+        for (Map.Entry<Integer, Label> entry : this.labelToInstructionIndexMap.entrySet())
+        {
+            if (entry.getKey() > instructionIndex)
+                break;
+            current = entry.getKey();
+        }
+
+        if (current == null)
+            return null;
+        return this.labelToInstructionIndexMap.get(current);
+    }
+
+    @Override
+    public int getLineNumberOf(int instructionIndex)
+    {
+        Label label = getInstructionLabel(instructionIndex);
+        if (label == null)
+            return -1;
+
+        return this.labelToLineNumberMap.getOrDefault(label, -1);
+    }
+
+    @Override
+    public @Nullable ExceptionHandlerDirective getExceptionHandlerFor(int instructionIndex,
+                                                                      @NotNull VMClass exceptionClass)
+    {
+        for (ExceptionHandlerDirective ehd : this.exceptionHandlers)
+            if (ehd.startInstructionIndex() <= instructionIndex && instructionIndex < ehd.endInstructionIndex())
+            {
+                VMClass exceptionType = ehd.exceptionType();
+                if (exceptionType == null || exceptionType.isAssignableFrom(exceptionClass))
+                    return ehd;
+            }
+
+        return null;
     }
 }

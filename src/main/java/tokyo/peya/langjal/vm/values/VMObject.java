@@ -11,7 +11,7 @@ import tokyo.peya.langjal.vm.engine.members.VMField;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
 import tokyo.peya.langjal.vm.engine.threading.VMMonitor;
 import tokyo.peya.langjal.vm.engine.threading.VMThread;
-import tokyo.peya.langjal.vm.exceptions.VMPanic;
+import tokyo.peya.langjal.vm.panics.VMPanic;
 
 import java.util.HashMap;
 import java.util.Map;

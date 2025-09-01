@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.InsnNode;
 import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 import tokyo.peya.langjal.vm.engine.VMFrame;
-import tokyo.peya.langjal.vm.exceptions.IllegalOperationPanic;
+import tokyo.peya.langjal.vm.panics.IllegalOperationPanic;
 import tokyo.peya.langjal.vm.values.VMArray;
 import tokyo.peya.langjal.vm.values.VMInteger;
 import tokyo.peya.langjal.vm.values.VMType;

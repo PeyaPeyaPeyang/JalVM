@@ -4,9 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.engine.VMComponent;
-import tokyo.peya.langjal.vm.engine.VMFrame;
-import tokyo.peya.langjal.vm.engine.threading.VMThread;
-import tokyo.peya.langjal.vm.exceptions.IllegalOperandPanic;
+import tokyo.peya.langjal.vm.panics.IllegalOperandPanic;
 
 public final class VMDouble extends AbstractVMPrimitive
 {

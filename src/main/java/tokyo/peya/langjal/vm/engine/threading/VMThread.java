@@ -15,7 +15,9 @@ import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.VMInterruptingFrame;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
 import tokyo.peya.langjal.vm.panics.IllegalOperationPanic;
+import tokyo.peya.langjal.vm.panics.InternalErrorVMPanic;
 import tokyo.peya.langjal.vm.panics.LinkagePanic;
+import tokyo.peya.langjal.vm.panics.PanicCreator;
 import tokyo.peya.langjal.vm.panics.VMPanic;
 import tokyo.peya.langjal.vm.tracing.FrameTracingEntry;
 import tokyo.peya.langjal.vm.tracing.VMFrameTracer;
@@ -133,7 +135,7 @@ public class VMThread implements VMComponent
     {
         VMObject associatedThrowable = panic.getAssociatedThrowable();
         if (associatedThrowable == null)
-            throw new IllegalOperationPanic("Cannot handle uncaught panic without associated Throwable object.");
+            throw new InternalErrorVMPanic("Cannot handle uncaught panic without associated Throwable object.");
 
         // Thread.dispatchUncaughtException() を呼び出す
         VMMethod dispatchUncaught = this.threadObject.getObjectType().findMethod(
@@ -141,7 +143,7 @@ public class VMThread implements VMComponent
                 MethodDescriptor.parse("(Ljava/lang/Throwable;)V")
         );
         if (dispatchUncaught == null)
-            throw new LinkagePanic("Cannot find Thread.dispatchUncaughtException(Throwable) method.");
+            throw new InternalErrorVMPanic(new LinkagePanic("Cannot find Thread.dispatchUncaughtException(Throwable) method."));
 
         this.invokeInterrupting(
                 dispatchUncaught,
@@ -227,7 +229,7 @@ public class VMThread implements VMComponent
     public void restoreFrame()
     {
         if (this.currentFrame == null)
-            throw new IllegalOperationPanic("Frame underflow.");
+            throw new InternalErrorVMPanic("Current frame is already null. Cannot restore frame.");
 
         // 親フレームと戻り値を，スタックに積んでおく
         VMValue returnValue = this.currentFrame.getReturnValue();

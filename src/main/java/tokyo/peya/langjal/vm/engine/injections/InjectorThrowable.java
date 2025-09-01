@@ -9,6 +9,7 @@ import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
 import tokyo.peya.langjal.vm.engine.threading.VMThread;
+import tokyo.peya.langjal.vm.panics.PanicCreator;
 import tokyo.peya.langjal.vm.panics.VMPanic;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMArray;
@@ -51,35 +52,7 @@ public class InjectorThrowable implements Injector
                     {
                         assert instance != null;
                         int depth = ((VMInteger) args[0]).asNumber().intValue();
-                        if (depth < 0)
-                            throw new VMPanic("NegativeArraySizeException");
-                        else if (depth == 0)
-                            depth = Integer.MAX_VALUE;
-
-                        List<VMStackTraceElementObject> elements = new ArrayList<>();
-                        int currentDepth = 0;
-                        VMFrame currentFrame = thread.getCurrentFrame();
-                        do
-                        {
-                            VMMethod method = currentFrame.getMethod();
-                            int currentInstruction = currentFrame.getInterpreter().getCurrentInstructionIndex();
-                            int currentLineNumber = currentFrame.getInterpreter().getLineNumberOf(currentInstruction);
-
-                            elements.add(new VMStackTraceElementObject(
-                                    thread.getVM(),
-                                    method,
-                                    currentLineNumber
-                            ));
-
-                            currentFrame = currentFrame.getPrevFrame();
-                        } while (currentFrame != null && ++currentDepth < depth);
-
-                        VMArray array = new VMArray(
-                                thread.getVM(),
-                                cl.findClass(ClassReference.of("java/lang/StackTraceElement")),
-                                elements.toArray(new VMValue[0])
-                        );
-
+                        VMArray array = PanicCreator.collectStackTrace(thread.getCurrentFrame(), depth);
                         instance.setField("stackTrace", array);
                         return null;
                     }

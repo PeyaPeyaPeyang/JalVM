@@ -7,6 +7,7 @@ import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.stacking.VMStack;
 import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOperator;
 import tokyo.peya.langjal.vm.panics.IllegalOperationPanic;
+import tokyo.peya.langjal.vm.panics.PanicCreator;
 import tokyo.peya.langjal.vm.values.VMValue;
 
 public class OperatorSwap extends AbstractInstructionOperator<InsnNode>
@@ -24,7 +25,7 @@ public class OperatorSwap extends AbstractInstructionOperator<InsnNode>
         VMValue value = stack.pop();
         VMValue value2 = stack.pop();
         if (value.isCategory2() || value2.isCategory2())
-            throw new IllegalOperationPanic("Cannot swap category 2 values with SWAP");
+            throw PanicCreator.createIllegalOperationPanic(frame, "Cannot swap category 2 value with SWAP");
 
         stack.push(value);
         stack.push(value2);

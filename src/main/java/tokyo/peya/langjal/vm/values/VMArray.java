@@ -7,6 +7,7 @@ import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.engine.VMArrayClass;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMComponent;
+import tokyo.peya.langjal.vm.panics.PanicCreator;
 import tokyo.peya.langjal.vm.panics.VMPanic;
 
 import java.lang.reflect.Array;

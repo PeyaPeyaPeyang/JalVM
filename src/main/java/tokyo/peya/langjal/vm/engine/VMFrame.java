@@ -14,6 +14,8 @@ import tokyo.peya.langjal.vm.engine.members.VMMethod;
 import tokyo.peya.langjal.vm.engine.stacking.VMStack;
 import tokyo.peya.langjal.vm.engine.stacking.VMStackMachine;
 import tokyo.peya.langjal.vm.engine.threading.VMThread;
+import tokyo.peya.langjal.vm.panics.InternalErrorVMPanic;
+import tokyo.peya.langjal.vm.panics.PanicCreator;
 import tokyo.peya.langjal.vm.panics.VMPanic;
 import tokyo.peya.langjal.vm.tracing.FrameTracingEntry;
 import tokyo.peya.langjal.vm.tracing.VMValueTracer;
@@ -92,9 +94,9 @@ public class VMFrame implements VMComponent
     public void activate()
     {
         if (this.isRunning)
-            throw new VMPanic("Frame is already running.");
+            throw new InternalErrorVMPanic("Frame is already running.");
         else if (this.interpreter != null)
-            throw new VMPanic("Frame has already started by other interpreter.");
+            throw new InternalErrorVMPanic("Frame has already started by other interpreter.");
 
         this.interpreter = this.method.createInterpreter();
         this.isRunning = true;
@@ -108,7 +110,7 @@ public class VMFrame implements VMComponent
     public void heartbeat()
     {
         if (!this.isRunning)
-            throw new VMPanic("Frame is not running.");
+            throw new InternalErrorVMPanic("Frame is not running.");
 
         if (!this.interpreter.hasNextInstruction())
         {
@@ -133,26 +135,32 @@ public class VMFrame implements VMComponent
         }
         catch (VMPanic p)
         {
-            VMPanicOccurredEvent event = new VMPanicOccurredEvent(this, p);
-            this.vm.getEventManager().dispatchEvent(event);
-
-            boolean handled = this.handlePanic(p);
-            if (!handled)
-                throw p;  // 処理できなかった場合は，上に伝搬する
-
-            // なお，finally については何もしない。
-            // なぜならバイト・コード側が適切にジャンプを処理してくれるからである。
+            this.handleOccurredPanic(p);
         }
         catch (Throwable e)
         {
-            throw new IllegalStateException(
-                    "An unexpected internal VM error occurred in " + this.method
-                            + " at instruction " +
-                            this.interpreter.getCurrentInstructionIndex()
-                            + ".", e
+            throw PanicCreator.createInternalPanic(
+                    this,
+                    "An internal VM error has occurred: " + e.getMessage(),
+                    PanicCreator.copyThrowable(this, e)
             );
         }
     }
+
+
+    private void handleOccurredPanic(@NotNull VMPanic panic)
+    {
+        VMPanicOccurredEvent event = new VMPanicOccurredEvent(this, panic);
+        this.vm.getEventManager().dispatchEvent(event);
+
+        boolean handled = this.handlePanic(panic);
+        if (!handled)
+            throw panic;  // 処理できなかった場合は，上に伝搬する
+
+        // なお，finally については何もしない。
+        // なぜならバイト・コード側が適切にジャンプを処理してくれるからである。
+    }
+
 
     public boolean handlePanic(@NotNull VMPanic panic)
     {
@@ -238,12 +246,12 @@ public class VMFrame implements VMComponent
         }
 
         if (expectedArgs != actualArgs)
-            throw new VMPanic("Method " + method.getMethodNode().name + " expects " + expectedArgs +
+            throw new InternalErrorVMPanic("Method " + method.getMethodNode().name + " expects " + expectedArgs +
                                       " arguments, but got " + actualArgs);
 
         for (int i = 0; i < parameterTypes.length; i++)
             if (!parameterTypes[i].isAssignableFrom(args[i].type()))
-                throw new VMPanic("Argument " + i + " of method " + method.getMethodNode().name +
+                throw new InternalErrorVMPanic("Argument " + i + " of method " + method.getMethodNode().name +
                                           " is of type " + args[i].type() + ", but expected " + parameterTypes[i] + ".");
     }
 

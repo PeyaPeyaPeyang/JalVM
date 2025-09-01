@@ -2,6 +2,7 @@ package tokyo.peya.langjal.vm.values.metaobjects;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
@@ -11,6 +12,8 @@ import tokyo.peya.langjal.vm.values.VMInteger;
 import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMValue;
 import tokyo.peya.langjal.vm.values.metaobjects.reflection.VMMethodObject;
+
+import java.util.SortedMap;
 
 @Getter
 public class VMStackTraceElementObject extends VMObject
@@ -47,6 +50,30 @@ public class VMStackTraceElementObject extends VMObject
         this.setField("fileName", VMStringObject.createString(vm, this.fileName));
         this.setField("lineNumber", new VMInteger(vm, this.lineNumber));
 
+        this.forceInitialise(vm.getClassLoader());
+    }
+
+    public VMStackTraceElementObject(@NotNull JalVM vm,
+                                     @NotNull StackTraceElement original)
+    {
+        super(vm.getClassLoader().findClass(ClassReference.of("java/lang/StackTraceElement")));
+
+        this.vm = vm;
+        this.classLoaderName = original.getClassLoaderName();
+        this.moduleName = original.getModuleName();
+        this.moduleVersion = original.getModuleVersion();
+        this.declaringClass = original.getClassName();
+        this.methodName = original.getMethodName();
+        this.fileName = original.getFileName();
+        this.lineNumber = original.getLineNumber();
+
+        this.setField("classLoaderName", VMStringObject.createString(vm, this.classLoaderName));
+        this.setField("moduleName", VMStringObject.createString(vm, this.moduleName));
+        this.setField("moduleVersion", VMStringObject.createString(vm, this.moduleVersion));
+        this.setField("declaringClass", VMStringObject.createString(vm, this.declaringClass));
+        this.setField("methodName", VMStringObject.createString(vm, this.methodName));
+        this.setField("fileName", VMStringObject.createString(vm, this.fileName));
+        this.setField("lineNumber", new VMInteger(vm, this.lineNumber));
         this.forceInitialise(vm.getClassLoader());
     }
 }

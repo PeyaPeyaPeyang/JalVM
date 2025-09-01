@@ -4,6 +4,7 @@ import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 import tokyo.peya.langjal.vm.JalVM;
+import tokyo.peya.langjal.vm.VMHeap;
 import tokyo.peya.langjal.vm.engine.VMArrayClass;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMComponent;
@@ -78,7 +79,6 @@ public class VMArray extends VMObject implements VMValue, VMReferenceValue
 
         this.arrayType = VMType.of(component, "[" + elementType.getTypeDescriptor());
     }
-
 
     private void fillDefaults()
     {

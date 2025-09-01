@@ -31,7 +31,7 @@ public class InjectorThrowable implements Injector
                 cl,
                 new InjectedMethod(
                         clazz, new MethodNode(
-                        EOpcodes.ACC_PRIVATE | EOpcodes.ACC_STATIC | EOpcodes.ACC_NATIVE,
+                        EOpcodes.ACC_PUBLIC | EOpcodes.ACC_SYNCHRONIZED | EOpcodes.ACC_NATIVE,
                         "fillInStackTrace",
                         "(I)Ljava/lang/Throwable;",
                         null,

@@ -20,6 +20,7 @@ public class VMArrayClass extends VMClass
         super(component, componentClass.getClazz(), arrayType.getComponentType());
         this.arrayType = arrayType;
         this.componentClass = componentClass;
+        this.linkedClass = this;
 
         component.getClassLoader().linkType(this);
     }

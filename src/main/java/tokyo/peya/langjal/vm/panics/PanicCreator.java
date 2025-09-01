@@ -110,19 +110,22 @@ public class PanicCreator
     private static VMObject createThrowable(@NotNull VMFrame frame, @NotNull VMClass internalErrorClass, @NotNull String message, @Nullable VMObject cause)
     {
         VMObject obj = internalErrorClass.createInstance();
-        VMObject superObj = obj;
+        VMObject throwableObj = obj;
         do
         {
-            VMObject superCandidate = superObj.getSuperObject();
+            VMObject superCandidate = throwableObj.getSuperObject();
             if (superCandidate == null)
+                throw new InternalErrorVMPanic("Class " + throwableObj.getObjectType().getClazz().name + " does not extend Throwable.");
+            if (superCandidate.getObjectType().getClazz().name.equals("java/lang/Throwable"))
                 break;
-            superObj = superCandidate;
+
+            throwableObj = superCandidate;
         } while (true);
 
-        superObj.setField("detailMessage", VMStringObject.createString(frame, message));
-        superObj.setField("stackTrace", collectStackTrace(frame, Integer.MAX_VALUE));
+        throwableObj.setField("detailMessage", VMStringObject.createString(frame, message));
+        throwableObj.setField("stackTrace", collectStackTrace(frame, Integer.MAX_VALUE));
         if (cause != null)
-            superObj.setField("cause", cause);
+            throwableObj.setField("cause", cause);
 
         obj.forceInitialise(frame.getClassLoader());
         return obj;

@@ -3,6 +3,7 @@ package tokyo.peya.langjal.vm.values.metaobjects;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.objectweb.asm.tree.ModuleNode;
 import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
@@ -35,8 +36,18 @@ public class VMStackTraceElementObject extends VMObject
         this.vm = vm;
         this.classLoaderName = null;
         VMClass clazz = method.getClazz();
-        this.moduleName = clazz.getClazz().module.name;
-        this.moduleVersion = clazz.getClazz().module.version;
+        ModuleNode mod = clazz.getClazz().module;
+        if (mod == null)
+        {
+            this.moduleName = null;
+            this.moduleVersion = null;
+        }
+        else
+        {
+            this.moduleName = mod.name;
+            this.moduleVersion = mod.version;
+        }
+
         this.declaringClass = clazz.getReference().getFullQualifiedDotName();
         this.methodName = method.getName();
         this.fileName = clazz.getClazz().sourceFile;

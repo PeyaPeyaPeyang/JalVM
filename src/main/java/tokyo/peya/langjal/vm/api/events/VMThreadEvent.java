@@ -7,7 +7,7 @@ import tokyo.peya.langjal.vm.api.VMEventHandlerList;
 import tokyo.peya.langjal.vm.engine.threading.VMThread;
 
 @Getter
-public abstract class VMThreadEvent extends JalVMEvent
+public abstract class VMThreadEvent extends VMThreadGroupEvent
 {
     public static final VMEventHandlerList<VMThreadEvent> HANDLER_LIST = new VMEventHandlerList<>(VMThreadEvent.class);
 
@@ -15,7 +15,7 @@ public abstract class VMThreadEvent extends JalVMEvent
 
     public VMThreadEvent(@NotNull JalVM vm, @NotNull VMThread thread)
     {
-        super(vm);
+        super(vm, thread.getGroup());
         this.thread = thread;
     }
 }

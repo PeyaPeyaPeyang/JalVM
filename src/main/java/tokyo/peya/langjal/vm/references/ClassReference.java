@@ -6,9 +6,7 @@ import org.objectweb.asm.tree.ClassNode;
 import tokyo.peya.langjal.compiler.jvm.ClassReferenceType;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 
 public class ClassReference
@@ -108,14 +106,39 @@ public class ClassReference
         return this.getFullQualifiedDotName();
     }
 
+    private static String[] splitByChar(String s, char delimiter)
+    {
+        // 事前にカウントしてサイズ確定
+        int count = 1;
+        for (int i = 0; i < s.length(); i++)
+            if (s.charAt(i) == delimiter)
+                count++;
+
+        String[] result = new String[count];
+        int start = 0, idx = 0;
+        for (int i = 0; i < s.length(); i++)
+        {
+            if (s.charAt(i) == delimiter)
+            {
+                result[idx++] = s.substring(start, i);
+                start = i + 1;
+            }
+        }
+        result[idx] = s.substring(start);
+        return result;
+    }
+
     public static ClassReference of(String className)
     {
         if (className == null || className.isEmpty())
             return EMPTY;
 
-        String[] parts = className.replace('/', '.').split("\\.");
-        String[] packages = new String[parts.length - 1];
-        System.arraycopy(parts, 0, packages, 0, parts.length - 1);
+        className = className.replace('/', '.');
+        String[] parts = splitByChar(className, '.');
+        if (parts.length == 1)
+            return new ClassReference(new String[0], parts[0]);
+
+        String[] packages = Arrays.copyOf(parts, parts.length - 1);
         return new ClassReference(packages, parts[parts.length - 1]);
     }
 
@@ -146,12 +169,9 @@ public class ClassReference
         if (packages == null || packages.length == 0)
             return new String[0];
 
-        List<String> result = new ArrayList<>(packages.length);
-        for (String pkg : packages)
-            if (!(pkg == null || pkg.isEmpty()))
-                result.add(pkg);
-
-        return result.toArray(new String[0]);
+        return Arrays.stream(packages)
+                     .filter(pkg -> pkg != null && !pkg.isEmpty())
+                     .toArray(String[]::new);
     }
 
     private static String concat(String a, String b, String delimiter)

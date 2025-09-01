@@ -13,6 +13,7 @@ import tokyo.peya.langjal.vm.api.events.VMThreadChangeStateEvent;
 import tokyo.peya.langjal.vm.engine.VMComponent;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.VMInterruptingFrame;
+import tokyo.peya.langjal.vm.engine.VMThreadGroup;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
 import tokyo.peya.langjal.vm.panics.IllegalOperationPanic;
 import tokyo.peya.langjal.vm.panics.InternalErrorVMPanic;
@@ -35,7 +36,9 @@ public class VMThread implements VMComponent
 {
     @Getter(AccessLevel.NONE)
     protected final JalVM vm;
+    protected final VMThreadGroup group;
     protected final String name;
+
     protected final int currentFrameIndex;
     protected final VMFrameTracer tracer;
     protected final VMThreadObject threadObject;
@@ -46,12 +49,15 @@ public class VMThread implements VMComponent
     protected VMThreadState state;
     protected VMMonitor acquiringMonitor;
 
+    private boolean daemon;
 
-    public VMThread(@NotNull JalVM vm, @NotNull String name)
+    public VMThread(@NotNull JalVM vm, @NotNull VMThreadGroup group, @NotNull String name)
     {
         this.vm = vm;
-        this.tracer = new VMFrameTracer();
         this.name = name;
+        this.group = group;
+
+        this.tracer = new VMFrameTracer();
         this.threadObject = new VMThreadObject(vm, this);
 
         this.state = VMThreadState.NEW;
@@ -135,7 +141,7 @@ public class VMThread implements VMComponent
     {
         VMObject associatedThrowable = panic.getAssociatedThrowable();
         if (associatedThrowable == null)
-            throw new InternalErrorVMPanic("Cannot handle uncaught panic without associated Throwable object.");
+            throw new InternalErrorVMPanic("Cannot handle uncaught panic without associated Throwable object.", panic);
 
         // Thread.dispatchUncaughtException() を呼び出す
         VMMethod dispatchUncaught = this.threadObject.getObjectType().findMethod(

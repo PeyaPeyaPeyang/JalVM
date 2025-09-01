@@ -48,7 +48,18 @@ public class InjectorVM implements Injector
                     {
                         VMInteger level = (VMInteger) args[0];
                         int initLevel = level.asNumber().intValue();
-                        System.out.println("VM INITIALISATION LEVEL CHANGED: " + initLevel);
+                        String levelName = switch (initLevel)
+                        {
+                            case 0 -> "DOWN";
+                            case 1 -> "JAVA_LANG_SYSTEM_INITIALIZED";
+                            case 2 -> "MODULE_SYSTEM_INITIALIZED";
+                            case 3 -> "SYSTEM_LOADER_INITIALIZING";
+                            case 4 -> "SYSTEM_BOOTED";
+                            case 5 -> "SYSTEM_SHUTDOWN";
+                            default -> "UNKNOWN_LEVEL(" + initLevel + ")";
+                        };
+
+                        System.out.println("VM INITIALISATION LEVEL CHANGED: " + levelName);
 
                         frame.getThread().invokeInterrupting(
                                 originalInitLevel,

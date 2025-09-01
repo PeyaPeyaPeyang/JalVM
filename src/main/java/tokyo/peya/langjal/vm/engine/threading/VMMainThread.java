@@ -3,6 +3,7 @@ package tokyo.peya.langjal.vm.engine.threading;
 import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
+import tokyo.peya.langjal.vm.engine.VMThreadGroup;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
 import tokyo.peya.langjal.vm.values.VMArray;
 import tokyo.peya.langjal.vm.values.VMType;
@@ -10,9 +11,9 @@ import tokyo.peya.langjal.vm.values.metaobjects.VMStringObject;
 
 public class VMMainThread extends VMThread
 {
-    public VMMainThread(@NotNull JalVM vm)
+    public VMMainThread(@NotNull JalVM vm, @NotNull VMThreadGroup group)
     {
-        super(vm, "main");
+        super(vm, group, "main");
     }
 
     public void startMainThread(@NotNull VMMethod entryPointMethod, @NotNull String[] args)

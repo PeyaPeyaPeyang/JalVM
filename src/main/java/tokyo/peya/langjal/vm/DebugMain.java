@@ -64,7 +64,7 @@ public class DebugMain
         methodNode.visitCode();
         // System.out.println("Hello, World!");
         // helloWorld(methodNode);
-        parrotInput(methodNode);
+        // parrotInput(methodNode);
         // a(methodNode);
         // comparisons(methodNode);
         // getProp(methodNode);

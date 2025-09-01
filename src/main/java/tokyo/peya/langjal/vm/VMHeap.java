@@ -50,16 +50,6 @@ public class VMHeap
     }
 
     @Nullable
-    public VMClass getLoadedClass(@NotNull String descriptor)
-    {
-        for (VMClass vmClass : this.loadedClasses)
-            if (vmClass.getTypeDescriptor().equals(descriptor))
-                return vmClass;
-
-        return null;
-    }
-
-    @Nullable
     public VMClass getLoadedClass(@NotNull ClassReference className)
     {
         for (VMClass vmClass : this.loadedClasses)

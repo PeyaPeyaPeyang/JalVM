@@ -55,7 +55,7 @@ public class VMMonitor
                 new VMThreadWaitingEvent(thread.getVM(), thread, this, Duration.ZERO);
         thread.getVM().getEventManager().dispatchEvent(waitingEvent);
 
-        thread.setState(VMThreadState.WAITING);
+        thread.setState(VMThreadState.WAITING_INDEFINITELY);
         this.notifyWaitlist.add(VMThreadWaitingEntry.wait(thread));
     }
 
@@ -65,7 +65,7 @@ public class VMMonitor
                 new VMThreadWaitingEvent(thread.getVM(), thread, this, duration);
         thread.getVM().getEventManager().dispatchEvent(waitingEvent);
 
-        thread.setState(VMThreadState.TIMED_WAITING);
+        thread.setState(VMThreadState.WAITING_WITH_TIMEOUT);
         this.notifyWaitlist.add(VMThreadWaitingEntry.waitTimed(thread, duration));
     }
 

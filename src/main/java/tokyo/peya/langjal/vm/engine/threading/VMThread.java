@@ -18,7 +18,6 @@ import tokyo.peya.langjal.vm.engine.members.VMMethod;
 import tokyo.peya.langjal.vm.panics.IllegalOperationPanic;
 import tokyo.peya.langjal.vm.panics.InternalErrorVMPanic;
 import tokyo.peya.langjal.vm.panics.LinkagePanic;
-import tokyo.peya.langjal.vm.panics.PanicCreator;
 import tokyo.peya.langjal.vm.panics.VMPanic;
 import tokyo.peya.langjal.vm.tracing.FrameTracingEntry;
 import tokyo.peya.langjal.vm.tracing.VMFrameTracer;
@@ -38,6 +37,7 @@ public class VMThread implements VMComponent
     protected final JalVM vm;
     protected final VMThreadGroup group;
     protected final String name;
+    private final long id;
 
     protected final int currentFrameIndex;
     protected final VMFrameTracer tracer;
@@ -49,6 +49,7 @@ public class VMThread implements VMComponent
     protected VMThreadState state;
     protected VMMonitor acquiringMonitor;
 
+    protected int priority;
     private boolean daemon;
 
     public VMThread(@NotNull JalVM vm, @NotNull VMThreadGroup group, @NotNull String name)
@@ -56,6 +57,10 @@ public class VMThread implements VMComponent
         this.vm = vm;
         this.name = name;
         this.group = group;
+        if (this instanceof VMMainThread)
+            this.id = 3;
+        else
+            this.id = vm.getEngine().incrementAndGetThreadID();
 
         this.tracer = new VMFrameTracer();
         this.threadObject = new VMThreadObject(vm, this);
@@ -289,6 +294,23 @@ public class VMThread implements VMComponent
         );
         this.vm.getEventManager().dispatchEvent(stateChangeEvent);
         this.state = state;
+
+        this.threadObject.syncStateField();
+    }
+
+    public void setDaemon(boolean daemon)
+    {
+        this.daemon = daemon;
+        this.threadObject.syncFields();
+    }
+
+    public void setPriority(int priority)
+    {
+        if (priority < Thread.MIN_PRIORITY || priority > Thread.MAX_PRIORITY)
+            throw new IllegalOperationPanic("Thread priority must be between " + Thread.MIN_PRIORITY + " and " + Thread.MAX_PRIORITY + ", but got " + priority + ".");
+
+        this.priority = priority;
+        this.threadObject.syncFields();
     }
 
     public Stream<VMFrame> getFrames()

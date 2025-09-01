@@ -17,6 +17,8 @@ public class VMEngine implements VMComponent
 
     private final VMMainThread mainThread;
 
+    private long lastThreadID = 3;  // デフォルトの最初の ID が 3 なので， 3 から始める
+
     public VMEngine(@NotNull JalVM vm)
     {
         this.vm = vm;
@@ -52,5 +54,10 @@ public class VMEngine implements VMComponent
     public VMThread getCurrentThread()
     {
         return this.systemThreadGroup.getCurrentHeartBeatingThread();
+    }
+
+    public long incrementAndGetThreadID()
+    {
+        return ++this.lastThreadID;
     }
 }

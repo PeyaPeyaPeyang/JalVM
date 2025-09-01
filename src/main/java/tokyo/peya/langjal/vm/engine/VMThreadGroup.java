@@ -101,14 +101,14 @@ public class VMThreadGroup implements VMComponent
     {
         VMThreadGroup group = new VMThreadGroup(vm, name, maxPriority, parent);
         parent.children.add(group);
-        parent.object.updateFields();
+        parent.object.syncFields();
         return group;
     }
 
     private static void removeChild(@NotNull VMThreadGroup group, @NotNull VMThreadGroup child)
     {
         group.children.remove(child);
-        group.object.updateFields();
+        group.object.syncFields();
     }
 
     private void renewIterators()
@@ -247,12 +247,12 @@ public class VMThreadGroup implements VMComponent
     public void setMaxPriority(int maxPriority)
     {
         this.maxPriority = Math.min(maxPriority, Thread.MAX_PRIORITY);
-        this.object.updateFields();
+        this.object.syncFields();
     }
 
     public void setDaemon(boolean daemon)
     {
         this.daemon = daemon;
-        this.object.updateFields();
+        this.object.syncFields();
     }
 }

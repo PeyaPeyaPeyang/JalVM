@@ -27,17 +27,17 @@ public class VMThreadGroupObject extends VMObject
             this.setField("parent", group.getParent().getObject());
         this.setField("name", VMStringObject.createString(vm, group.getName()));
 
-        this.updateFields();
+        this.syncFields();
         this.forceInitialise(vm.getClassLoader());
     }
 
-    public void updateFields()
+    public void syncFields()
     {
         this.setField("maxPriority", new VMInteger(this.vm, this.group.getMaxPriority()));
         this.setField("daemon", VMBoolean.of(this.vm, this.group.isDaemon()));
     }
 
-    public void updateChildren()
+    public void syncChildren()
     {
         int childrenCount = this.group.getChildren().size();
         VMArray children = new VMArray(

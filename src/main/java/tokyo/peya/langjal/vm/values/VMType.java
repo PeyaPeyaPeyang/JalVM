@@ -178,14 +178,7 @@ public class VMType<T extends VMValue> implements VMComponent
         }
         else if (this.componentType != null)
         {
-            VMClass arrayClass;
-            VMType<?> arrayType;
-            if ((arrayType = vm.getHeap().getType(this.getTypeDescriptor())) == null)
-            {
-                arrayType = arrayClass = new VMArrayClass(vm, this, this.componentType.getLinkedClass());
-                vm.getHeap().addType(arrayClass);
-            }
-            this.linkedClass = arrayType.getLinkedClass();
+            this.linkedClass = new VMArrayClass(vm, this, this.componentType.getLinkedClass());
             this.componentType.link(vm);
         }
         else if (this.linkedClass == null)

@@ -4,32 +4,25 @@ import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 import tokyo.peya.langjal.vm.JalVM;
-import tokyo.peya.langjal.vm.VMHeap;
-import tokyo.peya.langjal.vm.engine.VMArrayClass;
-import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMComponent;
-import tokyo.peya.langjal.vm.panics.PanicCreator;
 import tokyo.peya.langjal.vm.panics.VMPanic;
 
 import java.lang.reflect.Array;
+import java.util.Random;
 
 @Getter
-public class VMArray extends VMObject implements VMValue, VMReferenceValue
+public class VMArray implements VMValue, VMReferenceValue
 {
     private final JalVM vm;
     private final VMType<?> elementType;
     private final VMValue[] elements;
 
+    private final long identity;
+
     private final VMType<?> arrayType;
 
     public VMArray(@NotNull VMComponent component, @NotNull VMType<?> elementType, int size)
     {
-        super(new VMArrayClass(
-                component,
-                VMType.of(component, "[" + elementType.getTypeDescriptor()),
-                elementType.getLinkedClass()
-        ));
-
         this.vm = component.getVM();
         if (size < 0)
             throw new VMPanic("Size cannot be negative: " + size);
@@ -37,10 +30,10 @@ public class VMArray extends VMObject implements VMValue, VMReferenceValue
         this.elementType = elementType;
         this.elements = new VMValue[size];
         this.fillDefaults();
+        this.identity = new Random().nextLong();
 
         this.arrayType = VMType.of(component, "[" + elementType.getTypeDescriptor());
 
-        this.forceInitialise(component.getClassLoader());
     }
     public VMArray(@NotNull VMComponent component, @NotNull VMType<?> elementType)
     {
@@ -48,24 +41,17 @@ public class VMArray extends VMObject implements VMValue, VMReferenceValue
     }
 
 
-    public VMArray(@NotNull VMClass objectType, VMType<?> elementType, VMValue[] elements, @NotNull VMType<?> arrayType)
+    public VMArray(@NotNull VMComponent component, VMType<?> elementType, VMValue[] elements, @NotNull VMType<?> arrayType)
     {
-        super(arrayType.getLinkedClass());
-        this.vm = objectType.getVM();
+        this.vm = component.getVM();
         this.elementType = elementType;
         this.elements = elements;
         this.arrayType = arrayType;
-
-        this.forceInitialise(objectType.getClassLoader());
+        this.identity = new Random().nextLong();
     }
 
     public VMArray(@NotNull VMComponent component, @NotNull VMType<?> elementType, @NotNull VMValue[] values)
     {
-        super(new VMArrayClass(
-                component,
-                VMType.of(component, "[" + elementType.getTypeDescriptor()),
-                elementType.getLinkedClass()
-        ));
         this.vm = component.getVM();
 
         // 値チェック
@@ -76,6 +62,7 @@ public class VMArray extends VMObject implements VMValue, VMReferenceValue
 
         this.elementType = elementType;
         this.elements = values;
+        this.identity = new Random().nextLong();
 
         this.arrayType = VMType.of(component, "[" + elementType.getTypeDescriptor());
     }
@@ -87,12 +74,12 @@ public class VMArray extends VMObject implements VMValue, VMReferenceValue
     }
 
     @Override
-    public @NotNull VMObject cloneValue()
+    public @NotNull VMArray cloneValue()
     {
         VMValue[] clonedElements = new VMValue[this.elements.length];
         System.arraycopy(this.elements, 0, clonedElements, 0, this.elements.length);
 
-        return new VMArray(this.getObjectType(), this.elementType, clonedElements, this.arrayType);
+        return new VMArray(this.elementType, this.elementType, clonedElements, this.arrayType);
     }
 
     @NotNull
@@ -127,11 +114,18 @@ public class VMArray extends VMObject implements VMValue, VMReferenceValue
     }
 
     @Override
+    public int identityHashCode()
+    {
+        return 0;
+    }
+
+    @Override
     public boolean isCompatibleTo(@NotNull VMValue other)
     {
         if (other instanceof VMArray otherArray)
-            return this.elementType.isAssignableFrom(otherArray.getObjectType());
-        return other.type().equals(VMType.ofGenericObject(other.type().getVM())) || other instanceof VMNull;
+            return this.elementType.isAssignableFrom(otherArray.elementType);
+        return other.type().equals(VMType.ofGenericObject(other.type().getVM()))  // Object
+                || other instanceof VMNull;  // null
     }
 
     @Override

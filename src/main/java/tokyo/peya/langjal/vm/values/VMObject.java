@@ -245,7 +245,7 @@ public class VMObject implements VMValue, VMReferenceValue
             case VMNull(VMType<?> type) -> otherType = type;
             case VMArray array ->
             {
-                VMType<?> arrayType = array.getObjectType();
+                VMType<?> arrayType = array.getElementType();
                 if (arrayType.isPrimitive())
                     return false;
                 else

@@ -78,6 +78,9 @@ public class VMSystemClassLoader implements VMComponent
 
     public void linkType(@NotNull VMType<?> vmClass)
     {
+        if (vmClass.isLinked())
+            return;
+
         this.linkLater(vmClass);
         this.resumeLinking();
     }

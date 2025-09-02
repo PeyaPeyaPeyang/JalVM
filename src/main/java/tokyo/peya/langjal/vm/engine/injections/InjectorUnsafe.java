@@ -166,7 +166,7 @@ public class InjectorUnsafe implements Injector
                         if (object instanceof VMArray array)
                         {
                             // 配列の場合は、配列の要素を取得
-                            int index = (int) (offset - getArrayBaseOffset()) / getArrayScale(array.getObjectType());
+                            int index = (int) (offset - getArrayBaseOffset()) / getArrayScale(array.getElementType());
                             if (index < 0 || index >= array.length())
                                 throw new VMPanic("Array index out of bounds: " + index);
                             VMValue value = array.get(index);

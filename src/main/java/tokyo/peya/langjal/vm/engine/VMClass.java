@@ -59,6 +59,9 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
     @Getter(lombok.AccessLevel.NONE)
     protected final Map<VMField, VMValue> staticFields;
 
+    private long lastFieldID;
+    private long lastSlotID;
+
     protected boolean isLinked;
     protected boolean isInitialised;
     @Getter(lombok.AccessLevel.NONE)
@@ -165,6 +168,9 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
         this.fields.removeIf(existingField -> existingField.getName().equals(field.getName()));
         // 新しいフィールドを追加
         this.fields.add(field);
+
+        if (field.getAccessAttributes().has(AccessAttribute.STATIC))
+            this.vm.getHeap().recognizeStaticField(field); // 静的フィールドをヒープに認識させる
     }
 
     public boolean isSubclassOf(@NotNull VMClass maySuper)
@@ -296,19 +302,28 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
     {
         FieldNode[] fields = classNode.fields.toArray(new FieldNode[0]);
         List<VMField> vmFields = new ArrayList<>();
-        long id = 0; // フィールドIDの初期化
         for (int i = 0; i < fields.length; i++)
         {
             FieldNode fieldNode = fields[i];
             String descString = fieldNode.desc;
-            vmFields.add(new VMField(
+            boolean isStatic = (fieldNode.access & Opcodes.ACC_STATIC) != 0;
+            long id;
+            if (isStatic)
+                id = this.vm.getHeap().assignStaticFieldID(); // 静的フィールドでデフォルト値がある場合は新しいIDを割り当て
+            else
+                id = this.lastSlotID += 16; // それ以外は次のフィールドIDを取得
+
+            VMField field = new VMField(
                     this.vm,
                     this,
                     i,
-                    id += 16, // フィールドIDをインクリメント
+                    id,
                     VMType.of(this.vm, descString),
                     fieldNode
-            ));
+            );
+            vmFields.add(field);
+            if (isStatic)
+                this.vm.getHeap().recognizeStaticField(field); // 静的フィールドをヒープに認識させる
         }
 
         return vmFields;
@@ -565,6 +580,28 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
     public String toString()
     {
         return this.reference.getFullQualifiedName();
+    }
+
+    public int getNextSlot()
+    {
+        int maxSlot = -1;
+        for (VMField field : this.fields)
+        {
+            if (field.getSlot() > maxSlot)
+                maxSlot = field.getSlot();
+        }
+        return maxSlot + 1; // 次のスロット番号を返す
+    }
+
+    public long getNextFieldID()
+    {
+        long maxID = -16;
+        for (VMField field : this.fields)
+        {
+            if (field.getFieldID() > maxID)
+                maxID = field.getFieldID();
+        }
+        return maxID + 16; // 次のフィールドIDを返す
     }
 
     @Override

@@ -17,6 +17,7 @@ import tokyo.peya.langjal.vm.values.VMArray;
 import tokyo.peya.langjal.vm.values.VMBoolean;
 import tokyo.peya.langjal.vm.values.VMInteger;
 import tokyo.peya.langjal.vm.values.VMLong;
+import tokyo.peya.langjal.vm.values.VMNull;
 import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMPrimitive;
 import tokyo.peya.langjal.vm.values.VMReferenceValue;
@@ -576,18 +577,34 @@ public class InjectorUnsafe implements Injector
             {
                 VMReferenceValue object = (VMReferenceValue) args[0];
                 long offset = ((VMLong) args[1]).asNumber().longValue();
-                if (object instanceof VMArray array)
-                    return read(
-                            frame,
-                            array,
-                            offset - getArrayBaseOffset(),
-                            getArrayScale(returnType)
-                    );
-                else if (object instanceof VMObject vmObject)
+                switch (object)
                 {
-                    VMField field = vmObject.getObjectType().findField(offset);
-                    VMValue value = vmObject.getField(field.getName());
-                    return value.conformValue(returnType);
+                    case VMArray array ->
+                    {
+                        return read(
+                                frame,
+                                array,
+                                offset - getArrayBaseOffset(),
+                                getArrayScale(returnType)
+                        );
+                    }
+                    case VMObject vmObject ->
+                    {
+                        VMField field = vmObject.getObjectType().findField(offset);
+                        VMValue value = vmObject.getField(field.getName());
+                        return value.conformValue(returnType);
+                    }
+                    case VMNull<?> vmNull ->
+                    {
+                        VMField field = frame.getVM().getHeap().getStaticFieldByID(offset);
+                        if (field == null)
+                            throw new VMPanic("No static field with ID: " + offset);
+                        VMValue value = field.getOwningClass().getStaticFieldValue(field);
+                        return value.conformValue(returnType);
+                    }
+                    default ->
+                    {
+                    }
                 }
 
                 throw new VMPanic("Unsupported object type for getVolatile: " + object.getClass().getName());
@@ -613,13 +630,38 @@ public class InjectorUnsafe implements Injector
             public @Nullable VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                             @Nullable VMObject instance, @NotNull VMValue[] args)
             {
-                VMObject object = (VMObject) args[0];
+                VMReferenceValue object = (VMReferenceValue) args[0];
                 long offset = ((VMLong) args[1]).asNumber().longValue();
                 VMValue value = args[2].conformValue(valueType);
-                VMField field = object.getObjectType().findField(offset);
-                object.setField(field, value);
+                switch (object)
+                {
+                    case VMArray array ->
+                    {
+                        int index = (int) (offset - getArrayBaseOffset()) / getArrayScale(array.getElementType());
+                        if (index < 0 || index >= array.length())
+                            throw new VMPanic("Array index out of bounds: " + index);
+                        array.set(index, value);
+                    }
+                    case VMObject vmObject ->
+                    {
+                        VMField field = vmObject.getObjectType().findField(offset);
+                        vmObject.setField(field, value);
+                    }
+                    case VMNull<?> vmNull ->
+                    {
+                        VMField field = frame.getVM().getHeap().getStaticFieldByID(offset);
+                        if (field == null)
+                            throw new VMPanic("No static field with ID: " + offset);
+                        field.getOwningClass().setStaticField(field, value);
+                    }
+                    default ->
+                    {
+                    }
+                }
+
                 return null;
             }
+
         };
     }
 

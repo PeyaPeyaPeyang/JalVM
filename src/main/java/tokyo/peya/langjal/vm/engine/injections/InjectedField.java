@@ -9,6 +9,8 @@ import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
 
+import java.lang.reflect.Modifier;
+
 public abstract class InjectedField extends VMField
 {
 
@@ -30,7 +32,9 @@ public abstract class InjectedField extends VMField
                 .filter(f -> f.getName().equals(node.name))
                 .findFirst()
                 .map(VMField::getFieldID)
-                .orElseThrow(() -> new IllegalStateException("Original field ID not found for " + node.name));
+                .orElseGet(() -> (node.access & Modifier.STATIC) == 0
+                        ? clazz.getNextSlot()
+                        : clazz.getVM().getHeap().assignStaticFieldID());
     }
 
     private static int retrieveOriginalSlot(@NotNull VMClass clazz, @NotNull FieldNode node)
@@ -39,7 +43,7 @@ public abstract class InjectedField extends VMField
                     .filter(f -> f.getName().equals(node.name))
                     .findFirst()
                     .map(VMField::getSlot)
-                    .orElseThrow(() -> new IllegalStateException("Original field ID not found for " + node.name));
+                    .orElseGet(clazz::getNextSlot);
     }
 
     public abstract VMValue get(

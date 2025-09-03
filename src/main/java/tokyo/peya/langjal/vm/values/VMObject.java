@@ -262,13 +262,13 @@ public class VMObject implements VMValue, VMReferenceValue
     }
 
     @Override
-    public @NotNull VMObject cloneValue()
+    public @NotNull VMReferenceValue cloneValue()
     {
         Map<VMField, VMValue> clonedFields = new HashMap<>(this.fields);
 
         VMObject clonedSuperObject = this.getSuperObject();
         if (!(clonedSuperObject == null || clonedSuperObject == this))
-            clonedSuperObject = clonedSuperObject.cloneValue(); // スーパークラスのオブジェクトもクローンする
+            clonedSuperObject = (VMObject) clonedSuperObject.cloneValue(); // スーパークラスのオブジェクトもクローンする
 
         return new VMObject(this.objectType, clonedSuperObject, clonedFields, this.isInitialised);
     }

@@ -12,6 +12,7 @@ import tokyo.peya.langjal.vm.engine.stacking.instructions.AbstractInstructionOpe
 import tokyo.peya.langjal.vm.panics.LinkagePanic;
 import tokyo.peya.langjal.vm.panics.VMPanic;
 import tokyo.peya.langjal.vm.panics.invocation.IllegalInvocationTypePanic;
+import tokyo.peya.langjal.vm.values.VMArray;
 import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMReferenceValue;
 import tokyo.peya.langjal.vm.values.VMType;
@@ -38,8 +39,13 @@ public class OperatorInvokeVirtual extends AbstractInstructionOperator<MethodIns
 
         VMType<? extends VMReferenceValue> ownerType = ctxt.ownerType();
         VMReferenceValue referenceValue = frame.getStack().popType(ownerType);
-        if (!(referenceValue instanceof VMObject instance))
-            throw new VMPanic("Expected an object to access instance '" + name + "', but got " + referenceValue.getClass().getSimpleName());
+        VMObject instance;
+        if (referenceValue instanceof VMObject obj)
+            instance = obj;
+        else if (referenceValue instanceof VMArray array)
+            instance = array.getSuperObject();
+        else
+            throw new VMPanic("Expected object or array reference, got: " + referenceValue + " for " + owner + "." + name + desc);
 
         if (!instance.isInitialised())
             throw new LinkagePanic("Cannot invoke method on uninitialised instance: " + owner + "." + name + desc);

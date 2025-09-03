@@ -269,7 +269,8 @@ public class VMThread implements VMComponent
     private void killFrame()
     {
         VMFrame prevFrame = this.currentFrame.getPrevFrame();
-        prevFrame.setNextFrame(null);
+        if (prevFrame != null)
+            prevFrame.setNextFrame(null);
 
         this.tracer.pushHistory(FrameTracingEntry.frameOut(this.currentFrame));
         this.vm.getEventManager().dispatchEvent(new VMFrameOutEvent(this.vm, this.currentFrame, prevFrame));

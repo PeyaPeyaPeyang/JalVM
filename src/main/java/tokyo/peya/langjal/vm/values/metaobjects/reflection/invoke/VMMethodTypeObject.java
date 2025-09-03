@@ -11,6 +11,7 @@ import tokyo.peya.langjal.vm.engine.VMComponent;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMArray;
 import tokyo.peya.langjal.vm.values.VMObject;
+import tokyo.peya.langjal.vm.values.VMReferenceValue;
 import tokyo.peya.langjal.vm.values.VMType;
 
 import java.util.Arrays;
@@ -54,7 +55,7 @@ public class VMMethodTypeObject extends VMObject
     }
 
     @Override
-    public @NotNull VMObject cloneValue()
+    public @NotNull VMReferenceValue cloneValue()
     {
         return super.cloneValue();
     }

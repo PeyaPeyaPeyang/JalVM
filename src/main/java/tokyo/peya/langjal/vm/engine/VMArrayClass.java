@@ -32,7 +32,7 @@ public class VMArrayClass extends VMClass
             return;
 
         VMSystemClassLoader cl = vm.getClassLoader();
-        super.link(vm);
+        this.linkedClass = this;
         this.interfaceLinks.add(cl.findClass(ClassReference.of("java/util/Collection")));
         this.superLink = cl.findClass(ClassReference.of("java/lang/Object"));
 

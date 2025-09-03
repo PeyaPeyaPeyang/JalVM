@@ -4,6 +4,8 @@ import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 import tokyo.peya.langjal.vm.JalVM;
+import tokyo.peya.langjal.vm.engine.VMArrayClass;
+import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMComponent;
 import tokyo.peya.langjal.vm.panics.VMPanic;
 
@@ -21,6 +23,8 @@ public class VMArray implements VMValue, VMReferenceValue
 
     private final VMType<?> arrayType;
 
+    private VMObject superObject; // java/lang/Object としての振る舞いを提供するため
+
     public VMArray(@NotNull VMComponent component, @NotNull VMType<?> elementType, int size)
     {
         this.vm = component.getVM();
@@ -33,13 +37,12 @@ public class VMArray implements VMValue, VMReferenceValue
         this.identity = new Random().nextLong();
 
         this.arrayType = VMType.of(component, "[" + elementType.getTypeDescriptor());
-
     }
+
     public VMArray(@NotNull VMComponent component, @NotNull VMType<?> elementType)
     {
         this(component, elementType, 0);
     }
-
 
     public VMArray(@NotNull VMComponent component, VMType<?> elementType, VMValue[] elements, @NotNull VMType<?> arrayType)
     {
@@ -65,6 +68,14 @@ public class VMArray implements VMValue, VMReferenceValue
         this.identity = new Random().nextLong();
 
         this.arrayType = VMType.of(component, "[" + elementType.getTypeDescriptor());
+    }
+
+    @NotNull
+    public VMObject getSuperObject()
+    {
+        if (this.superObject == null)
+            this.superObject = new PseudoSuperObject(this.vm);
+        return this.superObject;
     }
 
     private void fillDefaults()
@@ -196,5 +207,27 @@ public class VMArray implements VMValue, VMReferenceValue
                 throw new VMPanic("Expected byte value at index " + i + ", but got: " + value);
         }
         return array;
+    }
+
+    private class PseudoSuperObject extends VMObject
+    {
+        public PseudoSuperObject(@NotNull VMComponent component)
+        {
+            super(VMType.ofGenericObject(component).getLinkedClass());
+
+            this.forceInitialise(component.getClassLoader());
+        }
+
+        @Override
+        public VMClass getObjectType()
+        {
+            return VMArray.this.arrayType.getLinkedClass();
+        }
+
+        @Override
+        public @NotNull VMReferenceValue cloneValue()
+        {
+            return VMArray.this.cloneValue();
+        }
     }
 }

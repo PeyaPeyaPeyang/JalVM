@@ -31,7 +31,6 @@ public class InjectorVM implements Injector
         assert originalInitLevel != null : "VM.initLevel method not found!";
 
         clazz.injectMethod(
-                cl,
                 new InjectedMethod(
                         clazz, new MethodNode(
                         EOpcodes.ACC_PUBLIC | EOpcodes.ACC_STATIC,
@@ -72,7 +71,6 @@ public class InjectorVM implements Injector
                 }
         );
         clazz.injectMethod(
-                cl,
                 new InjectedMethod(
                         clazz, new MethodNode(
                         EOpcodes.ACC_PRIVATE | EOpcodes.ACC_STATIC | EOpcodes.ACC_NATIVE,

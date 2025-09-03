@@ -8,7 +8,7 @@ import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.api.events.VMThreadDeathEvent;
 import tokyo.peya.langjal.vm.api.events.VMThreadGroupHeartbeatEvent;
 import tokyo.peya.langjal.vm.api.events.VMThreadHeartbeatEvent;
-import tokyo.peya.langjal.vm.api.events.VMThreadStartEvent;
+import tokyo.peya.langjal.vm.api.events.VMThreadCreatedEvent;
 import tokyo.peya.langjal.vm.engine.threading.VMThread;
 import tokyo.peya.langjal.vm.engine.threading.VMThreadState;
 import tokyo.peya.langjal.vm.tracing.ThreadManipulationType;
@@ -182,7 +182,7 @@ public class VMThreadGroup implements VMComponent
         if (this.threads.contains(thread))
             throw new IllegalStateException("Thread already exists in the engine.");
 
-        this.vm.getEventManager().dispatchEvent(new VMThreadStartEvent(this.vm, thread));
+        this.vm.getEventManager().dispatchEvent(new VMThreadCreatedEvent(this.vm, thread));
 
         this.threads.add(thread);
         this.tracer.pushHistory(

@@ -39,7 +39,6 @@ public class InjectorUnsafe implements Injector
     public void inject(@NotNull VMSystemClassLoader cl, @NotNull VMClass clazz)
     {
         clazz.injectMethod(
-                cl,
                 new InjectedMethod(
                         clazz, new MethodNode(
                         EOpcodes.ACC_PRIVATE | EOpcodes.ACC_STATIC | EOpcodes.ACC_NATIVE,
@@ -59,7 +58,6 @@ public class InjectorUnsafe implements Injector
                 }
         );
         clazz.injectMethod(
-                cl,
                 new InjectedMethod(
                         clazz, new MethodNode(
                         EOpcodes.ACC_PRIVATE | EOpcodes.ACC_NATIVE,
@@ -78,7 +76,6 @@ public class InjectorUnsafe implements Injector
                 }
         );
         clazz.injectMethod(
-                cl,
                 new InjectedMethod(
                         clazz, new MethodNode(
                         EOpcodes.ACC_PRIVATE | EOpcodes.ACC_NATIVE,
@@ -99,7 +96,6 @@ public class InjectorUnsafe implements Injector
                 }
         );
         clazz.injectMethod(
-                cl,
                 new InjectedMethod(
                         clazz, new MethodNode(
                         EOpcodes.ACC_PRIVATE | EOpcodes.ACC_NATIVE,
@@ -122,7 +118,6 @@ public class InjectorUnsafe implements Injector
                 }
         );
         clazz.injectMethod(
-                cl,
                 new InjectedMethod(
                         clazz, new MethodNode(
                         EOpcodes.ACC_PUBLIC | EOpcodes.ACC_NATIVE,
@@ -142,7 +137,6 @@ public class InjectorUnsafe implements Injector
                 }
         );
         clazz.injectMethod(
-                cl,
                 new InjectedMethod(
                         clazz, new MethodNode(
                         EOpcodes.ACC_PUBLIC | EOpcodes.ACC_NATIVE,
@@ -190,7 +184,6 @@ public class InjectorUnsafe implements Injector
                 }
         );
         clazz.injectMethod(
-                cl,
                 new InjectedMethod(
                         clazz, new MethodNode(
                         EOpcodes.ACC_PUBLIC | EOpcodes.ACC_NATIVE,
@@ -218,7 +211,6 @@ public class InjectorUnsafe implements Injector
                 }
         );
         clazz.injectMethod(
-                cl,
                 new InjectedMethod(
                         clazz, new MethodNode(
                         EOpcodes.ACC_PUBLIC | EOpcodes.ACC_NATIVE,
@@ -251,7 +243,6 @@ public class InjectorUnsafe implements Injector
                 }
         );
         clazz.injectMethod(
-                cl,
                 new InjectedMethod(
                         clazz, new MethodNode(
                         EOpcodes.ACC_PUBLIC | EOpcodes.ACC_NATIVE,
@@ -283,7 +274,6 @@ public class InjectorUnsafe implements Injector
                 }
         );
         clazz.injectMethod(
-                cl,
                 new InjectedMethod(
                         clazz, new MethodNode(
                         EOpcodes.ACC_PUBLIC | EOpcodes.ACC_NATIVE,
@@ -316,7 +306,6 @@ public class InjectorUnsafe implements Injector
                 }
         );
         clazz.injectMethod(
-                cl,
                 new InjectedMethod(
                         clazz, new MethodNode(
                         EOpcodes.ACC_PUBLIC | EOpcodes.ACC_NATIVE,
@@ -348,7 +337,6 @@ public class InjectorUnsafe implements Injector
                 }
         );
         clazz.injectMethod(
-                cl,
                 new InjectedMethod(
                         clazz, new MethodNode(
                         EOpcodes.ACC_PUBLIC | EOpcodes.ACC_NATIVE,
@@ -370,7 +358,6 @@ public class InjectorUnsafe implements Injector
                 }
         );
         clazz.injectMethod(
-                cl,
                 new InjectedMethod(
                         clazz, new MethodNode(
                         EOpcodes.ACC_PUBLIC | EOpcodes.ACC_NATIVE,
@@ -394,7 +381,6 @@ public class InjectorUnsafe implements Injector
                 }
         );
         clazz.injectMethod(
-                cl,
                 new InjectedMethod(
                         clazz, new MethodNode(
                         EOpcodes.ACC_PUBLIC | EOpcodes.ACC_NATIVE,
@@ -418,117 +404,116 @@ public class InjectorUnsafe implements Injector
         );
 
         JalVM vm = cl.getVM();
-        clazz.injectMethod(cl, createUnsafeReferenceGetMethod(
+        clazz.injectMethod(createUnsafeReferenceGetMethod(
                 clazz, "getReferenceVolatile", "(Ljava/lang/Object;J)Ljava/lang/Object;", VMType.ofGenericObject(vm)
         ));
-        clazz.injectMethod(cl, createUnsafeReferencePutMethod(
+        clazz.injectMethod(createUnsafeReferencePutMethod(
                 clazz, "putReferenceVolatile", "(Ljava/lang/Object;JLjava/lang/Object;)V", VMType.ofGenericObject(vm)
         ));
-        clazz.injectMethod(cl, createUnsafeReferenceGetMethod(
+        clazz.injectMethod(createUnsafeReferenceGetMethod(
                 clazz, "getIntVolatile", "(Ljava/lang/Object;J)I", VMType.of(vm, PrimitiveTypes.INT)
         ));
-        clazz.injectMethod(cl, createUnsafeReferencePutMethod(
+        clazz.injectMethod(createUnsafeReferencePutMethod(
                 clazz, "putIntVolatile", "(Ljava/lang/Object;JI)V", VMType.of(vm, PrimitiveTypes.INT)
         ));
-        clazz.injectMethod(cl, createUnsafeReferenceGetMethod(
+        clazz.injectMethod(createUnsafeReferenceGetMethod(
                 clazz, "getBooleanVolatile", "(Ljava/lang/Object;J)Z", VMType.of(vm, PrimitiveTypes.BOOLEAN)
         ));
-        clazz.injectMethod(cl, createUnsafeReferencePutMethod(
+        clazz.injectMethod(createUnsafeReferencePutMethod(
                 clazz, "putBooleanVolatile", "(Ljava/lang/Object;JZ)V", VMType.of(vm, PrimitiveTypes.BOOLEAN)
         ));
-        clazz.injectMethod(cl, createUnsafeReferenceGetMethod(
+        clazz.injectMethod(createUnsafeReferenceGetMethod(
                 clazz, "getByteVolatile", "(Ljava/lang/Object;J)B", VMType.of(vm, PrimitiveTypes.BYTE)
         ));
-        clazz.injectMethod(cl, createUnsafeReferencePutMethod(
+        clazz.injectMethod(createUnsafeReferencePutMethod(
                 clazz, "putByteVolatile", "(Ljava/lang/Object;JB)V", VMType.of(vm, PrimitiveTypes.BYTE)
         ));
-        clazz.injectMethod(cl, createUnsafeReferenceGetMethod(
+        clazz.injectMethod(createUnsafeReferenceGetMethod(
                 clazz, "getShortVolatile", "(Ljava/lang/Object;J)S", VMType.of(vm, PrimitiveTypes.SHORT)
         ));
-        clazz.injectMethod(cl, createUnsafeReferencePutMethod(
+        clazz.injectMethod(createUnsafeReferencePutMethod(
                 clazz, "putShortVolatile", "(Ljava/lang/Object;JS)V", VMType.of(vm, PrimitiveTypes.SHORT)
         ));
-        clazz.injectMethod(cl, createUnsafeReferenceGetMethod(
+        clazz.injectMethod(createUnsafeReferenceGetMethod(
                 clazz, "getCharVolatile", "(Ljava/lang/Object;J)C", VMType.of(vm, PrimitiveTypes.CHAR)
         ));
-        clazz.injectMethod(cl, createUnsafeReferencePutMethod(
+        clazz.injectMethod(createUnsafeReferencePutMethod(
                 clazz, "putCharVolatile", "(Ljava/lang/Object;JC)V", VMType.of(vm, PrimitiveTypes.CHAR)
         ));
-        clazz.injectMethod(cl, createUnsafeReferenceGetMethod(
+        clazz.injectMethod(createUnsafeReferenceGetMethod(
                 clazz, "getLongVolatile", "(Ljava/lang/Object;J)J", VMType.of(vm, PrimitiveTypes.LONG)
         ));
-        clazz.injectMethod(cl, createUnsafeReferencePutMethod(
+        clazz.injectMethod(createUnsafeReferencePutMethod(
                 clazz, "putLongVolatile", "(Ljava/lang/Object;JJ)V", VMType.of(vm, PrimitiveTypes.LONG)
         ));
-        clazz.injectMethod(cl, createUnsafeReferenceGetMethod(
+        clazz.injectMethod(createUnsafeReferenceGetMethod(
                 clazz, "getFloatVolatile", "(Ljava/lang/Object;J)F", VMType.of(vm, PrimitiveTypes.FLOAT)
         ));
-        clazz.injectMethod(cl, createUnsafeReferencePutMethod(
+        clazz.injectMethod(createUnsafeReferencePutMethod(
                 clazz, "putFloatVolatile", "(Ljava/lang/Object;JF)V", VMType.of(vm, PrimitiveTypes.FLOAT)
         ));
-        clazz.injectMethod(cl, createUnsafeReferenceGetMethod(
+        clazz.injectMethod(createUnsafeReferenceGetMethod(
                 clazz, "getDoubleVolatile", "(Ljava/lang/Object;J)D", VMType.of(vm, PrimitiveTypes.DOUBLE)
         ));
-        clazz.injectMethod(cl, createUnsafeReferencePutMethod(
+        clazz.injectMethod(createUnsafeReferencePutMethod(
                 clazz, "putDoubleVolatile", "(Ljava/lang/Object;JD)V", VMType.of(vm, PrimitiveTypes.DOUBLE)
         ));
-        clazz.injectMethod(cl, createUnsafeReferenceGetMethod(
+        clazz.injectMethod(createUnsafeReferenceGetMethod(
                 clazz, "getReference", "(Ljava/lang/Object;J)Ljava/lang/Object;", VMType.ofGenericObject(vm)
         ));
-        clazz.injectMethod(cl, createUnsafeReferencePutMethod(
+        clazz.injectMethod(createUnsafeReferencePutMethod(
                 clazz, "putReference", "(Ljava/lang/Object;JLjava/lang/Object;)V", VMType.ofGenericObject(vm)
         ));
-        clazz.injectMethod(cl, createUnsafeReferenceGetMethod(
+        clazz.injectMethod(createUnsafeReferenceGetMethod(
                 clazz, "getInt", "(Ljava/lang/Object;J)I", VMType.of(vm, PrimitiveTypes.INT)
         ));
-        clazz.injectMethod(cl, createUnsafeReferencePutMethod(
+        clazz.injectMethod(createUnsafeReferencePutMethod(
                 clazz, "putInt", "(Ljava/lang/Object;JI)V", VMType.of(vm, PrimitiveTypes.INT)
         ));
-        clazz.injectMethod(cl, createUnsafeReferenceGetMethod(
+        clazz.injectMethod(createUnsafeReferenceGetMethod(
                 clazz, "getBoolean", "(Ljava/lang/Object;J)Z", VMType.of(vm, PrimitiveTypes.BOOLEAN)
         ));
-        clazz.injectMethod(cl, createUnsafeReferencePutMethod(
+        clazz.injectMethod(createUnsafeReferencePutMethod(
                 clazz, "putBoolean", "(Ljava/lang/Object;JZ)V", VMType.of(vm, PrimitiveTypes.BOOLEAN)
         ));
-        clazz.injectMethod(cl, createUnsafeReferenceGetMethod(
+        clazz.injectMethod(createUnsafeReferenceGetMethod(
                 clazz, "getByte", "(Ljava/lang/Object;J)B", VMType.of(vm, PrimitiveTypes.BYTE)
         ));
-        clazz.injectMethod(cl, createUnsafeReferencePutMethod(
+        clazz.injectMethod(createUnsafeReferencePutMethod(
                 clazz, "putByte", "(Ljava/lang/Object;JB)V", VMType.of(vm, PrimitiveTypes.BYTE)
         ));
-        clazz.injectMethod(cl, createUnsafeReferenceGetMethod(
+        clazz.injectMethod(createUnsafeReferenceGetMethod(
                 clazz, "getShort", "(Ljava/lang/Object;J)S", VMType.of(vm, PrimitiveTypes.SHORT)
         ));
-        clazz.injectMethod(cl, createUnsafeReferencePutMethod(
+        clazz.injectMethod(createUnsafeReferencePutMethod(
                 clazz, "putShort", "(Ljava/lang/Object;JS)V", VMType.of(vm, PrimitiveTypes.SHORT)
         ));
-        clazz.injectMethod(cl, createUnsafeReferenceGetMethod(
+        clazz.injectMethod(createUnsafeReferenceGetMethod(
                 clazz, "getChar", "(Ljava/lang/Object;J)C", VMType.of(vm, PrimitiveTypes.CHAR)
         ));
-        clazz.injectMethod(cl, createUnsafeReferencePutMethod(
+        clazz.injectMethod(createUnsafeReferencePutMethod(
                 clazz, "putChar", "(Ljava/lang/Object;JC)V", VMType.of(vm, PrimitiveTypes.CHAR)
         ));
-        clazz.injectMethod(cl, createUnsafeReferenceGetMethod(
+        clazz.injectMethod(createUnsafeReferenceGetMethod(
                 clazz, "getLong", "(Ljava/lang/Object;J)J", VMType.of(vm, PrimitiveTypes.LONG)
         ));
-        clazz.injectMethod(cl, createUnsafeReferencePutMethod(
+        clazz.injectMethod(createUnsafeReferencePutMethod(
                 clazz, "putLong", "(Ljava/lang/Object;JJ)V", VMType.of(vm, PrimitiveTypes.LONG)
         ));
-        clazz.injectMethod(cl, createUnsafeReferenceGetMethod(
+        clazz.injectMethod(createUnsafeReferenceGetMethod(
                 clazz, "getFloat", "(Ljava/lang/Object;J)F", VMType.of(vm, PrimitiveTypes.FLOAT)
         ));
-        clazz.injectMethod(cl, createUnsafeReferencePutMethod(
+        clazz.injectMethod(createUnsafeReferencePutMethod(
                 clazz, "putFloat", "(Ljava/lang/Object;JF)V", VMType.of(vm, PrimitiveTypes.FLOAT)
         ));
-        clazz.injectMethod(cl, createUnsafeReferenceGetMethod(
+        clazz.injectMethod(createUnsafeReferenceGetMethod(
                 clazz, "getDouble", "(Ljava/lang/Object;J)D", VMType.of(vm, PrimitiveTypes.DOUBLE)
         ));
-        clazz.injectMethod(cl, createUnsafeReferencePutMethod(
+        clazz.injectMethod(createUnsafeReferencePutMethod(
                 clazz, "putDouble", "(Ljava/lang/Object;JD)V", VMType.of(vm, PrimitiveTypes.DOUBLE)
         ));
 
         clazz.injectMethod(
-                cl,
                 new InjectedMethod(
                         clazz, new MethodNode(
                         EOpcodes.ACC_PRIVATE | EOpcodes.ACC_NATIVE,
@@ -548,7 +533,6 @@ public class InjectorUnsafe implements Injector
                 }
         );
         clazz.injectMethod(
-                cl,
                 new InjectedMethod(
                         clazz, new MethodNode(
                         EOpcodes.ACC_PRIVATE | EOpcodes.ACC_NATIVE,

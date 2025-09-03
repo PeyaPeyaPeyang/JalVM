@@ -30,8 +30,6 @@ public class OperatorInvokeInterface extends AbstractInstructionOperator<MethodI
         String owner = operand.owner;
         String name = operand.name;
         String desc = operand.desc;
-        if (name.equals("startThreads") && owner.equals("jdk/internal/access/JavaLangRefAccess"))
-            return;  // TODO: Reference を読み込む
 
         VMClass caller = frame.getMethod().getClazz();
         VMClass clazz = frame.getClassLoader().findClass(ClassReference.of(owner));

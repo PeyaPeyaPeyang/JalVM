@@ -127,12 +127,8 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
             return new VMObject(this, null);
     }
 
-    public void injectMethod(@NotNull VMSystemClassLoader cl, @NotNull InjectedMethod method)
+    public void injectMethod(@NotNull InjectedMethod method)
     {
-        if (!this.reference.equals(method.getOwningClass().getReference()))
-            throw new IllegalArgumentException("Injected method does not belong to this class: " + method.getOwningClass()
-                                                                                                         .getReference());
-
         String injectingMethodName = method.getName();
         for (VMMethod existingMethod : this.methods)
         {
@@ -153,11 +149,8 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
         this.methods.add(method);
     }
 
-    public void injectField(@NotNull VMSystemClassLoader cl, @NotNull VMField field)
+    public void injectField(@NotNull VMField field)
     {
-        if (!this.reference.equals(field.getOwningClass().getReference()))
-            throw new VMPanic("Injected field does not belong to this class: " + field.getOwningClass().getReference());
-
         String injectingFieldName = field.getName();
         for (VMField existingField : this.fields)
         {

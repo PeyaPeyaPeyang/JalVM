@@ -27,7 +27,6 @@ public class InjectorReflection implements Injector
     public void inject(@NotNull VMSystemClassLoader cl, @NotNull VMClass clazz)
     {
         clazz.injectMethod(
-                cl,
                 new InjectedMethod(
                         clazz, new MethodNode(
                         EOpcodes.ACC_PUBLIC | EOpcodes.ACC_STATIC | EOpcodes.ACC_NATIVE,
@@ -52,7 +51,6 @@ public class InjectorReflection implements Injector
                 }
         );
         clazz.injectMethod(
-                cl,
                 new InjectedMethod(
                         clazz, new MethodNode(
                         EOpcodes.ACC_PUBLIC | EOpcodes.ACC_STATIC | EOpcodes.ACC_NATIVE,

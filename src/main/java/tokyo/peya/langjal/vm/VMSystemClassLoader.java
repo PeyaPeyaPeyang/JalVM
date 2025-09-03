@@ -6,6 +6,7 @@ import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
 import tokyo.peya.langjal.vm.api.events.VMDefineClassEvent;
+import tokyo.peya.langjal.vm.api.events.VMLinkClassEvent;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMComponent;
 import tokyo.peya.langjal.vm.engine.injections.InjectorManager;
@@ -104,7 +105,7 @@ public class VMSystemClassLoader implements VMComponent
             if (vmClass.isLinked())
                 continue;
 
-            System.out.println("Linking class: " + vmClass);
+            this.vm.getEventManager().dispatchEvent(new VMLinkClassEvent(this.vm, vmClass));
             vmClass.link(this.vm);
             // Array などを弾く
             if (VMClass.class == vmClass.getClass())

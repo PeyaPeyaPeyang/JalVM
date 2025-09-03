@@ -15,6 +15,7 @@ import tokyo.peya.langjal.vm.api.VMListener;
 import tokyo.peya.langjal.vm.api.events.VMDefineClassEvent;
 import tokyo.peya.langjal.vm.api.events.VMFrameInEvent;
 import tokyo.peya.langjal.vm.api.events.VMFrameOutEvent;
+import tokyo.peya.langjal.vm.api.events.VMLinkClassEvent;
 import tokyo.peya.langjal.vm.api.events.VMStepInEvent;
 import tokyo.peya.langjal.vm.api.events.VMThreadDeathEvent;
 import tokyo.peya.langjal.vm.engine.VMClass;
@@ -363,12 +364,12 @@ public class DebugMain
             System.out.printf("    [v%d] %s: %s, by %s%n", index, type, value, instr);
         }
 
-        // @VMEventHandler
+        @VMEventHandler
         public void onFrameIn(@NotNull VMFrameInEvent e)
         {
             System.out.printf("--[FRAME  IN]->: %s%n", e.getFrame().toString());
         }
-        // @VMEventHandler
+        @VMEventHandler
         public void onFrameOut(@NotNull VMFrameOutEvent e)
         {
             System.out.printf("<-[FRAME OUT]--: %s%n", e.getFrame().toString());
@@ -377,6 +378,12 @@ public class DebugMain
         public void onClassDefine(@NotNull VMDefineClassEvent e)
         {
             System.out.printf("Defining class: %s%n", e.getReference().getFullQualifiedName());
+        }
+
+        @VMEventHandler
+        public void onClassLink(@NotNull VMLinkClassEvent e)
+        {
+            System.out.printf("Linking class: %s%n", e.getLinking());
         }
     }
 }

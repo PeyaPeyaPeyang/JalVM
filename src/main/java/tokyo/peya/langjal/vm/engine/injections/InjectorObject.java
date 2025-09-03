@@ -32,7 +32,6 @@ public class InjectorObject implements Injector
     public void inject(@NotNull VMSystemClassLoader cl, @NotNull VMClass clazz)
     {
         clazz.injectMethod(
-                cl,
                 new InjectedMethod(
                         clazz, new MethodNode(
                         EOpcodes.ACC_PUBLIC | EOpcodes.ACC_NATIVE,
@@ -52,7 +51,6 @@ public class InjectorObject implements Injector
                 }
         );
         clazz.injectMethod(
-                cl,
                 new InjectedMethod(
                         clazz, new MethodNode(
                         EOpcodes.ACC_PUBLIC | EOpcodes.ACC_NATIVE,
@@ -72,7 +70,6 @@ public class InjectorObject implements Injector
                 }
         );
         clazz.injectMethod(
-                cl,
                 new InjectedMethod(
                         clazz, new MethodNode(
                         EOpcodes.ACC_PRIVATE | EOpcodes.ACC_FINAL | EOpcodes.ACC_NATIVE,
@@ -109,7 +106,6 @@ public class InjectorObject implements Injector
                 }
         );
         clazz.injectMethod(
-                cl,
                 new InjectedMethod(
                         clazz, new MethodNode(
                         EOpcodes.ACC_PUBLIC | EOpcodes.ACC_FINAL | EOpcodes.ACC_NATIVE,
@@ -139,7 +135,6 @@ public class InjectorObject implements Injector
                 }
         );
         clazz.injectMethod(
-                cl,
                 new InjectedMethod(
                         clazz, new MethodNode(
                         EOpcodes.ACC_PUBLIC | EOpcodes.ACC_FINAL | EOpcodes.ACC_NATIVE,
@@ -170,7 +165,6 @@ public class InjectorObject implements Injector
                 }
         );
         clazz.injectMethod(
-                cl,
                 new InjectedMethod(
                         clazz, new MethodNode(
                         EOpcodes.ACC_PUBLIC | EOpcodes.ACC_FINAL | EOpcodes.ACC_NATIVE,

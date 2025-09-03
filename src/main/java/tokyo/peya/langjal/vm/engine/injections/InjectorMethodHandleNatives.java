@@ -43,7 +43,6 @@ public class InjectorMethodHandleNatives implements Injector
         VMClass constantsClass = cl.findClass(ClassReference.of("java/lang/invoke/MethodHandleNatives$Constants"));
 
         clazz.injectMethod(
-                cl,
                 new InjectedMethod(
                         clazz, new MethodNode(
                         EOpcodes.ACC_PRIVATE | EOpcodes.ACC_STATIC | EOpcodes.ACC_NATIVE,
@@ -63,7 +62,6 @@ public class InjectorMethodHandleNatives implements Injector
                 }
         );
         clazz.injectMethod(
-                cl,
                 new InjectedMethod(
                         clazz, new MethodNode(
                         EOpcodes.ACC_PRIVATE | EOpcodes.ACC_STATIC | EOpcodes.ACC_NATIVE,
@@ -107,7 +105,6 @@ public class InjectorMethodHandleNatives implements Injector
                 }
         );
         clazz.injectMethod(
-                cl,
                 new InjectedMethod(
                         clazz, new MethodNode(
                         EOpcodes.ACC_STATIC | EOpcodes.ACC_NATIVE,
@@ -148,7 +145,6 @@ public class InjectorMethodHandleNatives implements Injector
                 }
         );
         clazz.injectMethod(
-                cl,
                 new InjectedMethod(
                         clazz, new MethodNode(
                         EOpcodes.ACC_STATIC | EOpcodes.ACC_NATIVE,
@@ -193,7 +189,6 @@ public class InjectorMethodHandleNatives implements Injector
                 }
         );
         clazz.injectMethod(
-                cl,
                 new InjectedMethod(
                         clazz, new MethodNode(
                         EOpcodes.ACC_STATIC | EOpcodes.ACC_NATIVE,
@@ -234,7 +229,6 @@ public class InjectorMethodHandleNatives implements Injector
                 }
         );
         clazz.injectMethod(
-                cl,
                 new InjectedMethod(
                         clazz, new MethodNode(
                         EOpcodes.ACC_STATIC | EOpcodes.ACC_NATIVE,
@@ -257,7 +251,6 @@ public class InjectorMethodHandleNatives implements Injector
                 }
         );
         clazz.injectMethod(
-                cl,
                 new InjectedMethod(
                         clazz, new MethodNode(
                         EOpcodes.ACC_STATIC | EOpcodes.ACC_NATIVE,

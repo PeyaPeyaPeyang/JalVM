@@ -122,7 +122,6 @@ public class InjectorSystemPropsRaw implements Injector
         VMArray vmPropsArray = VMStringObject.createStringArray(cl, vmProperties);
 
         clazz.injectMethod(
-                cl,
                 new InjectedMethod(
                         clazz, new MethodNode(
                         EOpcodes.ACC_PRIVATE | EOpcodes.ACC_STATIC | EOpcodes.ACC_NATIVE,
@@ -142,7 +141,6 @@ public class InjectorSystemPropsRaw implements Injector
         );
 
         clazz.injectMethod(
-                cl,
                 new InjectedMethod(
                         clazz, new MethodNode(
                         EOpcodes.ACC_PRIVATE | EOpcodes.ACC_STATIC | EOpcodes.ACC_NATIVE,

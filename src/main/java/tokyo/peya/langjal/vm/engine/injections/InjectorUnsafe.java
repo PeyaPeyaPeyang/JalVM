@@ -26,6 +26,8 @@ import tokyo.peya.langjal.vm.values.VMValue;
 import tokyo.peya.langjal.vm.values.metaobjects.VMClassObject;
 import tokyo.peya.langjal.vm.values.metaobjects.VMStringObject;
 
+import java.awt.Frame;
+
 public class InjectorUnsafe implements Injector
 {
     public static final ClassReference CLAZZ = ClassReference.of("jdk/internal/misc/Unsafe");
@@ -137,250 +139,72 @@ public class InjectorUnsafe implements Injector
                     }
                 }
         );
-        clazz.injectMethod(
-                new InjectedMethod(
-                        clazz, new MethodNode(
-                        EOpcodes.ACC_PUBLIC | EOpcodes.ACC_NATIVE,
-                        "compareAndSetReference",
-                        "(Ljava/lang/Object;JLjava/lang/Object;Ljava/lang/Object;)Z",
-                        null,
-                        null
-                )
-                )
-                {
-                    @Override
-                    @Nullable VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
-                                             @Nullable VMObject instance, @NotNull VMValue[] args)
-                    {
-                        VMReferenceValue object = (VMReferenceValue) args[0];
-                        long offset = ((VMLong) args[1]).asNumber().longValue();
-                        VMReferenceValue expected = (VMReferenceValue) args[2];
-                        VMReferenceValue newValue = (VMReferenceValue) args[3];
 
-                        boolean success;
-                        if (object instanceof VMArray array)
-                        {
-                            // 配列の場合は、配列の要素を取得
-                            int index = (int) (offset - getArrayBaseOffset()) / getArrayScale(array.getElementType());
-                            if (index < 0 || index >= array.length())
-                                throw new VMPanic("Array index out of bounds: " + index);
-                            VMValue value = array.get(index);
-                            success = value.equals(expected);
-                            if (success)
-                                array.set(index, newValue);
-                        }
-                        else if (object instanceof VMObject obj)
-                        {
-                            VMField field = obj.getObjectType().findField(offset);
-                            VMValue currentValue = obj.getField(field.getName());
-                            success = currentValue.equals(expected);
-                            if (success)
-                                obj.setField(field, newValue);
-                        }
-                        else
-                            throw new VMPanic("Unsupported object type for compareAndSet: " + object.getClass().getName());
+        VMType<VMReferenceValue> genericObjectType = VMType.ofGenericObject(cl.getVM());
+        CompareAndSetStrategy<VMReferenceValue> referenceStrategy = Object::equals;
 
-                        return VMBoolean.of(frame, success);
-                    }
-                }
-        );
-        clazz.injectMethod(
-                new InjectedMethod(
-                        clazz, new MethodNode(
-                        EOpcodes.ACC_PUBLIC | EOpcodes.ACC_NATIVE,
-                        "compareAndExchangeReference",
-                        "(Ljava/lang/Object;JLjava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;",
-                        null,
-                        null
-                )
-                )
-                {
-                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
-                                             @Nullable VMObject instance, @NotNull VMValue[] args)
-                    {
-                        VMObject object = (VMObject) args[0];
-                        long offset = ((VMLong) args[1]).asNumber().longValue();
-                        VMReferenceValue expected = (VMReferenceValue) args[2];
-                        VMReferenceValue newValue = (VMReferenceValue) args[3];
-                        VMField field = object.getObjectType().findField(offset);
-                        VMValue currentValue = object.getField(field.getName());
-                        boolean success = currentValue.equals(expected);
-                        if (success)
-                            object.setField(field, newValue);
-                        return success ? currentValue : expected;
-                    }
-                }
-        );
-        clazz.injectMethod(
-                new InjectedMethod(
-                        clazz, new MethodNode(
-                        EOpcodes.ACC_PUBLIC | EOpcodes.ACC_NATIVE,
-                        "compareAndSetInt",
-                        "(Ljava/lang/Object;JII)Z",
-                        null,
-                        null
-                )
-                )
-                {
-                    @Override
-                    @Nullable VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
-                                             @Nullable VMObject instance, @NotNull VMValue[] args)
-                    {
-                        VMObject object = (VMObject) args[0];
-                        long offset = ((VMLong) args[1]).asNumber().longValue();
-                        int expected = ((VMInteger) args[2]).asNumber().intValue();
-                        int newValue = ((VMInteger) args[3]).asNumber().intValue();
+        clazz.injectMethod(InjectorUnsafe.makeInjectedCASSetMethod(
+                clazz,
+                "compareAndSetReference",
+                "(Ljava/lang/Object;JLjava/lang/Object;Ljava/lang/Object;)Z",
+                genericObjectType,
+                referenceStrategy
+        ));
+        clazz.injectMethod(InjectorUnsafe.makeInjectedCASExchangeMethod(
+                clazz,
+                "compareAndExchangeReference",
+                "(Ljava/lang/Object;JLjava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;",
+                genericObjectType,
+                referenceStrategy
+        ));
 
-                        VMField field = object.getObjectType().findField(offset);
-                        VMValue currentValue = object.getField(field.getName());
-                        VMInteger convertedCurrentValue = (VMInteger) currentValue.conformValue(VMType.of(frame, PrimitiveTypes.INT));
-                        int currentIntValue = convertedCurrentValue.asNumber().intValue();
-                        boolean success = currentIntValue == expected;
-                        if (success)
-                            object.setField(field, new VMInteger(frame, newValue));
+        VMType<VMInteger> intType = VMType.of(cl, PrimitiveTypes.INT);
+        CompareAndSetStrategy<VMInteger> intStrategy = (current, expected) -> {
+            if (!(current instanceof VMInteger currentInt && expected instanceof VMInteger expectedInt))
+                return false;
 
-                        return VMBoolean.of(frame, success);
-                    }
-                }
-        );
-        clazz.injectMethod(
-                new InjectedMethod(
-                        clazz, new MethodNode(
-                        EOpcodes.ACC_PUBLIC | EOpcodes.ACC_NATIVE,
-                        "compareAndExchangeInt",
-                        "(Ljava/lang/Object;JII)I",
-                        null,
-                        null
-                )
-                )
-                {
-                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
-                                             @Nullable VMObject instance, @NotNull VMValue[] args)
-                    {
-                        VMObject object = (VMObject) args[0];
-                        long offset = ((VMLong) args[1]).asNumber().longValue();
-                        int expected = ((VMInteger) args[2]).asNumber().intValue();
-                        int newValue = ((VMInteger) args[3]).asNumber().intValue();
+            return currentInt.asNumber().intValue() == expectedInt.asNumber().intValue();
+        };
 
-                        VMField field = object.getObjectType().findField(offset);
-                        VMValue currentValue = object.getField(field.getName());
-                        VMInteger convertedCurrentValue = (VMInteger) currentValue.conformValue(VMType.of(frame, PrimitiveTypes.INT));
-                        int currentIntValue = convertedCurrentValue.asNumber().intValue();
-                        boolean success = currentIntValue == expected;
-                        if (success)
-                            object.setField(field, new VMInteger(frame, newValue));
+        clazz.injectMethod(InjectorUnsafe.makeInjectedCASSetMethod(
+                clazz,
+                "compareAndSetInt",
+                "(Ljava/lang/Object;JII)Z",
+                intType,
+                intStrategy
+        ));
+        clazz.injectMethod(InjectorUnsafe.makeInjectedCASExchangeMethod(
+                clazz,
+                "compareAndExchangeInt",
+                "(Ljava/lang/Object;JII)I",
+                intType,
+                intStrategy
+        ));
 
-                        return new VMInteger(frame, success ? currentIntValue : expected);
-                    }
-                }
-        );
-        clazz.injectMethod(
-                new InjectedMethod(
-                        clazz, new MethodNode(
-                        EOpcodes.ACC_PUBLIC | EOpcodes.ACC_NATIVE,
-                        "compareAndSetLong",
-                        "(Ljava/lang/Object;JJJ)Z",
-                        null,
-                        null
-                )
-                )
-                {
-                    @Override
-                    @Nullable VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
-                                             @Nullable VMObject instance, @NotNull VMValue[] args)
-                    {
-                        VMObject object = (VMObject) args[0];
-                        long offset = ((VMLong) args[1]).asNumber().longValue();
-                        long expected = ((VMLong) args[2]).asNumber().longValue();
-                        long newValue = ((VMLong) args[3]).asNumber().longValue();
+        VMType<VMLong> longType = VMType.of(cl, PrimitiveTypes.LONG);
+        CompareAndSetStrategy<VMLong> longStrategy = (current, expected) -> {
+            if (!(current instanceof VMLong currentLong && expected instanceof VMLong expectedLong))
+                return false;
 
-                        VMField field = object.getObjectType().findField(offset);
-                        VMValue currentValue = object.getField(field.getName());
-                        VMLong convertedCurrentValue = (VMLong) currentValue.conformValue(VMType.of(frame, PrimitiveTypes.LONG));
-                        long currentIntValue = convertedCurrentValue.asNumber().longValue();
-                        boolean success = currentIntValue == expected;
-                        if (success)
-                            object.setField(field, new VMLong(frame, newValue));
+            return currentLong.asNumber().longValue() == expectedLong.asNumber().longValue();
+        };
 
-                        return VMBoolean.of(frame, success);
-                    }
-                }
-        );
-        clazz.injectMethod(
-                new InjectedMethod(
-                        clazz, new MethodNode(
-                        EOpcodes.ACC_PUBLIC | EOpcodes.ACC_NATIVE,
-                        "compareAndExchangeLong",
-                        "(Ljava/lang/Object;JJJ)J",
-                        null,
-                        null
-                )
-                )
-                {
-                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
-                                             @Nullable VMObject instance, @NotNull VMValue[] args)
-                    {
-                        VMObject object = (VMObject) args[0];
-                        long offset = ((VMLong) args[1]).asNumber().longValue();
-                        long expected = ((VMLong) args[2]).asNumber().longValue();
-                        long newValue = ((VMLong) args[3]).asNumber().longValue();
+        clazz.injectMethod(InjectorUnsafe.makeInjectedCASSetMethod(
+                clazz,
+                "compareAndSetLong",
+                "(Ljava/lang/Object;JJJ)Z",
+                longType,
+                longStrategy
+        ));
 
-                        VMField field = object.getObjectType().findField(offset);
-                        VMValue currentValue = object.getField(field.getName());
-                        VMLong convertedCurrentValue = (VMLong) currentValue.conformValue(VMType.of(frame, PrimitiveTypes.LONG));
-                        long currentIntValue = convertedCurrentValue.asNumber().longValue();
-                        boolean success = currentIntValue == expected;
-                        if (success)
-                            object.setField(field, new VMLong(frame, newValue));
+        clazz.injectMethod(InjectorUnsafe.makeInjectedCASExchangeMethod(
+                clazz,
+                "compareAndExchangeLong",
+                "(Ljava/lang/Object;JJJ)J",
+                longType,
+                longStrategy
+        ));
 
-                        return new VMLong(frame, success ? currentIntValue : expected);
-                    }
-                }
-        );
-        clazz.injectMethod(
-                new InjectedMethod(
-                        clazz, new MethodNode(
-                        EOpcodes.ACC_PUBLIC | EOpcodes.ACC_NATIVE,
-                        "getReferenceVolatile",
-                        "(Ljava/lang/Object;J)Ljava/lang/Object;",
-                        null,
-                        null
-                )
-                )
-                {
-                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
-                                             @Nullable VMObject instance, @NotNull VMValue[] args)
-                    {
-                        VMObject object = (VMObject) args[0];
-                        long offset = ((VMLong) args[1]).asNumber().longValue();
-                        VMField field = object.getObjectType().findField(offset);
-                        return object.getField(field.getName());
-                    }
-                }
-        );
-        clazz.injectMethod(
-                new InjectedMethod(
-                        clazz, new MethodNode(
-                        EOpcodes.ACC_PUBLIC | EOpcodes.ACC_NATIVE,
-                        "putReferenceVolatile",
-                        "(Ljava/lang/Object;JLjava/lang/Object;)V",
-                        null,
-                        null
-                )
-                )
-                {
-                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
-                                             @Nullable VMObject instance, @NotNull VMValue[] args)
-                    {
-                        VMObject object = (VMObject) args[0];
-                        long offset = ((VMLong) args[1]).asNumber().longValue();
-                        VMObject value = (VMObject) args[2];
-                        VMField field = object.getObjectType().findField(offset);
-                        object.setField(field, value);
-                        return null;
-                    }
-                }
-        );
         clazz.injectMethod(
                 new InjectedMethod(
                         clazz, new MethodNode(
@@ -594,7 +418,7 @@ public class InjectorUnsafe implements Injector
                         VMValue value = vmObject.getField(field.getName());
                         return value.conformValue(returnType);
                     }
-                    case VMNull<?> vmNull ->
+                    case VMNull<?> _ ->
                     {
                         VMField field = frame.getVM().getHeap().getStaticFieldByID(offset);
                         if (field == null)
@@ -734,5 +558,177 @@ public class InjectorUnsafe implements Injector
             default:
                 throw new VMPanic("Unsupported size: " + size);
         }
+    }
+
+    private static <T extends VMValue> InjectedMethod makeInjectedCASExchangeMethod(
+            @NotNull VMClass clazz,
+            @NotNull String methodName,
+            @NotNull String methodDescriptor,
+            @NotNull VMType<? extends T> valueType,
+            @NotNull CompareAndSetStrategy<T> strategy
+    ) {
+        return new InjectedMethod(
+                clazz,
+                new MethodNode(
+                        EOpcodes.ACC_PUBLIC | EOpcodes.ACC_NATIVE,
+                        methodName,
+                        methodDescriptor,
+                        null,
+                        null
+                )
+        )
+        {
+            @Override
+            @Nullable
+            public VMValue invoke(
+                    @NotNull VMFrame frame,
+                    @Nullable VMClass caller,
+                    @Nullable VMObject instance,
+                    @NotNull VMValue[] args
+            )
+            {
+                VMReferenceValue object = (VMReferenceValue) args[0];
+                long offset = ((VMLong) args[1]).asNumber().longValue();
+                VMValue expected = args[2];
+                VMValue newValue = args[3];
+
+                return compareAndExchange(clazz, object, offset, expected, newValue, strategy, valueType);
+            }
+        };
+    }
+
+    private static <T extends VMValue> InjectedMethod makeInjectedCASSetMethod(
+            @NotNull VMClass clazz,
+            @NotNull String methodName,
+            @NotNull String methodDescriptor,
+            @NotNull VMType<? extends T> valueType,
+            @NotNull CompareAndSetStrategy<T> strategy
+    ) {
+        return new InjectedMethod(
+                clazz,
+                new MethodNode(
+                        EOpcodes.ACC_PUBLIC | EOpcodes.ACC_NATIVE,
+                        methodName,
+                        methodDescriptor,
+                        null,
+                        null
+                )
+        )
+        {
+            @Override
+            @Nullable
+            public VMValue invoke(
+                    @NotNull VMFrame frame,
+                    @Nullable VMClass caller,
+                    @Nullable VMObject instance,
+                    @NotNull VMValue[] args
+            )
+            {
+                VMReferenceValue object = (VMReferenceValue) args[0];
+                long offset = ((VMLong) args[1]).asNumber().longValue();
+                VMValue expected = args[2];
+                VMValue newValue = args[3];
+
+                boolean success = compareAndSet(clazz, object, offset, expected, newValue, strategy, valueType);
+                return VMBoolean.of(frame, success);
+            }
+        };
+    }
+
+    private static <T extends VMValue> boolean compareAndSet(
+            @NotNull VMClass component,
+            @NotNull VMReferenceValue object,
+            long offset,
+            @NotNull VMValue expected,
+            @NotNull VMValue newValue,
+            @NotNull CompareAndSetStrategy<T> strategy,
+            @NotNull VMType<? extends T> valueType)
+    {
+        switch (object)
+        {
+            case VMArray array -> {
+                int index = (int) (offset - getArrayBaseOffset()) / getArrayScale(array.getElementType());
+                if (index < 0 || index >= array.length())
+                    throw new VMPanic("Array index out of bounds: " + index);
+
+                if (strategy.compare(array.get(index), expected))
+                {
+                    array.set(index, newValue.conformValue(valueType));
+                    return true;
+                }
+            }
+            case VMObject obj -> {
+                VMField field = obj.getObjectType().findField(offset);
+                VMValue current = obj.getField(field.getName());
+                if (strategy.compare(current, expected))
+                {
+                    obj.setField(field, newValue.conformValue(valueType));
+                    return true;
+                }
+            }
+            case VMNull<?> _ -> {
+                VMField field = component.getVM().getHeap().getStaticFieldByID(offset);
+                if (field == null)
+                    throw new VMPanic("No static field with ID: " + offset);
+                VMValue current = field.getOwningClass().getStaticFieldValue(field);
+                if (strategy.compare(current, expected))
+                {
+                    field.getOwningClass().setStaticField(field, newValue.conformValue(valueType));
+                    return true;
+                }
+            }
+            default -> throw new VMPanic("Unsupported object type: " + object.getClass().getName());
+        }
+
+        return false;
+    }
+
+    private static <T extends VMValue> VMValue compareAndExchange(
+            @NotNull VMClass component,
+            @NotNull VMReferenceValue object,
+            long offset,
+            @NotNull VMValue expected,
+            @NotNull VMValue newValue,
+            @NotNull CompareAndSetStrategy<T> strategy,
+            @NotNull VMType<? extends T> valueType)
+    {
+        VMValue current;
+        switch (object)
+        {
+            case VMArray array -> {
+                int index = (int) (offset - getArrayBaseOffset()) / getArrayScale(array.getElementType());
+                if (index < 0 || index >= array.length())
+                    throw new VMPanic("Array index out of bounds: " + index);
+
+                current = array.get(index);
+                if (strategy.compare(current, expected))
+                    array.set(index, newValue.conformValue(valueType));
+
+            }
+            case VMObject obj -> {
+                VMField field = obj.getObjectType().findField(offset);
+                current = obj.getField(field.getName());
+                if (strategy.compare(current, expected))
+                    obj.setField(field, newValue.conformValue(valueType));
+            }
+            case VMNull<?> _ -> {
+                VMField field = component.getVM().getHeap().getStaticFieldByID(offset);
+                if (field == null)
+                    throw new VMPanic("No static field with ID: " + offset);
+
+                current = field.getOwningClass().getStaticFieldValue(field);
+                if (strategy.compare(current, expected))
+                    field.getOwningClass().setStaticField(field, newValue.conformValue(valueType));
+            }
+            default -> throw new VMPanic("Unsupported object type: " + object.getClass().getName());
+        }
+
+        return current;
+    }
+
+    @FunctionalInterface
+    private interface CompareAndSetStrategy<T extends VMValue>
+    {
+        boolean compare(VMValue current, @NotNull VMValue expected);
     }
 }

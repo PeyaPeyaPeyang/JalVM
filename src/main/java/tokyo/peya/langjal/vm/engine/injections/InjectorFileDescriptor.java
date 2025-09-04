@@ -35,7 +35,7 @@ public class InjectorFileDescriptor implements Injector
     private final Map<Integer, Long> fdToHandleNums;
 
     @Override
-    public ClassReference suitableClass()
+    public @NotNull ClassReference suitableClass()
     {
         return CLAZZ;
     }

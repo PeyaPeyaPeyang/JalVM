@@ -18,7 +18,7 @@ public class InjectorRuntime implements Injector
     public static final ClassReference CLAZZ = ClassReference.of("java/lang/Runtime");
 
     @Override
-    public ClassReference suitableClass()
+    public @NotNull ClassReference suitableClass()
     {
         return CLAZZ;
     }

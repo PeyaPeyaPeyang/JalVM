@@ -18,7 +18,7 @@ public class InjectorReflection implements Injector
     public static final ClassReference CLAZZ = ClassReference.of("jdk/internal/reflect/Reflection");
 
     @Override
-    public ClassReference suitableClass()
+    public @NotNull ClassReference suitableClass()
     {
         return CLAZZ;
     }

@@ -16,7 +16,7 @@ public class InjectorWin32ErrorMode implements Injector
     public static final ClassReference CLAZZ = ClassReference.of("sun/io/Win32ErrorMode");
 
     @Override
-    public ClassReference suitableClass()
+    public @NotNull ClassReference suitableClass()
     {
         return CLAZZ;
     }

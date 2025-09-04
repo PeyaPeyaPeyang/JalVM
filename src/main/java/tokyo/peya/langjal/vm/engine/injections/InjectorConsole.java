@@ -17,7 +17,7 @@ public class InjectorConsole implements Injector
     public static final ClassReference CLAZZ = ClassReference.of("java/io/Console");
 
     @Override
-    public ClassReference suitableClass()
+    public @NotNull ClassReference suitableClass()
     {
         return CLAZZ;
     }

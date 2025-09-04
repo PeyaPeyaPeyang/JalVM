@@ -16,7 +16,7 @@ public class InjectorPerf implements Injector
     public static final ClassReference CLAZZ = ClassReference.of("jdk/internal/perf/Perf");
 
     @Override
-    public ClassReference suitableClass()
+    public @NotNull ClassReference suitableClass()
     {
         return CLAZZ;
     }

@@ -19,7 +19,7 @@ public class InjectorSystem implements Injector
     public static final ClassReference CLAZZ = ClassReference.of("java/lang/System");
 
     @Override
-    public ClassReference suitableClass()
+    public @NotNull ClassReference suitableClass()
     {
         return CLAZZ;
     }

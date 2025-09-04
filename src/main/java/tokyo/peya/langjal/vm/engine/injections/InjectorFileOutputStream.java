@@ -31,7 +31,7 @@ public class InjectorFileOutputStream implements Injector
     }
 
     @Override
-    public ClassReference suitableClass()
+    public @NotNull ClassReference suitableClass()
     {
         return CLAZZ;
     }

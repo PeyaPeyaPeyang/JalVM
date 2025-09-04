@@ -33,7 +33,7 @@ public class InjectorUnsafe implements Injector
     public static final ClassReference CLAZZ = ClassReference.of("jdk/internal/misc/Unsafe");
 
     @Override
-    public ClassReference suitableClass()
+    public @NotNull ClassReference suitableClass()
     {
         return CLAZZ;
     }

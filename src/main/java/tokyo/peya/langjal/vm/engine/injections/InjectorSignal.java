@@ -27,7 +27,7 @@ public class InjectorSignal implements Injector
     private final Map<Integer, Long> signalHandler;
 
     @Override
-    public ClassReference suitableClass()
+    public @NotNull ClassReference suitableClass()
     {
         return CLAZZ;
     }

@@ -19,7 +19,7 @@ public class InjectorVM implements Injector
     public static final ClassReference CLAZZ = ClassReference.of("jdk/internal/misc/VM");
 
     @Override
-    public ClassReference suitableClass()
+    public @NotNull ClassReference suitableClass()
     {
         return CLAZZ;
     }

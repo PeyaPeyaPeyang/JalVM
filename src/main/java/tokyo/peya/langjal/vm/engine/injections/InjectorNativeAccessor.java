@@ -18,7 +18,7 @@ public class InjectorNativeAccessor implements Injector
     public static final ClassReference CLAZZ = ClassReference.of("jdk/internal/reflect/DirectConstructorHandleAccessor$NativeAccessor");
 
     @Override
-    public ClassReference suitableClass()
+    public @NotNull ClassReference suitableClass()
     {
         return CLAZZ;
     }

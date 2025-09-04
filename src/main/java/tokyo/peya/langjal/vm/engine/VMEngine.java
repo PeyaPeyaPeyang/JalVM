@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.vm.JalVM;
+import tokyo.peya.langjal.vm.engine.scheduler.TaskScheduler;
 import tokyo.peya.langjal.vm.engine.threading.VMMainThread;
 import tokyo.peya.langjal.vm.engine.threading.VMThread;
 import tokyo.peya.langjal.vm.tracing.VMThreadTracer;
@@ -13,6 +14,7 @@ public class VMEngine implements VMComponent
 {
     @Getter(AccessLevel.NONE)
     private final JalVM vm;
+    private final TaskScheduler scheduler;
     private final VMThreadGroup systemThreadGroup;
 
     private final VMMainThread mainThread;
@@ -24,6 +26,7 @@ public class VMEngine implements VMComponent
         this.vm = vm;
 
         this.systemThreadGroup = new VMThreadGroup(vm);
+        this.scheduler = new TaskScheduler(4);
         this.mainThread = new VMMainThread(vm, this.systemThreadGroup);
 
         this.systemThreadGroup.addThread(this.mainThread);
@@ -42,7 +45,10 @@ public class VMEngine implements VMComponent
     public void startEngine()
     {
         while (this.isRunning())
+        {
             this.systemThreadGroup.heartbeat();
+            this.scheduler.heartbeat();
+        }
     }
 
     @Override

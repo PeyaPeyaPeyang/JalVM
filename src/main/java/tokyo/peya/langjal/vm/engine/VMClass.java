@@ -1,6 +1,7 @@
 package tokyo.peya.langjal.vm.engine;
 
 import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Opcodes;
@@ -34,6 +35,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 @Getter
 public class VMClass extends VMType<VMReferenceValue> implements AccessibleObject, VMComponent
@@ -60,15 +64,16 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
     protected final Map<VMField, VMValue> staticFields;
 
     private long lastFieldID;
-    private long lastSlotID;
 
     protected boolean isLinked;
     protected boolean isInitialised;
+
+    private Function</* owner: */ VMObject, /* target: */ VMObject> instanceCreator;
     @Getter(lombok.AccessLevel.NONE)
     private VMClassObject classObject;
     protected VMClass superLink;
 
-    private VMReferenceValue classData;
+    private VMValue classData;
 
     public VMClass(@NotNull VMComponent component, @NotNull ClassNode clazz, @Nullable VMType<?> componentType)
     {
@@ -97,7 +102,7 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
         this(vm, componentType.getLinkedClass().clazz, componentType);
     }
 
-    public void setClassData(@NotNull VMReferenceValue classData)
+    public void setClassData(@NotNull VMValue classData)
     {
         this.classData = classData;
         if (this.classObject != null)
@@ -117,17 +122,21 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
 
     public VMObject createInstance(@NotNull VMObject owner)
     {
-        return new VMObject(this, owner);
+        if (this.instanceCreator == null)
+            return new VMObject(this, owner);
+        else
+            return this.instanceCreator.apply(owner);
     }
+
     public VMObject createInstance()
     {
         if (this.superLink == null)
             throw new IllegalStateException("Cannot create instance of class without super class link: " + this.reference.getFullQualifiedName());
 
-        if (this.clazz.name.equals("java/lang/String"))
-            return new VMStringObject(this.vm);
+        if (this.instanceCreator == null)
+            return new VMObject(this);
         else
-            return new VMObject(this, null);
+            return this.instanceCreator.apply(null);
     }
 
     public void injectMethod(@NotNull InjectedMethod method)
@@ -311,7 +320,7 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
             if (isStatic)
                 id = this.vm.getHeap().assignStaticFieldID(); // 静的フィールドでデフォルト値がある場合は新しいIDを割り当て
             else
-                id = this.lastSlotID += 16; // それ以外は次のフィールドIDを取得
+                id = this.lastFieldID += 16; // それ以外は次のフィールドIDを取得
 
             VMField field = new VMField(
                     this.vm,
@@ -602,6 +611,11 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
                 maxID = field.getFieldID();
         }
         return maxID + 16; // 次のフィールドIDを返す
+    }
+
+    public void injectInstanceCreator(@NotNull Function<VMObject, VMObject> creator)
+    {
+        this.instanceCreator = creator;
     }
 
     @Override

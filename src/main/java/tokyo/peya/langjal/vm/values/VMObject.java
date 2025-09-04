@@ -10,7 +10,6 @@ import tokyo.peya.langjal.vm.engine.injections.InjectedField;
 import tokyo.peya.langjal.vm.engine.members.VMField;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
 import tokyo.peya.langjal.vm.engine.threading.VMMonitor;
-import tokyo.peya.langjal.vm.engine.threading.VMThread;
 import tokyo.peya.langjal.vm.panics.VMPanic;
 
 import java.util.HashMap;
@@ -97,8 +96,9 @@ public class VMObject implements VMValue, VMReferenceValue
             this.superObject.forceInitialise(cl);
         }
 
-
         this.setDefaultValues();
+        this.beforeInitialise(null);  // 初期化前のフックを呼び出す
+
         this.isInitialised = true;
     }
 
@@ -141,6 +141,9 @@ public class VMObject implements VMValue, VMReferenceValue
                                                                                            .getFullQualifiedName());
             targetObject.setDefaultValues();
             targetObject.isInitialised = true; // 初期化フラグを立てる
+
+            if (this == targetObject)
+                this.beforeInitialise(frame);
         }
 
         // コンストラクタを実行
@@ -210,6 +213,7 @@ public class VMObject implements VMValue, VMReferenceValue
         if (field != null)
             this.setField(field, value);
     }
+
     public @NotNull VMValue getField(@NotNull VMField field)
     {
         VMObject suitableTarget = findSuitableTarget(field.getClazz(), this.owner);
@@ -228,6 +232,38 @@ public class VMObject implements VMValue, VMReferenceValue
     {
         VMField field = this.getObjectType().findField(fieldName);
         return this.getField(field);
+    }
+
+    @NotNull
+    public VMObject findSuper(@NotNull VMClass superType)
+    {
+        if (this.objectType.equals(superType))
+            return this;
+
+        VMObject current = this.getSuperObject();
+        while (current != null)
+        {
+            if (current.objectType.equals(superType))
+                return current;
+            current = current.getSuperObject();
+        }
+
+        throw new VMPanic("No super object found for type: " + superType);
+    }
+
+    @NotNull
+    @SuppressWarnings("unchecked")
+    public <T extends VMObject> T findSuper(@NotNull Class<T> superType)
+    {
+        VMObject current = this;
+        while (current != null)
+        {
+            if (superType.isInstance(current))
+                return (T) current;
+            current = current.getSuperObject();
+        }
+
+        throw new VMPanic("No super object found for type: " + superType.getName());
     }
 
     @Override
@@ -259,6 +295,11 @@ public class VMObject implements VMValue, VMReferenceValue
         }
 
         return this.type().equals(otherType);
+    }
+
+    protected void beforeInitialise(@Nullable VMFrame frame)
+    {
+        // のっぷ
     }
 
     @Override

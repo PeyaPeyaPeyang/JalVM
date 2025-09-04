@@ -51,6 +51,8 @@ public class InjectorManager
                 new InjectorSystem(),
                 new InjectorSystemPropsRaw(),
                 new InjectorThread(),
+                new InjectorThreadFieldHolder(),
+                new InjectorThreadGroup(),
                 new InjectorThrowable(),
                 new InjectorUnsafe(),
                 new InjectorVM(),

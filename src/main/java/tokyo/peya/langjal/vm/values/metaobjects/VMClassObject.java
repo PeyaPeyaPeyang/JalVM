@@ -9,6 +9,7 @@ import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMReferenceValue;
 import tokyo.peya.langjal.vm.values.VMType;
+import tokyo.peya.langjal.vm.values.VMValue;
 
 @Getter
 public class VMClassObject extends VMObject
@@ -37,7 +38,7 @@ public class VMClassObject extends VMObject
 
     public void updateClassData()
     {
-        VMReferenceValue classData = this.representingClass.getClassData();
+        VMValue classData = this.representingClass.getClassData();
         if (classData != null)
             this.setField("classData", this.representingClass.getClassData());
     }

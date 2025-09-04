@@ -15,6 +15,7 @@ import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.VMInterruptingFrame;
 import tokyo.peya.langjal.vm.engine.VMThreadGroup;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
+import tokyo.peya.langjal.vm.engine.scheduler.TaskScheduler;
 import tokyo.peya.langjal.vm.panics.IllegalOperationPanic;
 import tokyo.peya.langjal.vm.panics.InternalErrorVMPanic;
 import tokyo.peya.langjal.vm.panics.LinkagePanic;
@@ -52,6 +53,8 @@ public class VMThread implements VMComponent
     protected int priority;
     private boolean daemon;
 
+    private TaskScheduler scheduler;
+
     public VMThread(@NotNull JalVM vm, @NotNull VMThreadGroup group, @NotNull String name)
     {
         this.vm = vm;
@@ -71,6 +74,13 @@ public class VMThread implements VMComponent
         this.currentFrame = null;
     }
 
+    public TaskScheduler getScheduler()
+    {
+        if (this.scheduler == null)
+            this.scheduler = new TaskScheduler();  // 遅延初期化
+        return this.scheduler;
+    }
+
     public void runThread()
     {
         System.out.println("Thread[" + this.name + "] is running...");
@@ -86,14 +96,14 @@ public class VMThread implements VMComponent
         switch (this.state)
         {
             case TERMINATED:
-                return;
+                break;
             case NEW:
                 if (isRunnable)
                     this.setState(VMThreadState.RUNNABLE);
                 else
                 {
                     this.setState(VMThreadState.TERMINATED);
-                    return;
+                    break;
                 }
                 /* fall-through */
             case RUNNABLE:
@@ -106,6 +116,9 @@ public class VMThread implements VMComponent
                 this.heartbeatCurrentFrame();
                 break;
         }
+
+        if (this.scheduler != null)
+            this.scheduler.heartbeat();
     }
 
     private void heartbeatCurrentFrame()

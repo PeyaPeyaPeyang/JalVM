@@ -26,6 +26,8 @@ public class InjectorString implements Injector
     @Override
     public void inject(@NotNull VMSystemClassLoader cl, @NotNull VMClass clazz)
     {
+        clazz.injectInstanceCreator((_) -> new VMStringObject(cl));
+
         clazz.injectMethod(
                 new InjectedMethod(
                         clazz, new MethodNode(

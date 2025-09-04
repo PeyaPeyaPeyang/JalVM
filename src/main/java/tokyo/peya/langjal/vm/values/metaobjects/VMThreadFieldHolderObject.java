@@ -2,7 +2,9 @@ package tokyo.peya.langjal.vm.values.metaobjects;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import tokyo.peya.langjal.vm.JalVM;
+import tokyo.peya.langjal.vm.engine.VMComponent;
 import tokyo.peya.langjal.vm.engine.threading.VMThread;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMBoolean;
@@ -16,16 +18,29 @@ import tokyo.peya.langjal.vm.values.VMType;
 public class VMThreadFieldHolderObject extends VMObject
 {
     private final JalVM vm;
-    private final VMThread thread;
+    private VMThread thread;  // VM が作成する場合， start0() まで null の可能性がある。
 
-    public VMThreadFieldHolderObject(@NotNull JalVM vm, @NotNull VMThread thread)
+    public VMThreadFieldHolderObject(@NotNull VMComponent com, @NotNull VMThread thread)
     {
-        super(vm.getClassLoader().findClass(ClassReference.of("java/lang/Thread$FieldHolder")));
-        this.vm = vm;
+        super(com.getClassLoader().findClass(ClassReference.of("java/lang/Thread$FieldHolder")));
+        this.vm = com.getVM();
         this.thread = thread;
 
         this.syncFields();
-        this.forceInitialise(vm.getClassLoader());
+        this.forceInitialise(com.getClassLoader());
+    }
+
+    public VMThreadFieldHolderObject(@NotNull VMComponent com, @Nullable VMObject owner)
+    {
+        super(com.getClassLoader().findClass(ClassReference.of("java/lang/Thread$FieldHolder")), owner);
+        this.vm = com.getVM();
+    }
+
+    public void setVMCreatedThread(@NotNull VMThread thread)
+    {
+        if (this.thread != null)
+            throw new IllegalStateException("Thread already set");
+        this.thread = thread;
     }
 
     public void updateState()

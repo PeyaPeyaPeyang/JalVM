@@ -11,6 +11,7 @@ import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.api.events.VMPanicOccurredEvent;
 import tokyo.peya.langjal.vm.api.events.VMStepInEvent;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
+import tokyo.peya.langjal.vm.engine.scheduler.TaskScheduler;
 import tokyo.peya.langjal.vm.engine.stacking.VMStack;
 import tokyo.peya.langjal.vm.engine.stacking.VMStackMachine;
 import tokyo.peya.langjal.vm.engine.threading.VMThread;
@@ -40,11 +41,12 @@ public class VMFrame implements VMComponent
 
     private final VMFrame prevFrame;
     private VMFrame nextFrame;
+    private VMValue returnValue;
 
     private VMInterpreter interpreter;
     private boolean isRunning;
 
-    private VMValue returnValue;
+    private TaskScheduler scheduler = new TaskScheduler();  // フレームごとにスケジューラを持つ場合がある
 
     public VMFrame(
             @NotNull JalVM vm,
@@ -73,6 +75,13 @@ public class VMFrame implements VMComponent
         );
 
         this.bookArgumentsHistory(args);
+    }
+
+    public TaskScheduler getScheduler()
+    {
+        if (this.scheduler == null)
+            this.scheduler = new TaskScheduler();  // 遅延初期化
+        return this.scheduler;
     }
 
     private void bookArgumentsHistory(@NotNull VMValue[] args)
@@ -111,6 +120,10 @@ public class VMFrame implements VMComponent
     {
         if (!this.isRunning)
             throw new InternalErrorVMPanic("Frame is not running.");
+
+        // 先にスケジューラを動かす
+        if (this.scheduler != null)
+            this.scheduler.heartbeat();
 
         if (!this.interpreter.hasNextInstruction())
         {

@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 
 @Getter
 public class VMThreadGroup implements VMComponent
@@ -40,8 +41,8 @@ public class VMThreadGroup implements VMComponent
     private int maxPriority;
     private boolean daemon;
 
-    private Iterator<VMThreadGroup> childIterator;
-    private Iterator<VMThread> threadIterator;
+    private ListIterator<VMThreadGroup> childIterator;
+    private ListIterator<VMThread> threadIterator;
 
     private VMThreadGroup currentChildGroup;
     private VMThread currentThread;
@@ -60,8 +61,8 @@ public class VMThreadGroup implements VMComponent
         this.daemon = false;
         this.children = new LinkedList<>();
         this.threads = new LinkedList<>();
-        this.childIterator = Collections.emptyIterator();
-        this.threadIterator = Collections.emptyIterator();
+        this.childIterator = null;
+        this.threadIterator = null;
 
         this.object = new VMThreadGroupObject(vm, this);
     }
@@ -97,32 +98,50 @@ public class VMThreadGroup implements VMComponent
         return this.isThreadsRunning() || this.isChildrenRunning();
     }
 
-    public static VMThreadGroup createChild(@NotNull JalVM vm, @NotNull String name, int maxPriority, @NotNull VMThreadGroup parent)
+    public VMThreadGroup findThreadGroupByName(@NotNull String name)
     {
-        VMThreadGroup group = new VMThreadGroup(vm, name, maxPriority, parent);
-        parent.children.add(group);
-        parent.object.syncFields();
+        if (this.name.equals(name))
+            return this;
+
+        for (VMThreadGroup child : this.children)
+        {
+            VMThreadGroup found = child.findThreadGroupByName(name);
+            if (found != null)
+                return found;
+        }
+
+        return null;
+    }
+
+    public VMThreadGroup createChild(@NotNull JalVM vm, @NotNull String name, int maxPriority)
+    {
+        VMThreadGroup group = new VMThreadGroup(vm, name, maxPriority, this);
+        this.children.add(group);
+        this.object.syncFields();
+        this.object.syncChildren();
         return group;
     }
 
-    private static void removeChild(@NotNull VMThreadGroup group, @NotNull VMThreadGroup child)
+    private void removeChild(@NotNull VMThreadGroup child)
     {
-        group.children.remove(child);
-        group.object.syncFields();
+        this.children.remove(child);
+        this.object.syncFields();
+        this.object.syncChildren();
     }
 
     private void renewIterators()
     {
         if (!this.threads.isEmpty())
-            this.threadIterator = this.threads.iterator();
+            this.threadIterator = this.threads.listIterator(0);
         if (!this.children.isEmpty())
-            this.childIterator = this.children.iterator();
+            this.childIterator = this.children.listIterator(0);
     }
 
     public void heartbeat()
     {
         // 永遠に回し続ける
-        if (!(this.threadIterator.hasNext() || this.childIterator.hasNext()))
+        if ((this.threadIterator == null || this.childIterator == null) ||
+                !(this.threadIterator.hasNext() || this.childIterator.hasNext()))
             this.renewIterators();
 
         if (this.threadIterator.hasNext())
@@ -184,7 +203,11 @@ public class VMThreadGroup implements VMComponent
 
         this.vm.getEventManager().dispatchEvent(new VMThreadCreatedEvent(this.vm, thread));
 
-        this.threads.add(thread);
+        if (this.threadIterator == null)
+            this.threads.add(thread);  // null の場合はイテレータが初期化されていないので，末尾に追加する。
+        else
+            this.threadIterator.add(thread);  // イテレータが存在する場合は，イテレータの現在位置に追加する。
+
         this.tracer.pushHistory(
                 new ThreadTracingEntry(
                         ThreadManipulationType.CREATION,
@@ -197,7 +220,12 @@ public class VMThreadGroup implements VMComponent
     {
         if (!this.threads.contains(thread))
             throw new IllegalStateException("Thread does not exist in the engine.");
-        this.threads.remove(thread);
+
+        if (this.threadIterator != null)
+            this.threadIterator.remove();
+        else
+            this.threads.remove(thread);
+
         thread.kill();
         this.tracer.pushHistory(
                 new ThreadTracingEntry(

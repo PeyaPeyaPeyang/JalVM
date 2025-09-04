@@ -29,7 +29,7 @@ public abstract class InjectedMethod extends VMMethod
                     .filter(f -> f.getName().equals(node.name) && f.getDescriptor().equals(node.desc))
                     .findFirst()
                     .map(VMMethod::getSlot)
-                    .orElseThrow(() -> new IllegalStateException("Original method ID not found for " + node.name));
+                    .orElseGet(() -> clazz.getMethods().size());
     }
 
     @Override

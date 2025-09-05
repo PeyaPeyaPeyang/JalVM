@@ -44,6 +44,7 @@ public class InjectorManager
                 new InjectorObject(),
                 new InjectorPerf(),
                 new InjectorRandomAccessFile(),
+                new InjectorReference(),
                 new InjectorReflection(),
                 new InjectorRuntime(),
                 new InjectorScopedMemoryAccess(),

@@ -34,6 +34,7 @@ public class InjectorManager
                 new InjectorFileDescriptor(),
                 new InjectorFileInputStream(),
                 new InjectorFileOutputStream(this.fdInjector),
+                new InjectorFinalizer(),
                 new InjectorFloat(),
                 new InjectorInet4Address(),
                 new InjectorInet6Address(),

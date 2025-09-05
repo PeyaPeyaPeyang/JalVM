@@ -1,7 +1,6 @@
 package tokyo.peya.langjal.vm.engine;
 
 import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Opcodes;
@@ -28,16 +27,13 @@ import tokyo.peya.langjal.vm.values.VMReferenceValue;
 import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
 import tokyo.peya.langjal.vm.values.metaobjects.VMClassObject;
-import tokyo.peya.langjal.vm.values.metaobjects.VMStringObject;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 @Getter
 public class VMClass extends VMType<VMReferenceValue> implements AccessibleObject, VMComponent
@@ -85,8 +81,8 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
         this.accessAttributes = AccessAttributeSet.fromAccess(clazz.access);
         this.accessLevel = AccessLevel.fromAccess(clazz.access);
 
-        this.methods = extractMethods(clazz);
-        this.fields = extractFields(clazz);
+        this.methods = new ArrayList<>();
+        this.fields = new ArrayList<>();
         this.interfaceLinks = new ArrayList<>();
         this.innerLinks = new ArrayList<>();
         this.staticFields = new HashMap<>();
@@ -232,6 +228,8 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
         this.linkInner(cl);
         this.linkSuper(cl);
         this.linkInterfaces(cl);
+        this.linkFields();
+        this.linkMethods();
 
         this.isLinked = true; // リンク済みフラグを立てる
     }
@@ -307,10 +305,9 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
         }
     }
 
-    private List<VMField> extractFields(@NotNull ClassNode classNode)
+    private void linkFields()
     {
-        FieldNode[] fields = classNode.fields.toArray(new FieldNode[0]);
-        List<VMField> vmFields = new ArrayList<>();
+        FieldNode[] fields = this.clazz.fields.toArray(new FieldNode[0]);
         for (int i = 0; i < fields.length; i++)
         {
             FieldNode fieldNode = fields[i];
@@ -330,12 +327,10 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
                     VMType.of(this.vm, descString),
                     fieldNode
             );
-            vmFields.add(field);
+            this.fields.add(field);
             if (isStatic)
                 this.vm.getHeap().recognizeStaticField(field); // 静的フィールドをヒープに認識させる
         }
-
-        return vmFields;
     }
 
     private void initialiseStaticFields()
@@ -345,16 +340,14 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
                 this.staticFields.put(field, field.defaultValue());
     }
 
-    private List<VMMethod> extractMethods(@NotNull ClassNode classNode)
+    private void linkMethods()
     {
-        List<VMMethod> vmMethods = new ArrayList<>();
-        for (int i = 0; i < classNode.methods.size(); i++)
+        int methodsCount = this.clazz.methods.size();
+        for (int i = 0; i < methodsCount; i++)
         {
-            MethodNode methodNode = classNode.methods.get(i);
-            vmMethods.add(new VMMethod(this.vm, this, i, methodNode));
+            MethodNode methodNode = this.clazz.methods.get(i);
+            this.methods.add(new VMMethod(this.vm, this, i, methodNode));
         }
-
-        return vmMethods;
     }
 
     @Nullable
@@ -377,11 +370,6 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
                 return method;
         }
         return null;
-    }
-
-    public ClassReference getReference()
-    {
-        return ClassReference.of(this.clazz);
     }
 
     private VMMethod findStaticInitialiser()

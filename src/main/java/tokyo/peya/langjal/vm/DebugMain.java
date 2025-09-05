@@ -1,7 +1,6 @@
 package tokyo.peya.langjal.vm;
 
 import org.jetbrains.annotations.NotNull;
-import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
@@ -33,7 +32,6 @@ import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
 
 import java.util.List;
 import java.util.Scanner;
-import java.util.regex.Pattern;
 
 public class DebugMain
 {

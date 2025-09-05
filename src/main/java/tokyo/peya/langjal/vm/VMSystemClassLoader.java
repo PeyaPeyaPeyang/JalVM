@@ -1,20 +1,29 @@
 package tokyo.peya.langjal.vm;
 
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.FieldNode;
+import org.objectweb.asm.tree.MethodNode;
 import tokyo.peya.langjal.vm.api.events.VMDefineClassEvent;
 import tokyo.peya.langjal.vm.api.events.VMLinkClassEvent;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMComponent;
 import tokyo.peya.langjal.vm.engine.injections.InjectorManager;
+import tokyo.peya.langjal.vm.panics.VMPanic;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMType;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class VMSystemClassLoader implements VMComponent
 {
@@ -25,21 +34,68 @@ public class VMSystemClassLoader implements VMComponent
     private boolean isLinking;
     private final Deque<VMType<?>> linkingQueue;
 
+    private final ExecutorService executor;
+    private final Map<ClassReference, CompletableFuture<VMClass>> defining;
+
+
     public VMSystemClassLoader(@NotNull JalVM vm, @NotNull VMHeap heap)
     {
         this.vm = vm;
         this.heap = heap;
         this.injector = new InjectorManager();
-        this.linkingQueue = new ArrayDeque<>();
+        this.linkingQueue = new ConcurrentLinkedDeque<>();
+
+        this.executor = Executors.newWorkStealingPool();
+        this.defining = new ConcurrentHashMap<>();
     }
 
     @Nullable
     public VMClass findClassSafe(@NotNull ClassReference ref)
     {
+        // すでにロード済みなら即返す
         VMClass vmClass = this.heap.getLoadedClass(ref);
         if (vmClass != null)
             return vmClass;
 
+        CompletableFuture<VMClass> definingFuture = this.createDefinitionTask(ref);
+        return this.waitForDefinition(definingFuture);
+    }
+
+    private CompletableFuture<VMClass> createDefinitionTask(@NotNull ClassReference ref)
+    {
+        return this.defining.computeIfAbsent(ref, r ->
+                CompletableFuture.supplyAsync(() -> {
+                    // defineClass 内でも既にロード済みかチェック
+                    VMClass existing = this.heap.getLoadedClass(r);
+                    if (existing != null)
+                        return existing;
+
+                    try
+                    {
+                        return this.defineClass(r);
+                    }
+                    finally
+                    {
+                        this.defining.remove(r);
+                    }
+                }, this.executor)
+        );
+    }
+
+    private VMClass waitForDefinition(@NotNull CompletableFuture<? extends VMClass> future)
+    {
+        try
+        {
+            return future.get();
+        }
+        catch (Exception e)
+        {
+            throw new VMPanic("Failed to define class: " + e.getMessage(), e);
+        }
+    }
+
+    private VMClass defineClass(@NotNull ClassReference ref)
+    {
         byte[] classBytes = this.vm.getClassPaths().findClassBytes(ref);
         if (classBytes == null)
             return null;
@@ -72,9 +128,46 @@ public class VMSystemClassLoader implements VMComponent
         VMClass vmClass = new VMClass(this.vm, classNode);
         this.heap.addClass(vmClass);
 
+        this.defineDependingClasses(classNode);
         this.linkType(vmClass);
 
         return vmClass;
+    }
+
+    private void defineDependingClasses(@NotNull ClassNode cn)
+    {
+        String superName = cn.superName;
+        if (superName != null)
+            this.createDefinitionTask(ClassReference.of(superName));
+
+        for (String iface : cn.interfaces)
+            this.createDefinitionTask(ClassReference.of(iface));
+
+        for (FieldNode field : cn.fields)
+            this.defineDependingClass(Type.getType(field.desc));
+
+        for (MethodNode method : cn.methods)
+        {
+            Type methodType = Type.getMethodType(method.desc);
+            Type returnType = methodType.getReturnType();
+
+            this.defineDependingClass(returnType);
+
+            for (Type argType : methodType.getArgumentTypes())
+                this.defineDependingClass(argType);
+
+            for (String ex : method.exceptions)
+                this.createDefinitionTask(ClassReference.of(ex));
+        }
+    }
+
+    private void defineDependingClass(@NotNull Type type)
+    {
+        if (type.getSort() == Type.OBJECT)
+            this.createDefinitionTask(ClassReference.of(type.getClassName()));
+        else if (type.getSort() == Type.ARRAY)
+            if (type.getElementType().getSort() == Type.OBJECT)
+                this.createDefinitionTask(ClassReference.of(type.getElementType().getClassName()));
     }
 
     public void linkType(@NotNull VMType<?> vmClass)

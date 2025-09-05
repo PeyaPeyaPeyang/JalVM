@@ -86,6 +86,7 @@ public class VMType<T extends VMValue> implements VMComponent
         vm.getClassLoader().resumeLinking();
         addInitClass(vm, new VMType<>(vm, ClassReference.OBJECT));
         addInitClass(vm, VMType.of(vm, TypeDescriptor.parse("[Ljava/lang/Object;")));
+        addInitClass(vm, VMType.of(vm, TypeDescriptor.parse("Ljava/lang/String;")));
 
     }
 

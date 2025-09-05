@@ -148,7 +148,11 @@ public class ClassReference
             return EMPTY;
 
         if (CACHES.containsKey(className))
-            return CACHES.get(className);
+        {
+            ClassReference ref = CACHES.get(className);
+            if (ref != null)
+                return ref;
+        }
 
         String normalisedClassName = className.replace('/', '.');
         String[] parts = splitByChar(normalisedClassName, '.');

@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class VMHeap
 {
@@ -27,7 +28,7 @@ public class VMHeap
 
     public VMHeap()
     {
-        this.loadedClasses = new ArrayList<>();
+        this.loadedClasses = new CopyOnWriteArrayList<>();
         this.typePool = new HashMap<>();
         this.stringPool = new HashMap<>();
         this.staticFieldPool = new HashMap<>();

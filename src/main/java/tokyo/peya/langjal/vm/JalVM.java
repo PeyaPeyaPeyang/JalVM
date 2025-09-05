@@ -54,16 +54,13 @@ public class JalVM implements VMComponent
         this.classLoader.resumeLinking();
 
         System.out.println("Starting J(al)VM, please wait...");
-        this.engine.getMainThread().startMainThread(mainMethod, args);
-        System.out.println("OK");
-
         System.out.println("Initialising J(al)VM...");
         this.initialiseVM();
         System.out.println("OK");
 
         System.out.println("Starting.");
+        this.engine.getMainThread().startMainThread(mainMethod, args);
         this.engine.startEngine();
-
         System.out.println("J(al)VM has stopped successfully.");
         this.isRunning = false;
     }
@@ -74,17 +71,8 @@ public class JalVM implements VMComponent
         VMMethod initPhase1 = systemClass.findMethod("initPhase1", MethodDescriptor.parse("()V"));
         if (initPhase1 == null)
             throw new VMPanic("System class does not have initPhase1 method");
-        VMFrame f = this.engine.getMainThread().createFrame(
-                initPhase1,
-                true
-        );
-        f.activate();
-
-        // AccessibleObject の <clinit> を実行して， SharedSecrets の javaLangReflectAccess を設定する。
-        // ２回実行するのは，最初に親を，次に子を初期化するため。
-        VMClass accessibleObjectClass = this.classLoader.findClass(ClassReference.of("java/lang/reflect/AccessibleObject"));
-        accessibleObjectClass.initialise(this.engine.getMainThread());
-        accessibleObjectClass.initialise(this.engine.getMainThread());
+        this.engine.getMainThread().invokeVMInitialisation(initPhase1);
+        this.engine.startEngine();
     }
 
     public void executeMain(@NotNull ClassReference clazz, @NotNull String[] args)

@@ -176,7 +176,6 @@ public class VMThreadGroup implements VMComponent
         {
             System.out.println("Thread " + current.getName() + " has terminated. Cleaning up...");
             this.killThread(current);
-            this.currentThread = null;
             return;
         }
 

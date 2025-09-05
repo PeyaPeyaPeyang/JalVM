@@ -29,8 +29,6 @@ public class VMEngine implements VMComponent
         this.systemThreadGroup = new VMThreadGroup(vm);
         this.scheduler = new TaskScheduler(4);
         this.mainThread = new VMMainThread(vm, this.systemThreadGroup);
-
-        this.systemThreadGroup.setMainThread(this.mainThread);
     }
 
     public boolean isRunning()

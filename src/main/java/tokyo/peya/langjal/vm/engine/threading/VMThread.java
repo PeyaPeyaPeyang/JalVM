@@ -290,6 +290,9 @@ public class VMThread implements VMComponent
 
     public void setState(@NotNull VMThreadState state)
     {
+        if (this.state == state)
+            return;
+
         VMThreadChangeStateEvent stateChangeEvent = new VMThreadChangeStateEvent(
                 this.vm,
                 this,

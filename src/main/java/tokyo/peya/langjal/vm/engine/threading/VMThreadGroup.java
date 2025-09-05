@@ -127,20 +127,27 @@ public class VMThreadGroup implements VMComponent
         this.object.syncChildren();
     }
 
-    private void renewIterators()
+    private void renewChildIterator()
     {
-        if (!this.threads.isEmpty())
-            this.threadIterator = this.threads.listIterator(0);
         if (!this.children.isEmpty())
             this.childIterator = this.children.listIterator(0);
     }
 
     public void heartbeat()
     {
-        // 永遠に回し続ける
-        if ((this.threadIterator == null || this.childIterator == null) ||
-                !(this.threadIterator.hasNext() || this.childIterator.hasNext()))
-            this.renewIterators();
+        if (!this.threads.isEmpty())
+            this.heartbeatThreads();
+
+        if (!this.children.isEmpty())
+            this.heartbeatChildren();
+
+        // このあと，再度子スレッドグループとスレッドを回すためにイテレータがリセットされる
+    }
+
+    private void heartbeatThreads()
+    {
+        if (this.threadIterator == null || !this.threadIterator.hasNext())
+            this.threadIterator = this.threads.listIterator(0);
 
         if (this.threadIterator.hasNext())
         {
@@ -148,14 +155,19 @@ public class VMThreadGroup implements VMComponent
             this.heartbeatThread(this.currentThread = this.threadIterator.next());
             this.currentThread = null;
         }
-        else if (this.childIterator.hasNext())
+    }
+
+    private void heartbeatChildren()
+    {
+        if (this.childIterator == null || !this.childIterator.hasNext())
+            this.childIterator = this.children.listIterator(0);
+
+        if (this.childIterator.hasNext())
         {
             // 子スレッドがなければ，子スレッドグループを回す
             this.heartbeatGroup(this.currentChildGroup = this.childIterator.next());
             this.currentChildGroup = null;
         }
-
-        // このあと，再度子スレッドグループとスレッドを回すためにイテレータがリセットされる
     }
 
     private void heartbeatThread(@NotNull VMThread current)

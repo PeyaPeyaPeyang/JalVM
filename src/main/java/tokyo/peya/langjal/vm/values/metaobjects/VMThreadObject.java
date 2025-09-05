@@ -7,10 +7,10 @@ import org.jetbrains.annotations.Nullable;
 import tokyo.peya.langjal.compiler.jvm.MethodDescriptor;
 import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.engine.VMComponent;
+import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
-import tokyo.peya.langjal.vm.engine.threading.VMMainThread;
-import tokyo.peya.langjal.vm.engine.threading.VMThreadGroup;
 import tokyo.peya.langjal.vm.engine.threading.VMThread;
+import tokyo.peya.langjal.vm.engine.threading.VMThreadGroup;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMBoolean;
 import tokyo.peya.langjal.vm.values.VMInteger;
@@ -67,7 +67,8 @@ public class VMThreadObject extends VMObject
         if (runMethod == null)
             throw new IllegalStateException("Thread owner does not have run() method.");
 
-        newThread.createFrame(runMethod, false);
+        VMFrame f = newThread.createFrame(runMethod, false);
+        f.activate();
     }
 
     private VMThread createNewThread()

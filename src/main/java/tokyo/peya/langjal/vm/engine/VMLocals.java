@@ -98,6 +98,7 @@ public class VMLocals
     }
 
     @NotNull
+    @SuppressWarnings("unchecked")
     public <T extends VMValue> T getType(int i, @NotNull VMType<T> type, @Nullable AbstractInsnNode performer)
     {
         VMValue value = this.getLocal(i, performer);

@@ -7,15 +7,29 @@ import tokyo.peya.langjal.compiler.jvm.ClassReferenceType;
 
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ClassReference
 {
     public static final ClassReference EMPTY = new ClassReference(new String[0], "");
     public static final ClassReference OBJECT = new ClassReference(new String[]{"java", "lang"}, "Object");
 
+    private static final Map<String, ClassReference> CACHES;
+
     private final String[] packages;
     private final String className;
+
+    static {
+        CACHES = new LinkedHashMap<>(512, 0.75f, true) {
+            @Override
+            protected boolean removeEldestEntry(Map.Entry<String, ClassReference> eldest) {
+                return this.size() >= 512;
+            }
+        };
+    }
 
     private ClassReference(String[] packages, String className)
     {
@@ -133,13 +147,18 @@ public class ClassReference
         if (className == null || className.isEmpty())
             return EMPTY;
 
-        className = className.replace('/', '.');
-        String[] parts = splitByChar(className, '.');
+        if (CACHES.containsKey(className))
+            return CACHES.get(className);
+
+        String normalisedClassName = className.replace('/', '.');
+        String[] parts = splitByChar(normalisedClassName, '.');
         if (parts.length == 1)
             return new ClassReference(new String[0], parts[0]);
 
         String[] packages = Arrays.copyOf(parts, parts.length - 1);
-        return new ClassReference(packages, parts[parts.length - 1]);
+        ClassReference ref = new ClassReference(packages, parts[parts.length - 1]);
+        CACHES.put(className, ref);
+        return ref;
     }
 
     public static ClassReference of(String packageName, String className)
@@ -147,7 +166,8 @@ public class ClassReference
         if (className == null || className.isEmpty())
             return EMPTY;
 
-        String[] packages = packageName == null ? new String[0]: packageName.replace('/', '.').split("\\.");
+        String normalisedPackageName = className.replace('/', '.');
+        String[] packages = packageName == null ? new String[0]: splitByChar(normalisedPackageName.replace('/', '.'), '.');
         return new ClassReference(packages, className);
     }
 
@@ -163,6 +183,7 @@ public class ClassReference
     {
         return of(type.getInternalName());
     }
+
 
     private static String[] normalizePackages(String[] packages)
     {

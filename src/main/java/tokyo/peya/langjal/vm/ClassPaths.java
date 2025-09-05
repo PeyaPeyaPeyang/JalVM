@@ -5,11 +5,13 @@ import org.jetbrains.annotations.Nullable;
 import tokyo.peya.langjal.vm.panics.VMPanic;
 import tokyo.peya.langjal.vm.references.ClassReference;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,11 +24,13 @@ public class ClassPaths
 {
     private final List<Path> classPaths;
     private final Map<Path, ZipFile> zipFileHandles;
+    private final Map<String, ZipEntryCache> classEntries;
 
     public ClassPaths()
     {
         this.classPaths = new ArrayList<>();
         this.zipFileHandles = new HashMap<>();
+        this.classEntries = new HashMap<>();
 
         this.addDefaultPackages();
     }
@@ -63,33 +67,20 @@ public class ClassPaths
         if (this.zipFileHandles.isEmpty())
             this.collectZipFiles();
 
-        for (ZipFile zipFile : this.zipFileHandles.values())
+        String classFilePath = reference.getFileNameFull();
+        if (!this.classEntries.containsKey(classFilePath))
+            return null;
+
+        ZipEntryCache entry = this.classEntries.get(classFilePath);
+        try (InputStream inputStream = entry.zipFile.getInputStream(entry.entry))
         {
-            try
-            {
-                Path entryPath = reference.getFilePath();
-                boolean isJMod = zipFile.getName().endsWith(".jmod");
-                if (isJMod)
-                    entryPath = Path.of("classes", entryPath.toString());
-
-                // Zip は スラッシュで区切られているので、Windows のパス区切り文字をスラッシュに変換
-                String insidePath = entryPath.toString().replace('\\', '/');
-                ZipEntry entry;
-                if ((entry = zipFile.getEntry(insidePath)) == null)
-                    continue;
-
-                try (InputStream inputStream = zipFile.getInputStream(entry))
-                {
-                    return inputStream.readAllBytes();
-                }
-            }
-            catch (Exception e)
-            {
-                throw new VMPanic("Unable to read class from zip file: " + reference, e);
-            }
+            return inputStream.readAllBytes();
         }
-
-        return null;
+        catch (IOException e)
+        {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     private byte[] findClassBytesFromClassPaths(@NotNull ClassReference reference)
@@ -129,6 +120,20 @@ public class ClassPaths
                 }).forEach(file -> {
                     ZipFile zipFile = getZipFileHandle(file);
                     this.zipFileHandles.put(file, zipFile);
+                    boolean isJMod = file.toString().endsWith(".jmod");
+
+                    Enumeration<? extends ZipEntry> entries = zipFile.entries();
+                    while (entries.hasMoreElements())
+                    {
+                        ZipEntry entry = entries.nextElement();
+                        // ディレクトリと .class 以外は無視
+                        if (entry.getName().endsWith(".class"))
+                        {
+                            String normalizedPath = normalizeClassFilePath(entry.getName(), isJMod);
+                            this.classEntries.put(normalizedPath, new ZipEntryCache(zipFile, entry));
+                        }
+
+                    }
                 });
             }
             catch (Exception e)
@@ -137,6 +142,15 @@ public class ClassPaths
                 System.out.println("Failed to collect zip files from class path: " + path
                                            + ", ignoring.");
             }
+    }
+
+    private static String normalizeClassFilePath(@NotNull String path, boolean isJMod)
+    {
+        if (path.startsWith("/"))
+            path = path.substring(1);
+        if (isJMod && path.startsWith("classes/"))
+            path = path.substring("classes/".length());
+        return path;
     }
 
     private @Nullable ZipFile getZipFileHandle(@NotNull Path path)
@@ -156,5 +170,9 @@ public class ClassPaths
             e.printStackTrace();
             return null;
         }
+    }
+
+    record ZipEntryCache(@NotNull ZipFile zipFile, @NotNull ZipEntry entry)
+    {
     }
 }

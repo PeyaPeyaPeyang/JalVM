@@ -15,6 +15,8 @@ import tokyo.peya.langjal.vm.ffi.NativeCaller;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMType;
 
+import java.time.Instant;
+
 @Getter
 public class JalVM implements VMComponent
 {
@@ -26,14 +28,18 @@ public class JalVM implements VMComponent
     private final VMEventManager eventManager;
     private final VMPluginLoader pluginLoader;
 
+    private Instant initialisationStartedAt;
+    private Instant initialisationFinishedAt;
+    private Instant startedAt;
+    private Instant FinishedAt;
+
     private final boolean debugging = true;
 
     private boolean isRunning;
 
     public JalVM()
     {
-        System.out.println("Initialising J(al)VM...");
-
+        System.out.println("Starting J(al)VM...");
         this.eventManager = new VMEventManager();
         this.pluginLoader = new VMPluginLoader();
 
@@ -54,11 +60,16 @@ public class JalVM implements VMComponent
         this.classLoader.resumeLinking();
 
         System.out.println("Starting J(al)VM, please wait...");
-        System.out.println("Initialising J(al)VM...");
-        this.initialiseVM();
-        System.out.println("OK");
 
-        System.out.println("Starting.");
+        // 初期化開始
+        System.out.println("Initialising J(al)VM...");
+        this.initialisationStartedAt = Instant.now();
+        this.initialiseVM();
+        this.initialisationFinishedAt = Instant.now();
+        System.out.println("VM Initialisation SUCCESS, took " + (this.initialisationFinishedAt.toEpochMilli() - this.initialisationStartedAt.toEpochMilli()) + " ms");
+
+        // メインメソッド開始
+        System.out.println("Launching main method: " + mainMethod.getOwningClass() + "->" + mainMethod.getName() + mainMethod.getDescriptor());
         this.engine.getMainThread().startMainThread(mainMethod, args);
         this.engine.startEngine();
         System.out.println("J(al)VM has stopped successfully.");

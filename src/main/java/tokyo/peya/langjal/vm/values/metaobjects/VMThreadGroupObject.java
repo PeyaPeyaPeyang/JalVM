@@ -6,7 +6,7 @@ import org.jetbrains.annotations.Nullable;
 import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.engine.VMComponent;
 import tokyo.peya.langjal.vm.engine.VMFrame;
-import tokyo.peya.langjal.vm.engine.VMThreadGroup;
+import tokyo.peya.langjal.vm.engine.threading.VMThreadGroup;
 import tokyo.peya.langjal.vm.engine.scheduler.VMRunnable;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMArray;

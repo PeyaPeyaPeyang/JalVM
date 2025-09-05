@@ -13,7 +13,6 @@ import tokyo.peya.langjal.vm.api.events.VMThreadChangeStateEvent;
 import tokyo.peya.langjal.vm.engine.VMComponent;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.VMInterruptingFrame;
-import tokyo.peya.langjal.vm.engine.VMThreadGroup;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
 import tokyo.peya.langjal.vm.engine.scheduler.TaskScheduler;
 import tokyo.peya.langjal.vm.panics.IllegalOperationPanic;
@@ -79,15 +78,6 @@ public class VMThread implements VMComponent
         if (this.scheduler == null)
             this.scheduler = new TaskScheduler();  // 遅延初期化
         return this.scheduler;
-    }
-
-    public void runThread()
-    {
-        System.out.println("Thread[" + this.name + "] is running...");
-        if (this.firstFrame == null)
-            throw new LinkagePanic("No entry point method set. Cannot run the instructions!!!");
-
-        this.firstFrame.activate();
     }
 
     public void heartbeat()

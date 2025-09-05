@@ -1,4 +1,4 @@
-package tokyo.peya.langjal.vm.engine;
+package tokyo.peya.langjal.vm.engine.threading;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -9,15 +9,13 @@ import tokyo.peya.langjal.vm.api.events.VMThreadDeathEvent;
 import tokyo.peya.langjal.vm.api.events.VMThreadGroupHeartbeatEvent;
 import tokyo.peya.langjal.vm.api.events.VMThreadHeartbeatEvent;
 import tokyo.peya.langjal.vm.api.events.VMThreadCreatedEvent;
-import tokyo.peya.langjal.vm.engine.threading.VMThread;
-import tokyo.peya.langjal.vm.engine.threading.VMThreadState;
+import tokyo.peya.langjal.vm.engine.VMComponent;
 import tokyo.peya.langjal.vm.tracing.ThreadManipulationType;
 import tokyo.peya.langjal.vm.tracing.ThreadTracingEntry;
 import tokyo.peya.langjal.vm.tracing.VMThreadTracer;
 import tokyo.peya.langjal.vm.values.metaobjects.VMThreadGroupObject;
 
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -196,11 +194,28 @@ public class VMThreadGroup implements VMComponent
         current.heartbeat();
     }
 
-    public void addThread(@NotNull VMThread thread)
+    public VMThread createNewThread(@NotNull String name)
     {
-        if (this.threads.contains(thread))
-            throw new IllegalStateException("Thread already exists in the engine.");
+        if (this.threads.stream().anyMatch(t -> t.getName().equals(name)))
+            throw new IllegalStateException("Thread with the same name already exists in this thread group.");
 
+        VMThread thread = new VMThread(this.vm, this, name);
+        addThread0(thread);
+
+        return thread;
+    }
+
+    public VMThread setMainThread(@NotNull VMMainThread thread)
+    {
+        if (this.threads.stream().anyMatch(t -> t.getName().equals(thread.getName())))
+            throw new IllegalStateException("Thread with the same name already exists in this thread group.");
+
+        addThread0(thread);
+        return thread;
+    }
+
+    private void addThread0(@NotNull VMThread thread)
+    {
         this.vm.getEventManager().dispatchEvent(new VMThreadCreatedEvent(this.vm, thread));
 
         if (this.threadIterator == null)

@@ -4,7 +4,7 @@ import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.api.VMEventHandlerList;
-import tokyo.peya.langjal.vm.engine.VMThreadGroup;
+import tokyo.peya.langjal.vm.engine.threading.VMThreadGroup;
 
 @Getter
 public abstract class VMThreadGroupEvent extends JalVMEvent

@@ -7,6 +7,7 @@ import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.engine.scheduler.TaskScheduler;
 import tokyo.peya.langjal.vm.engine.threading.VMMainThread;
 import tokyo.peya.langjal.vm.engine.threading.VMThread;
+import tokyo.peya.langjal.vm.engine.threading.VMThreadGroup;
 import tokyo.peya.langjal.vm.tracing.VMThreadTracer;
 
 @Getter
@@ -29,7 +30,7 @@ public class VMEngine implements VMComponent
         this.scheduler = new TaskScheduler(4);
         this.mainThread = new VMMainThread(vm, this.systemThreadGroup);
 
-        this.systemThreadGroup.addThread(this.mainThread);
+        this.systemThreadGroup.setMainThread(this.mainThread);
     }
 
     public boolean isRunning()

@@ -4,12 +4,8 @@ import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.engine.VMComponent;
-import tokyo.peya.langjal.vm.engine.VMEngine;
 import tokyo.peya.langjal.vm.engine.VMFrame;
-import tokyo.peya.langjal.vm.engine.VMThreadGroup;
 import tokyo.peya.langjal.vm.engine.threading.VMThread;
-import tokyo.peya.langjal.vm.tracing.VMThreadTracer;
-import tokyo.peya.langjal.vm.values.metaobjects.VMThreadGroupObject;
 
 @Getter
 public abstract class VMRunnable

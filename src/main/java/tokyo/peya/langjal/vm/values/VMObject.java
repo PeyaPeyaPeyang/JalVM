@@ -21,6 +21,7 @@ public class VMObject implements VMValue, VMReferenceValue
 {
     private static final Random RANDOM = new Random();
 
+    @Getter
     private final VMObject owner;
     @Getter
     private final VMClass objectType;

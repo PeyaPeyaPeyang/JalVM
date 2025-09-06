@@ -37,7 +37,10 @@ public class DebugMain
 {
     public static void main(String[] args)
     {
-        JalVM jalVM = new JalVM();
+         JalVM jalVM = new JalVM(VMConfiguration.builder()
+                                               .enableAssertions(true)
+                                               .build()
+        );
 
          jalVM.getEventManager().registerListener(new EventListeners());
 

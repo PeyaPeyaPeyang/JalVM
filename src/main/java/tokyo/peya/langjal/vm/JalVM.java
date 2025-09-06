@@ -20,6 +20,8 @@ import java.time.Instant;
 @Getter
 public class JalVM implements VMComponent
 {
+    private final VMConfiguration config;
+
     private final VMHeap heap;
     private final ClassPaths classPaths;
     private final VMSystemClassLoader classLoader;
@@ -31,14 +33,16 @@ public class JalVM implements VMComponent
     private Instant initialisationStartedAt;
     private Instant initialisationFinishedAt;
     private Instant startedAt;
-    private Instant FinishedAt;
+    private Instant finishedAt;
 
     private final boolean debugging = true;
 
     private boolean isRunning;
 
-    public JalVM()
+    public JalVM(@NotNull VMConfiguration config)
     {
+        this.config = config;
+
         System.out.println("Starting J(al)VM...");
         this.eventManager = new VMEventManager();
         this.pluginLoader = new VMPluginLoader();

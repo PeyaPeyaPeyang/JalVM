@@ -36,20 +36,24 @@ public class Main
 
         // ランチャーオプション解析
         OptionParser parser = new OptionParser();
-        parser.accepts("cp").withOptionalArg().describedAs("classpath");
+        parser.accepts("cp").withOptionalArg().describedAs("Path to the .jar, .jmod, or directory to load classes from");
+        parser.accepts("ea").withOptionalArg().describedAs("Enable assertions");
         parser.allowsUnrecognizedOptions();
 
         OptionSet opts = parser.parse(launcherArgs);
 
         String classPath = opts.valueOf("cp") == null ? System.getProperty("java.class.path"): opts.valueOf("cp")
                                                                                                    .toString();
-        List<Path> classPaths = Arrays.stream(classPath.split(":"))
+
+        VMConfiguration.VMConfigurationBuilder builder = VMConfiguration.builder();
+        Arrays.stream(classPath.split(":"))
                                       .map(Path::of)
-                                      .toList();
+                                      .forEach(builder::classPath);
 
-        JalVM vm = new JalVM();
-        classPaths.forEach(vm.getClassPaths()::addClassPath);
+        if (opts.has("ea"))
+            builder.enableAssertions(true);
 
+        JalVM vm = new JalVM(builder.build());
         vm.executeMain(
                 ClassReference.of(mainClass),
                 mainArgs

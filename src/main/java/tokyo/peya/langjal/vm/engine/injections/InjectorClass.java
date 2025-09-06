@@ -39,6 +39,8 @@ public class InjectorClass implements Injector
     @Override
     public void inject(@NotNull VMSystemClassLoader cl, @NotNull VMClass clazz)
     {
+        VMBoolean enableAssertions = VMBoolean.of(cl.getVM(), cl.getVM().getConfig().isEnableAssertions());
+
         clazz.injectMethod(
                 new InjectedMethod(
                         clazz, new MethodNode(
@@ -70,7 +72,7 @@ public class InjectorClass implements Injector
                     @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
-                        return VMBoolean.ofTrue(frame);
+                        return enableAssertions;
                     }
                 }
         );

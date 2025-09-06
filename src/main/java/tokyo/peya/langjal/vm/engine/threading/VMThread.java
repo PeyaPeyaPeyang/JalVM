@@ -167,6 +167,8 @@ public class VMThread implements VMComponent
         );
     }
 
+
+
     public void invokeMethod(@NotNull VMMethod method, boolean isVMDecree, @Nullable VMObject thisObject, @NotNull VMValue... args)
     {
         // ネイティブの場合は，FFIで呼び出し
@@ -271,6 +273,9 @@ public class VMThread implements VMComponent
 
     private void killFrame()
     {
+        if (this.currentFrame == null)
+            return;
+
         VMFrame prevFrame = this.currentFrame.getPrevFrame();
         if (prevFrame != null)
             prevFrame.setNextFrame(null);

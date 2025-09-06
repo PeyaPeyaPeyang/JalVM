@@ -49,6 +49,7 @@ public class InjectorManager
                 new InjectorRuntime(),
                 new InjectorScopedMemoryAccess(),
                 new InjectorSignal(),
+                 new InjectorStackTraceElement(),
                 new InjectorString(),
                 new InjectorSystem(),
                 new InjectorSystemPropsRaw(),

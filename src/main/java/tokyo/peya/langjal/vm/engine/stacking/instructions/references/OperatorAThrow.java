@@ -25,7 +25,7 @@ public class OperatorAThrow extends AbstractInstructionOperator<InsnNode>
     {
         VMReferenceValue referenceValue = frame.getStack().popType(VMType.of(
                 frame,
-                TypeDescriptor.parse("java/lang/Throwable")
+                TypeDescriptor.className("java/lang/Throwable")
         ));
 
         if (!(referenceValue instanceof VMObject obj))

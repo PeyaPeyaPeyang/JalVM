@@ -10,10 +10,12 @@ import tokyo.peya.langjal.vm.engine.members.VMMethod;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMArray;
 import tokyo.peya.langjal.vm.values.VMObject;
+import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
 import tokyo.peya.langjal.vm.values.metaobjects.VMStackTraceElementObject;
 import tokyo.peya.langjal.vm.values.metaobjects.VMStringObject;
 
+import java.awt.Frame;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -60,9 +62,29 @@ public class PanicCreator
         else if (depth == 0)
             depth = Integer.MAX_VALUE;
 
+        // 現在のフレームは Throwable.fillInStackTrace() のフレームなので，new MyException() のところまで遡る。
+        if (!frame.getMethod().getName().equalsIgnoreCase("fillInStackTrace"))
+            throw new VMPanic("PanicCreator.collectStackTrace must be called from Throwable.fillInStackTrace");
+
+        VMObject exceptionInstance = (VMObject) frame.getLocals().getLocal(0, null);
+        VMClass exceptionClass = exceptionInstance.getObjectType();
+
+        VMFrame prev = frame.getPrevFrame();
+        while (prev != null && prev.getMethod().isConstructor() && prev.getMethod().getClazz().isAssignableFrom(exceptionClass))
+            prev = prev.getPrevFrame();
+
+        if (prev == null)
+            return new VMArray(
+                    frame,
+                    frame.getClassLoader().findClass(ClassReference.of("java/lang/StackTraceElement")),
+                    new VMValue[0]
+            );
+
         List<VMStackTraceElementObject> elements = new ArrayList<>();
         int currentDepth = 0;
-        VMFrame currentFrame = frame;
+        // 上記のループを抜けた時点で， current は new MyException() のフレームを指しているはず。
+        // なので，その一つ前のフレームが，例外をスローしたフレームになる。
+        VMFrame currentFrame = prev;
         do
         {
             VMMethod method = currentFrame.getMethod();

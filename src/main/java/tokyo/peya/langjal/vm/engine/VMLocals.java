@@ -85,14 +85,18 @@ public class VMLocals
             throw new NoReferencePanic("Local variable at index " + index + " does not exist."
                                                + "May be referencing a 2-category value with its last index?");
 
-        VMMethod method = this.frame.getMethod();
-        this.frame.getTracer().pushHistory(
-                ValueTracingEntry.localGet(
-                        value,
-                        method,
-                        performer
-                )
-        );
+        // null の場合は VM が勝手にやったことなので，履歴にはしない。
+        if (performer != null)
+        {
+            VMMethod method = this.frame.getMethod();
+            this.frame.getTracer().pushHistory(
+                    ValueTracingEntry.localGet(
+                            value,
+                            method,
+                            performer
+                    )
+            );
+        }
 
         return value;
     }

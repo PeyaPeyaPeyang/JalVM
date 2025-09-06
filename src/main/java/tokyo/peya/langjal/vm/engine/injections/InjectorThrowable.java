@@ -45,8 +45,9 @@ public class InjectorThrowable implements Injector
                         assert instance != null;
                         int depth = ((VMInteger) args[0]).asNumber().intValue();
                         VMArray array = PanicCreator.collectStackTrace(frame, depth);
-                        instance.setField("stackTrace", array);
-                        return null;
+                        instance.setField("backtrace", array);
+                        instance.setField("depth", new VMInteger(frame, array.length()));
+                        return instance;
                     }
                 }
         );

@@ -53,6 +53,7 @@ public class VMStackTraceElementObject extends VMObject
         this.fileName = clazz.getClazz().sourceFile;
         this.lineNumber = lineNumber;
 
+        this.setField("declaringClassObject", clazz.getClassObject());
         this.setField("classLoaderName", VMStringObject.createString(vm, this.classLoaderName));
         this.setField("moduleName", VMStringObject.createString(vm, this.moduleName));
         this.setField("moduleVersion", VMStringObject.createString(vm, this.moduleVersion));

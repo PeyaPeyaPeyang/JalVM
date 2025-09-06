@@ -186,7 +186,7 @@ public class VMThread implements VMComponent
 
         VMFrame newFrame = this.createFrame(method, isVMDecree, args);
         if (thisObject != null)
-            newFrame.getLocals().setSlot(0, thisObject);  // this オブジェクトをローカル変数の最初のスロットにセット
+            newFrame.getLocals().setArgumentSlot(0, thisObject);  // this オブジェクトをローカル変数の最初のスロットにセット
         newFrame.activate();
     }
 
@@ -205,7 +205,7 @@ public class VMThread implements VMComponent
                 callback
         );
         if (thisObject != null)
-            newFrame.getLocals().setSlot(0, thisObject);  // this オブジェクトをローカル変数の最初のスロットにセット
+            newFrame.getLocals().setArgumentSlot(0, thisObject);  // this オブジェクトをローカル変数の最初のスロットにセット
 
         newFrame.activate();
         if (this.firstFrame == null)

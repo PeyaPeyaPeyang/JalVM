@@ -34,8 +34,6 @@ public class JalVM implements VMComponent
     private Instant startedAt;
     private Instant finishedAt;
 
-    private final boolean debugging = true;
-
     private boolean isRunning;
 
     public JalVM(@NotNull VMConfiguration config)

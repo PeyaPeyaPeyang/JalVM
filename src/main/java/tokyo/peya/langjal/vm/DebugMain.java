@@ -5,6 +5,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.VarInsnNode;
 import org.objectweb.asm.util.Printer;
 import org.objectweb.asm.util.Textifier;
 import org.objectweb.asm.util.TraceMethodVisitor;
@@ -38,12 +39,13 @@ public class DebugMain
 {
     public static void main(String[] args)
     {
-         JalVM jalVM = new JalVM(VMConfiguration.builder(ClassReference.of("tokyo/peya/langjal/vm/TestClass"))
+        JalVM jalVM = new JalVM(VMConfiguration.builder(ClassReference.of("tokyo/peya/langjal/vm/TestClass"))
                                                .enableAssertions(true)
+                                               .debugVM(true)
                                                .build()
         );
 
-         jalVM.getEventManager().registerListener(new EventListeners());
+        jalVM.getEventManager().registerListener(new EventListeners());
 
         ClassNode classNode = new ClassNode();
         classNode.visit(
@@ -92,7 +94,7 @@ public class DebugMain
     }
 
     public static void a(MethodNode node) {
-         // Pattern.compile("test")
+        // Pattern.compile("test")
         // node.visitTypeInsn(Opcodes.NEW, "java/util/regex/Pattern");
         // node.visitInsn(Opcodes.DUP);
         node.visitLdcInsn("test"); // パターン文字列
@@ -293,7 +295,7 @@ public class DebugMain
                 VMFrame frame = entry.frame();
 
                 System.out.printf("  [f%d] %s: %s%n",
-                                  i, frame.getMethod(), entry.type().name());
+                                  i, entry.type().name(), frame.getMethod());
 
                 if (entry.type() == FrameManipulationType.FRAME_OUT)
                     dumpValueHistory(frame);
@@ -313,6 +315,8 @@ public class DebugMain
                 String value = safeValue(entry.value());
                 String comb1 = safeValue(entry.combinationValue());
                 String comb2 = safeValue(entry.combinationValue2());
+                String field = safeValue(entry.field());
+                String method = safeValue(entry.inMethod());
                 String instr = safeInstr(entry.manipulatingInstruction());
 
                 switch (entry.type())
@@ -327,26 +331,36 @@ public class DebugMain
                             print(i, "DESTRUCTION", value, instr);
 
                     case FIELD_GET ->
-                            print(i, "FIELD_GET", value, instr);
+                            print(i, "FIELD_GET", "%s VALUE %s".formatted(field, value), instr);
 
                     case FIELD_SET ->
-                            print(i, "FIELD_SET", value, instr);
+                            print(i, "FIELD_SET", "%s VALUE %s".formatted(field, value), instr);
 
                     case PASSING_AS_ARGUMENT ->
-                            print(i, "PASSING_AS_ARGUMENT", value, instr);
+                            print(i, "PASSING_AS_ARGUMENT", "%s TO %s".formatted(value, method), instr);
 
                     case RETURNING_FROM ->
-                            print(i, "RETURNING_FROM", value, instr);
+                            print(i, "RETURNING_FROM", "%s FROM %s".formatted(value, method), instr);
 
                     case COMBINATION ->
                             print(i, "COMBINATION",
                                   "%s + %s -> %s".formatted(comb1, comb2, value), instr);
 
                     case FROM_LOCAL ->
-                            print(i, "FROM_LOCAL", "%s -> local".formatted(value), instr);
+                    {
+                        String var = entry.manipulatingInstruction() instanceof VarInsnNode varInsn
+                                ? String.valueOf(varInsn.var)
+                                : "?";
+                        print(i, "FROM_LOCAL", "%s <- local[%s]".formatted(value, var), instr);
+                    }
 
                     case TO_LOCAL ->
-                            print(i, "TO_LOCAL", "local -> %s".formatted(value), instr);
+                    {
+                        String var = entry.manipulatingInstruction() instanceof VarInsnNode varInsn
+                                ? String.valueOf(varInsn.var)
+                                : "?";
+                        print(i, "TO_LOCAL", "%s -> local[%s]".formatted(value, var), instr);
+                    }
                 }
             }
         }

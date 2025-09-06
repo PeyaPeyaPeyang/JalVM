@@ -89,7 +89,7 @@ public record ValueTracingEntry(
     {
         return new ValueTracingEntry(
                 value,
-                ValueManipulationType.MANIPULATION,
+                ValueManipulationType.FIELD_SET,
                 method,
                 instruction,
                 null,
@@ -163,7 +163,7 @@ public record ValueTracingEntry(
     {
         return new ValueTracingEntry(
                 value,
-                ValueManipulationType.TO_LOCAL,
+                ValueManipulationType.FROM_LOCAL,
                 method,
                 instruction,
                 null,

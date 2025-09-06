@@ -73,8 +73,6 @@ public class VMFrame implements VMComponent
                                    method.getAccessAttributes().has(AccessAttribute.ENUM),
                                    args
         );
-
-        this.bookArgumentsHistory(args);
     }
 
     public TaskScheduler getScheduler()
@@ -82,17 +80,6 @@ public class VMFrame implements VMComponent
         if (this.scheduler == null)
             this.scheduler = new TaskScheduler();  // 遅延初期化
         return this.scheduler;
-    }
-
-    private void bookArgumentsHistory(@NotNull VMValue[] args)
-    {
-        for (VMValue arg : args)
-            this.tracer.pushHistory(
-                    ValueTracingEntry.passing(
-                            arg,
-                            this.method
-                    )
-            );
     }
 
     public void setNextFrame(@Nullable VMFrame nextFrame)

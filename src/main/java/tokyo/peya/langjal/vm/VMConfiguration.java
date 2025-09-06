@@ -23,6 +23,8 @@ public class VMConfiguration
 
     boolean enableAssertions;
 
+    boolean debugVM;
+
     public static VMConfigurationBuilder builder(@NotNull ClassReference mainClass)
     {
         return new VMConfigurationBuilder().mainClass(mainClass);

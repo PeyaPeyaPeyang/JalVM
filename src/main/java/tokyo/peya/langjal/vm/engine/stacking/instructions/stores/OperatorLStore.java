@@ -21,6 +21,6 @@ public class OperatorLStore extends AbstractInstructionOperator<VarInsnNode>
     public void execute(@NotNull VMFrame frame, @NotNull VarInsnNode operand)
     {
         VMLong value = frame.getStack().popType(VMType.of(frame, PrimitiveTypes.LONG));
-        frame.getLocals().setSlot(operand.var, value);
+        frame.getLocals().setSlot(operand.var, value, operand);
     }
 }

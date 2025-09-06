@@ -33,15 +33,24 @@ public class VMLocals
 
         for (VMValue arg : args)
         {
-            this.setSlot(slot++, arg);
+            this.setArgumentSlot(slot++, arg);
             if (arg.isCategory2())
                 slot++; // 次のスロットは TOP になるのでスキップ
         }
     }
 
-    public void setSlot(int index, @NotNull VMValue value)
+    public void setArgumentSlot(int index, @NotNull VMValue value)
     {
-        this.setSlot(index, value, null);
+        if (index < 0 || (this.maxSize > 0 && index >= this.maxSize))
+            throw new NoReferencePanic("Local variable index " + index + " is out of bounds. Max size: " + this.maxSize);
+
+        this.frame.getTracer().pushHistory(
+                ValueTracingEntry.passing(
+                        value,
+                        this.frame.getMethod()
+                )
+        );
+        this.locals.put(index, value);
     }
 
     public void setSlot(int index, @NotNull VMValue value, @Nullable AbstractInsnNode performer)
@@ -78,7 +87,7 @@ public class VMLocals
 
         VMMethod method = this.frame.getMethod();
         this.frame.getTracer().pushHistory(
-                ValueTracingEntry.localSet(
+                ValueTracingEntry.localGet(
                         value,
                         method,
                         performer

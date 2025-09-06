@@ -21,6 +21,7 @@ import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMEngine;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.threading.VMThread;
+import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.tracing.FrameManipulationType;
 import tokyo.peya.langjal.vm.tracing.FrameTracingEntry;
 import tokyo.peya.langjal.vm.tracing.ThreadManipulationType;
@@ -37,7 +38,7 @@ public class DebugMain
 {
     public static void main(String[] args)
     {
-         JalVM jalVM = new JalVM(VMConfiguration.builder()
+         JalVM jalVM = new JalVM(VMConfiguration.builder(ClassReference.of("tokyo/peya/langjal/vm/TestClass"))
                                                .enableAssertions(true)
                                                .build()
         );
@@ -78,7 +79,7 @@ public class DebugMain
 /*
         System.out.println(jalVM.getHeap().getLoadedClasses().size());
 */
-        jalVM.executeMain(clazz, new String[]{});
+        jalVM.executeEntrypointInClass(clazz, new String[]{});
     }
 
     private static void comparisons(MethodNode node)

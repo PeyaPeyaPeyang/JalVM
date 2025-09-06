@@ -8,7 +8,6 @@ import tokyo.peya.langjal.vm.api.VMPluginLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMComponent;
 import tokyo.peya.langjal.vm.engine.VMEngine;
-import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
 import tokyo.peya.langjal.vm.panics.VMPanic;
 import tokyo.peya.langjal.vm.ffi.NativeCaller;
@@ -90,17 +89,18 @@ public class JalVM implements VMComponent
         this.engine.startEngine();
     }
 
-    public void executeMain(@NotNull ClassReference clazz, @NotNull String[] args)
+    public void executeMain()
     {
+        ClassReference clazz = this.config.getMainClass();
         VMClass vmClass = this.heap.getLoadedClass(clazz);
         if (vmClass == null)
             throw new IllegalStateException("Unable to load class: " + clazz.getFullQualifiedName()
                                                     + ", please define it with VMHeap#defineClass() first!");
 
-        this.executeMain(vmClass, args);
+        this.executeEntrypointInClass(vmClass, this.config.getMainArgs().toArray(new String[0]));
     }
 
-    public void executeMain(@NotNull VMClass clazz, @NotNull String[] args)
+    public void executeEntrypointInClass(@NotNull VMClass clazz, @NotNull String[] args)
     {
         VMMethod mainMethod = clazz.findEntryPoint();
         if (mainMethod == null)

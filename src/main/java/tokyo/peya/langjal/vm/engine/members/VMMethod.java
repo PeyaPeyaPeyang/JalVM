@@ -16,6 +16,7 @@ import tokyo.peya.langjal.vm.engine.BytecodeInterpreter;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.panics.AccessRestrictedPanic;
 import tokyo.peya.langjal.vm.panics.invocation.NonStaticInvocationPanic;
+import tokyo.peya.langjal.vm.values.VMAnnotation;
 import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
@@ -23,6 +24,7 @@ import tokyo.peya.langjal.vm.values.metaobjects.reflection.VMConstructorObject;
 import tokyo.peya.langjal.vm.values.metaobjects.reflection.VMMethodObject;
 
 import java.util.Arrays;
+import java.util.List;
 
 @Getter
 public class VMMethod implements AccessibleObject
@@ -31,6 +33,7 @@ public class VMMethod implements AccessibleObject
     private final VMClass clazz;
     private final int slot;
     private final MethodNode methodNode;
+    private final List<VMAnnotation> annotations;
 
     private final AccessLevel accessLevel;
     private final AccessAttributeSet accessAttributes;
@@ -48,6 +51,7 @@ public class VMMethod implements AccessibleObject
         this.clazz = clazz;
         this.slot = slot;
         this.methodNode = methodNode;
+        this.annotations = VMAnnotation.of(vm, methodNode.visibleAnnotations);
 
         this.accessLevel = AccessLevel.fromAccess(methodNode.access);
         this.accessAttributes = AccessAttributeSet.fromAccess(methodNode.access);
@@ -106,6 +110,58 @@ public class VMMethod implements AccessibleObject
             throw new AccessRestrictedPanic(caller, this);
 
         frame.getThread().invokeMethod(this, isVMDecree, instance, args);
+    }
+
+
+    protected boolean checkOwnerSuitability(@Nullable VMClass owner)
+    {
+        return owner == null || owner.equals(this.getOwningClass());
+    }
+
+    protected boolean checkNameSuitability(@NotNull String methodName)
+    {
+        return this.getName().equals(methodName);
+    }
+
+    protected boolean checkReturnTypeSuitability(@Nullable VMType<?> returnType)
+    {
+        return returnType == null || returnType.equals(this.getReturnType());
+    }
+
+    protected boolean checkAccessSuitability(@Nullable VMClass caller)
+    {
+        return this.canAccessFrom(caller);
+    }
+
+    protected boolean checkArgumentsSuitability(@NotNull VMType<?>... args)
+    {
+        VMType<?>[] parameterTypes = this.getParameterTypes();
+        if (parameterTypes.length != args.length)
+            return false;
+
+        boolean allMatch = true;
+        for (int i = 0; i < parameterTypes.length; i++)
+        {
+            if (!parameterTypes[i].equals(args[i]))
+            {
+                allMatch = false; // 引数の型が一致しない場合
+                break;
+            }
+        }
+
+        return allMatch;
+    }
+
+
+
+    public boolean isSuitableToCall(@Nullable VMClass caller, @Nullable VMClass owner, @NotNull String methodName,
+                                    @Nullable VMType<?> returnType, @NotNull VMType<?>... args)
+    {
+        return this.checkOwnerSuitability(owner) &&
+               this.checkNameSuitability(methodName) &&
+               this.checkReturnTypeSuitability(returnType) &&
+               this.checkAccessSuitability(caller) &&
+               this.checkArgumentsSuitability(args);
     }
 
     @NotNull

@@ -17,11 +17,13 @@ import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.injections.InjectedField;
 import tokyo.peya.langjal.vm.engine.injections.InjectedMethod;
 import tokyo.peya.langjal.vm.engine.members.AccessibleObject;
+import tokyo.peya.langjal.vm.engine.members.VMAnnotationElementVirtualMethod;
 import tokyo.peya.langjal.vm.engine.members.VMField;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
 import tokyo.peya.langjal.vm.engine.threading.VMThread;
 import tokyo.peya.langjal.vm.panics.VMPanic;
 import tokyo.peya.langjal.vm.references.ClassReference;
+import tokyo.peya.langjal.vm.values.VMAnnotation;
 import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMReferenceValue;
 import tokyo.peya.langjal.vm.values.VMType;
@@ -55,6 +57,8 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
     protected final List<VMMethod> methods;
     @Getter(lombok.AccessLevel.NONE)
     protected final List<VMField> fields;
+    @Getter(lombok.AccessLevel.NONE)
+    protected final List<VMAnnotation> annotations;
 
     @Getter(lombok.AccessLevel.NONE)
     protected final Map<VMField, VMValue> staticFields;
@@ -86,6 +90,7 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
         this.interfaceLinks = new ArrayList<>();
         this.innerLinks = new ArrayList<>();
         this.staticFields = new HashMap<>();
+        this.annotations = new ArrayList<>();
     }
 
     public VMClass(@NotNull JalVM vm, @NotNull ClassNode clazz)
@@ -137,21 +142,9 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
 
     public void injectMethod(@NotNull InjectedMethod method)
     {
-        String injectingMethodName = method.getName();
-        for (VMMethod existingMethod : this.methods)
-        {
-            if (!existingMethod.getName().equals(injectingMethodName))
-                continue; // メソッド名が一致しない場合はスキップ
-
-            MethodNode existingNode = existingMethod.getMethodNode();
-            MethodNode injectingNode = method.getMethodNode();
-            if (existingNode.desc.equals(injectingNode.desc))
-            {
-                // 既存のメソッドと同じシグネチャのメソッドが存在する場合は上書き
-                this.methods.remove(existingMethod); // 既存のメソッドを削除
-                break;
-            }
-        }
+        VMMethod existing = this.findMethod(method.getName(), method.getDescriptor());
+        if (existing != null)
+            this.methods.remove(existing); // 既存のメソッドを削除
 
         // 新しいメソッドを追加
         this.methods.add(method);
@@ -159,16 +152,6 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
 
     public void injectField(@NotNull VMField field)
     {
-        String injectingFieldName = field.getName();
-        for (VMField existingField : this.fields)
-        {
-            if (existingField.getName().equals(injectingFieldName))
-            {
-                this.fields.remove(existingField); // 既存のフィールドを削除
-                break;
-            }
-        }
-
         // 既存のフィールドを削除
         this.fields.removeIf(existingField -> existingField.getName().equals(field.getName()));
         // 新しいフィールドを追加
@@ -230,26 +213,11 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
         this.linkInterfaces(cl);
         this.linkFields();
         this.linkMethods();
+        this.linkAnnotations();
+        if (this.accessAttributes.has(AccessAttribute.ANNOTATION))
+            this.linkAnnotationMethods();
 
         this.isLinked = true; // リンク済みフラグを立てる
-    }
-
-    @Override
-    public boolean isAssignableFrom(@NotNull VMType<?> other)
-    {
-        VMClass otherClass = other.getLinkedClass();
-
-        boolean isSubclass = otherClass.isSubclassOf(this);
-        if (isSubclass)
-            return true; // 他のクラスがこのクラスのサブクラスである場合はtrue
-
-        for (VMClass iface : otherClass.interfaceLinks)
-        {
-            if (this.isAssignableFrom(iface))
-                return true; // 他のクラスがこのクラスのインターフェースを実装している場合はtrue
-        }
-
-        return false; // それ以外の場合はfalse
     }
 
     private void linkInner(@NotNull VMSystemClassLoader cl)
@@ -266,26 +234,6 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
         }
     }
 
-    public void initialise(@NotNull VMThread callerThread)
-    {
-        if (this.isInitialised)
-            return; // 既に初期化済みなら何もしない
-
-        if (!(this.superLink == null || this.superLink == this || this.superLink.isInitialised))
-        {
-            this.superLink.initialise(callerThread); // スーパークラスがある場合は再帰的に初期化
-            return; // スーパークラスの初期化が完了するまで待つ
-        }
-
-        this.isInitialised = true; // 初期化済みフラグを立てる
-        this.initialiseStaticFields();
-        VMMethod staticInitMethod = this.findStaticInitialiser();
-        if (staticInitMethod == null)
-            return;  // 静的初期化メソッドがない場合は何もしない
-
-        // 静的初期化メソッドを呼び出す
-        staticInitMethod.invokeBypassAccess(callerThread.getCurrentFrame(), null);
-    }
 
     private void linkSuper(@NotNull VMSystemClassLoader cl)
     {
@@ -350,6 +298,75 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
         }
     }
 
+    private void linkAnnotations()
+    {
+        this.annotations.addAll(VMAnnotation.of(this, this.clazz.visibleAnnotations));
+    }
+
+    private void linkAnnotationMethods()
+    {
+        List<VMMethod> toRemove = new ArrayList<>();
+        List<VMMethod> toAdd = new ArrayList<>();
+        for (VMMethod method: this.methods)
+        {
+            if (!method.getAccessAttributes().has(AccessAttribute.ABSTRACT))
+                continue; // 抽象メソッドでない場合はスキップ
+            if (method.getParameterTypes().length != 0)
+                continue; // 引数がある場合はスキップ
+
+            // アノテーション要素を表すメソッドに対応するVMAnnotationElementVirtualMethodを生成して置き換え
+            VMAnnotationElementVirtualMethod annoMethod = new VMAnnotationElementVirtualMethod(
+                    this,
+                    method.getName(),
+                    method.getReturnType()
+            );
+            toRemove.add(method); // 既存の抽象メソッドを削除リストに追加
+            toAdd.add(annoMethod); // 新しいアノテーション要素メソッドを追加リストに追加
+        }
+
+        this.methods.addAll(toAdd);
+        toRemove.forEach(this.methods::remove);
+    }
+
+    @Override
+    public boolean isAssignableFrom(@NotNull VMType<?> other)
+    {
+        VMClass otherClass = other.getLinkedClass();
+
+        boolean isSubclass = otherClass.isSubclassOf(this);
+        if (isSubclass)
+            return true; // 他のクラスがこのクラスのサブクラスである場合はtrue
+
+        for (VMClass iface : otherClass.interfaceLinks)
+        {
+            if (this.isAssignableFrom(iface))
+                return true; // 他のクラスがこのクラスのインターフェースを実装している場合はtrue
+        }
+
+        return false; // それ以外の場合はfalse
+    }
+
+    public void initialise(@NotNull VMThread callerThread)
+    {
+        if (this.isInitialised)
+            return; // 既に初期化済みなら何もしない
+
+        if (!(this.superLink == null || this.superLink == this || this.superLink.isInitialised))
+        {
+            this.superLink.initialise(callerThread); // スーパークラスがある場合は再帰的に初期化
+            return; // スーパークラスの初期化が完了するまで待つ
+        }
+
+        this.isInitialised = true; // 初期化済みフラグを立てる
+        this.initialiseStaticFields();
+        VMMethod staticInitMethod = this.findStaticInitialiser();
+        if (staticInitMethod == null)
+            return;  // 静的初期化メソッドがない場合は何もしない
+
+        // 静的初期化メソッドを呼び出す
+        staticInitMethod.invokeBypassAccess(callerThread.getCurrentFrame(), null);
+    }
+
     @Nullable
     public VMMethod findConstructor(@Nullable VMClass caller, @NotNull VMClass owner, @NotNull VMType<?>... args)
     {
@@ -396,36 +413,8 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
                                        @Nullable VMType<?> returnType, @NotNull VMType<?>... args)
     {
         for (VMMethod method : this.methods)
-        {
-            if (!(owner == null || owner.equals(method.getOwningClass())))
-                continue;  // オーナークラスが一致しない場合はスキップ
-            if (!method.getName().equals(methodName))
-                continue;  // メソッド名が一致しない場合はスキップ
-            if (!(returnType == null || returnType.equals(method.getReturnType())))
-                continue;  // 戻り値の型が一致しない場合はスキップ
-
-            // アクセスレベルが一致しない場合はスキップ
-            if (!method.canAccessFrom(caller))
-                continue; // アクセスできないメソッドはスキップ
-
-            // 引数の型が一致しない場合はスキップ
-            VMType<?>[] parameterTypes = method.getParameterTypes();
-            if (parameterTypes.length != args.length)
-                continue; // 引数の数が違う場合はスキップ
-
-            boolean allMatch = true;
-            for (int i = 0; i < parameterTypes.length; i++)
-            {
-                if (!parameterTypes[i].equals(args[i]))
-                {
-                    allMatch = false; // 引数の型が一致しない場合はスキップ
-                    break;
-                }
-            }
-
-            if (allMatch)
+            if (method.isSuitableToCall(caller, owner, methodName, returnType, args))
                 return method; // 一致するメソッドを返す
-        }
 
         if (!(this.superLink == null || this.superLink == this)) // スーパークラスが存在し、かつ自身ではない場合
             // スーパークラスに同名のメソッドがあるか再帰的に探す

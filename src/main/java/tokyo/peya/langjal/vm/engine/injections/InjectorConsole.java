@@ -37,8 +37,8 @@ public class InjectorConsole implements Injector
                 )
                 {
                     @Override
-                    VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
-                                   @Nullable VMObject instance, @NotNull VMValue[] args)
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         return VMBoolean.ofTrue(frame);
                     }

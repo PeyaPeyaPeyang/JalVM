@@ -7,14 +7,10 @@ import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMFrame;
-import tokyo.peya.langjal.vm.panics.VMPanic;
 import tokyo.peya.langjal.vm.references.ClassReference;
-import tokyo.peya.langjal.vm.values.VMArray;
 import tokyo.peya.langjal.vm.values.VMBoolean;
-import tokyo.peya.langjal.vm.values.VMInteger;
 import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMValue;
-import tokyo.peya.langjal.vm.values.metaobjects.VMClassObject;
 
 public class InjectorFinalizer implements Injector
 {
@@ -41,8 +37,8 @@ public class InjectorFinalizer implements Injector
                 )
                 {
                     @Override
-                    VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
-                                   @Nullable VMObject instance, @NotNull VMValue[] args)
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         return VMBoolean.ofFalse(frame);
                     }

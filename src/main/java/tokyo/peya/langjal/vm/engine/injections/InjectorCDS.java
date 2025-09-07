@@ -37,7 +37,8 @@ public class InjectorCDS implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         return new VMInteger(frame, 0); // 0 = CDS無効
@@ -56,7 +57,8 @@ public class InjectorCDS implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         return null; // なにもしない
@@ -75,7 +77,8 @@ public class InjectorCDS implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         String release   = System.getProperty("java.runtime.version");

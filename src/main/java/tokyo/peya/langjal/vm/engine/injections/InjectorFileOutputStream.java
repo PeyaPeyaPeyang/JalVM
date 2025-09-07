@@ -50,7 +50,8 @@ public class InjectorFileOutputStream implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         return null;
@@ -69,7 +70,8 @@ public class InjectorFileOutputStream implements Injector
                 )
                 {
                     @Override
-                    @Nullable VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                    @Nullable
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMArray array = (VMArray) args[0];

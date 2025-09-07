@@ -26,8 +26,6 @@ import tokyo.peya.langjal.vm.values.VMValue;
 import tokyo.peya.langjal.vm.values.metaobjects.VMClassObject;
 import tokyo.peya.langjal.vm.values.metaobjects.VMStringObject;
 
-import java.awt.Frame;
-
 public class InjectorUnsafe implements Injector
 {
     public static final ClassReference CLAZZ = ClassReference.of("jdk/internal/misc/Unsafe");
@@ -53,7 +51,8 @@ public class InjectorUnsafe implements Injector
                 )
                 {
                     @Override
-                    @Nullable VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                    @Nullable
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         return null;
@@ -71,7 +70,8 @@ public class InjectorUnsafe implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         return new VMInteger(frame, getArrayBaseOffset());
@@ -89,7 +89,8 @@ public class InjectorUnsafe implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMClassObject clazzObject = (VMClassObject) args[0];
@@ -109,7 +110,8 @@ public class InjectorUnsafe implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMClassObject clazzObject = (VMClassObject) args[0];
@@ -132,7 +134,8 @@ public class InjectorUnsafe implements Injector
                 )
                 {
                     @Override
-                    @Nullable VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                    @Nullable
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         return null;
@@ -216,7 +219,8 @@ public class InjectorUnsafe implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMObject object = (VMObject) args[0];
@@ -349,7 +353,8 @@ public class InjectorUnsafe implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMClassObject clazzObject = (VMClassObject) args[0];
@@ -368,7 +373,8 @@ public class InjectorUnsafe implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMClassObject clazzObject = (VMClassObject) args[0];

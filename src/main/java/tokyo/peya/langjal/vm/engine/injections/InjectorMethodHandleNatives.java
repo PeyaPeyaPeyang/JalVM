@@ -10,7 +10,6 @@ import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.members.VMField;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
-import tokyo.peya.langjal.vm.panics.VMPanic;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMArray;
 import tokyo.peya.langjal.vm.values.VMInteger;
@@ -54,7 +53,8 @@ public class InjectorMethodHandleNatives implements Injector
                 )
                 {
                     @Override
-                    @Nullable VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                    @Nullable
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         return null;
@@ -72,7 +72,8 @@ public class InjectorMethodHandleNatives implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         if (!constantsClass.isInitialised())
@@ -115,7 +116,8 @@ public class InjectorMethodHandleNatives implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMObject memberName = (VMObject) args[0];
@@ -155,7 +157,8 @@ public class InjectorMethodHandleNatives implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMObject memberName = (VMObject) args[0];
@@ -201,7 +204,8 @@ public class InjectorMethodHandleNatives implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMObject memberName = (VMObject) args[0];
@@ -241,7 +245,8 @@ public class InjectorMethodHandleNatives implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMObject memberName = (VMObject) args[0];
@@ -263,7 +268,8 @@ public class InjectorMethodHandleNatives implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMObject memberName = (VMObject) args[0];

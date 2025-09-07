@@ -52,7 +52,8 @@ public class InjectorClass implements Injector
                 ))
                 {
                     @Override
-                    @Nullable VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                    @Nullable
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         return null;
@@ -69,7 +70,8 @@ public class InjectorClass implements Injector
                         null
                 ))
                 {
-                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         return enableAssertions;
@@ -86,7 +88,8 @@ public class InjectorClass implements Injector
                         null
                 ))
                 {
-                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMStringObject string = (VMStringObject) args[0];
@@ -107,7 +110,8 @@ public class InjectorClass implements Injector
                         null
                 ))
                 {
-                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         assert instance != null: "Instance must be a VMObject";
@@ -126,7 +130,8 @@ public class InjectorClass implements Injector
                         null
                 ))
                 {
-                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMStringObject classNameObject = (VMStringObject) args[0];
@@ -151,7 +156,8 @@ public class InjectorClass implements Injector
                         null
                 ))
                 {
-                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMClassObject instanceClass = (VMClassObject) instance;
@@ -174,7 +180,8 @@ public class InjectorClass implements Injector
                         null
                 ))
                 {
-                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMClassObject instanceClass = (VMClassObject) instance;
@@ -194,7 +201,8 @@ public class InjectorClass implements Injector
                         null
                 ))
                 {
-                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMClassObject instanceClass = (VMClassObject) instance;
@@ -231,7 +239,8 @@ public class InjectorClass implements Injector
                         null
                 ))
                 {
-                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMClassObject instanceClass = (VMClassObject) instance;
@@ -268,7 +277,8 @@ public class InjectorClass implements Injector
                         null
                 ))
                 {
-                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMClassObject instanceClass = (VMClassObject) instance;
@@ -307,7 +317,8 @@ public class InjectorClass implements Injector
                         null
                 ))
                 {
-                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMClassObject instanceClass = (VMClassObject) instance;
@@ -336,7 +347,8 @@ public class InjectorClass implements Injector
                         null
                 ))
                 {
-                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMClassObject obj = (VMClassObject) instance;
@@ -356,7 +368,8 @@ public class InjectorClass implements Injector
                         null
                 ))
                 {
-                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMClassObject obj = (VMClassObject) instance;
@@ -384,7 +397,8 @@ public class InjectorClass implements Injector
                         null
                 ))
                 {
-                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMClassObject obj = (VMClassObject) instance;
@@ -405,7 +419,8 @@ public class InjectorClass implements Injector
                         null
                 ))
                 {
-                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMClassObject obj = (VMClassObject) instance;
@@ -443,7 +458,8 @@ public class InjectorClass implements Injector
                         null
                 ))
                 {
-                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMClassObject obj = (VMClassObject) instance;
@@ -472,7 +488,8 @@ public class InjectorClass implements Injector
                         null
                 ))
                 {
-                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         return VMBoolean.ofFalse(frame);  // TODO: Implement hidden classes
@@ -489,7 +506,8 @@ public class InjectorClass implements Injector
                         null
                 ))
                 {
-                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMValue obj = args[0];

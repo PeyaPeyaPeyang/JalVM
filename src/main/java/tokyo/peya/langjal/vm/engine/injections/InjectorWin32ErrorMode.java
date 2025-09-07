@@ -35,7 +35,8 @@ public class InjectorWin32ErrorMode implements Injector
                 )
                 )
                 {
-                    @Override VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         return args[0];  // 古い値を返すが，まあこれでいいだろう。

@@ -39,8 +39,8 @@ public class InjectorThrowable implements Injector
                 )
                 {
                     @Override
-                    VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
-                                   @Nullable VMObject instance, @NotNull VMValue[] args)
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         assert instance != null;
                         int depth = ((VMInteger) args[0]).asNumber().intValue();

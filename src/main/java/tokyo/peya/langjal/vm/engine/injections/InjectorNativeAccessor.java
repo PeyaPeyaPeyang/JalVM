@@ -38,8 +38,8 @@ public class InjectorNativeAccessor implements Injector
                 )
                 {
                     @Override
-                    VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
-                                   @Nullable VMObject instance, @NotNull VMValue[] args)
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         assert caller != null;
                         VMConstructorObject constructor = (VMConstructorObject) args[0];

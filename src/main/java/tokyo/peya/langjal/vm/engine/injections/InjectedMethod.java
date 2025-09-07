@@ -73,7 +73,7 @@ public abstract class InjectedMethod extends VMMethod
     }
 
     @Nullable
-    abstract VMValue invoke(
+    protected abstract VMValue invoke(
             @NotNull VMFrame frame,
             @Nullable VMClass caller,
             @Nullable VMObject instance,

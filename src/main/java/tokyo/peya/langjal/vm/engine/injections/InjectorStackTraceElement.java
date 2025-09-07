@@ -40,8 +40,8 @@ public class InjectorStackTraceElement implements Injector
                 )
                 {
                     @Override
-                    VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
-                                   @Nullable VMObject instance, @NotNull VMValue[] args)
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMArray elements = (VMArray) args[0];
                         VMReferenceValue backTrace = (VMReferenceValue) args[1];

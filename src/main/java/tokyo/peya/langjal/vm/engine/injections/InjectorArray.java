@@ -40,8 +40,8 @@ public class InjectorArray implements Injector
                 )
                 {
                     @Override
-                    VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
-                                   @Nullable VMObject instance, @NotNull VMValue[] args)
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMClassObject obj = (VMClassObject) args[0];
                         int length = ((VMInteger) args[1]).asNumber().intValue();

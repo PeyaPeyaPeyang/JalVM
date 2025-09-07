@@ -165,7 +165,9 @@ public class InjectorMethodHandleNatives implements Injector
                         if (isField(flags))
                         {
                             String fieldName = ((VMStringObject) memberName.getField("name")).getString();
-                            VMField field = clazz.findField(fieldName);
+                            VMField field = clazz.findFieldSafe(fieldName);
+                            if (field == null)
+                                return new VMNull<>(VMType.ofClassName(frame, "java/lang/invoke/MemberName"));
                             int access = field.getFieldNode().access;
                             flags = calcFieldFlags(access);
                             memberName.setField("flags", new VMInteger(frame, flags));
@@ -177,7 +179,7 @@ public class InjectorMethodHandleNatives implements Injector
 
                         VMMethod m = clazz.findMethod(methodName, null);
                         if (m == null)
-                            throw new VMPanic("Cannot resolve method: " + clazz + "->" + methodName);
+                            return new VMNull<>(VMType.ofClassName(frame, "java/lang/invoke/MemberName"));
 
                         int access = m.getMethodNode().access;
                         flags = calcMethodFlags(access, m.getMethodNode().name.equals("<init>"));

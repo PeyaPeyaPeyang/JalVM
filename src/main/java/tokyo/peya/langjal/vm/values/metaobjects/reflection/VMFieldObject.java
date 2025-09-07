@@ -28,7 +28,7 @@ public class VMFieldObject extends VMObject
 
         this.setField("clazz", field.getOwningClass().getClassObject());
         this.setField("name", VMStringObject.createString(vm, field.getName()));
-        this.setField("type", field.getClazz().getClassObject());
+        this.setField("type", field.getType().getLinkedClass().getClassObject());
         this.setField("modifiers", new VMInteger(vm, field.getFieldNode().access));
         this.setField("trustedFinal", VMBoolean.ofFalse(vm));
         this.setField("slot", new VMInteger(vm, field.getSlot()));

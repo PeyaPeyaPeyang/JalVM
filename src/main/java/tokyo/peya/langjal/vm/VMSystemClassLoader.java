@@ -117,8 +117,8 @@ public class VMSystemClassLoader implements VMComponent
     public VMClass defineClass(@NotNull ClassNode classNode)
     {
         String name = classNode.name;
-        if (this.heap.getLoadedClass(ClassReference.of(name)) != null)
-            throw new IllegalStateException("Class " + name + " is already defined!");
+        // if (this.heap.getLoadedClass(ClassReference.of(name)) != null)
+        //    throw new IllegalStateException("Class " + name + " is already defined!");
 
         ClassReference ref = ClassReference.of(name);
         System.out.println("Defining class: " + ref.getFullQualifiedName());

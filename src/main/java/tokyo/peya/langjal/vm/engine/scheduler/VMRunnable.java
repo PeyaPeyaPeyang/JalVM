@@ -17,7 +17,7 @@ public abstract class VMRunnable
 
     public abstract void run();
 
-    private VMRunnable(TaskScheduler scheduler, JalVM vm)
+    private VMRunnable(@NotNull TaskScheduler scheduler, @NotNull JalVM vm)
     {
         this.scheduler = scheduler;
         this.vm = vm;

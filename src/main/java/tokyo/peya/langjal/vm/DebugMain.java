@@ -69,7 +69,7 @@ public class DebugMain
         methodNode.visitCode();
         // System.out.println("Hello, World!");
         // helloWorld(methodNode);
-        // parrotInput(methodNode);
+        parrotInput(methodNode);
         // a(methodNode);
         // comparisons(methodNode);
         // getProp(methodNode);
@@ -254,7 +254,7 @@ public class DebugMain
         @VMEventHandler
         public void onStepIn(@NotNull VMStepInEvent event)
         {
-            // System.out.println("Executing instruction: " + EOpcodes.getName(event.getInstruction().getOpcode()) + " in frame: " + event.getFrame());
+            System.out.println("Executing instruction: " + EOpcodes.getName(event.getInstruction().getOpcode()) + " in frame: " + event.getFrame());
             if (!this.stepIn)
                 return; // Debugging is disabled
 

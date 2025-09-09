@@ -5,6 +5,7 @@ import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.tree.MethodNode;
 import tokyo.peya.langjal.compiler.jvm.AccessAttribute;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
+import tokyo.peya.langjal.compiler.jvm.MethodDescriptor;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMFrame;
@@ -179,8 +180,12 @@ public class InjectorMethodHandleNatives implements Injector
                         }
 
                         String methodName = ((VMStringObject) memberName.getField("name")).getString();
+                        VMObject methodType = (VMObject) memberName.getField("type");
+                        MethodDescriptor descriptor = getDescriptorByMethodType(methodType);
+                        if (descriptor == null)
+                            return new VMNull<>(VMType.ofClassName(frame, "java/lang/invoke/MemberName"));
 
-                        VMMethod m = clazz.findMethod(methodName, null);
+                        VMMethod m = clazz.findMethod(methodName, descriptor);
                         if (m == null)
                             return new VMNull<>(VMType.ofClassName(frame, "java/lang/invoke/MemberName"));
 
@@ -277,6 +282,26 @@ public class InjectorMethodHandleNatives implements Injector
                     }
                 }
         );
+    }
+
+    private static MethodDescriptor getDescriptorByMethodType(@NotNull VMObject methodType)
+    {
+        if (!methodType.getObjectType().getReference().isEqualClass("java/lang/invoke/MethodType"))
+            return null;
+
+        VMObject returnType = (VMObject) methodType.getField("rtype");
+        VMArray paramTypes = (VMArray) methodType.getField("ptypes");
+
+        String returnTypeDesc = ((VMClassObject) returnType).getRepresentingClass().getTypeDescriptor();
+        String[] paramTypeDescs = new String[paramTypes.length()];
+        for (int i = 0; i < paramTypes.length(); i++)
+        {
+            VMObject paramType = (VMObject) paramTypes.get(i);
+            paramTypeDescs[i] = ((VMClassObject) paramType).getRepresentingClass().getTypeDescriptor();
+        }
+
+        String desc = "(" + String.join("", paramTypeDescs) + ")" + returnTypeDesc;
+        return MethodDescriptor.parse(desc);
     }
 
     private static int calcMethodFlags(int modifier, boolean isConstructor)

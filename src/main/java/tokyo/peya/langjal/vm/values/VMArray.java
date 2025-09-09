@@ -10,6 +10,7 @@ import tokyo.peya.langjal.vm.engine.VMComponent;
 import tokyo.peya.langjal.vm.panics.VMPanic;
 
 import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.Random;
 
 @Getter
@@ -64,7 +65,7 @@ public class VMArray implements VMValue, VMReferenceValue
                                                                                   .getTypeDescriptor() + " for " + elementType.getTypeDescriptor());
 
         this.elementType = elementType;
-        this.elements = values;
+        this.elements = Arrays.copyOf(values, values.length);
         this.identity = new Random().nextLong();
 
         this.arrayType = VMType.of(component, "[" + elementType.getTypeDescriptor());

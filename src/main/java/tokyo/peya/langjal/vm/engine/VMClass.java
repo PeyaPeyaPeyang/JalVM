@@ -529,6 +529,14 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
         return null;
     }
 
+    public boolean isInstance(@Nullable VMObject instance)
+    {
+        if (instance == null)
+            return false;
+
+        return instance.getObjectType().isAssignableFrom(this);
+    }
+
     private static VMClass findFieldOwner(@NotNull VMField field, @NotNull VMClass apex)
     {
         VMClass current = apex;

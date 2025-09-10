@@ -8,10 +8,7 @@ import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.references.ClassReference;
-import tokyo.peya.langjal.vm.values.VMInteger;
-import tokyo.peya.langjal.vm.values.VMLong;
-import tokyo.peya.langjal.vm.values.VMObject;
-import tokyo.peya.langjal.vm.values.VMValue;
+import tokyo.peya.langjal.vm.values.*;
 
 public class InjectorCDS implements Injector
 {
@@ -62,6 +59,66 @@ public class InjectorCDS implements Injector
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         return null; // なにもしない
+                    }
+                }
+        );
+
+        clazz.injectMethod(
+                new InjectedMethod(
+                        clazz, new MethodNode(
+                        EOpcodes.ACC_PRIVATE | EOpcodes.ACC_STATIC | EOpcodes.ACC_NATIVE,
+                        "isDumpingClassList0",
+                        "()Z",
+                        null,
+                        null
+                )
+                )
+                {
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
+                    {
+                        return VMBoolean.ofFalse(frame);
+                    }
+                }
+        );
+
+        clazz.injectMethod(
+                new InjectedMethod(
+                        clazz, new MethodNode(
+                        EOpcodes.ACC_PRIVATE | EOpcodes.ACC_STATIC | EOpcodes.ACC_NATIVE,
+                        "isDumpingArchive0",
+                        "()Z",
+                        null,
+                        null
+                )
+                )
+                {
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
+                    {
+                        return VMBoolean.ofFalse(frame);
+                    }
+                }
+        );
+
+        clazz.injectMethod(
+                new InjectedMethod(
+                        clazz, new MethodNode(
+                        EOpcodes.ACC_PRIVATE | EOpcodes.ACC_STATIC | EOpcodes.ACC_NATIVE,
+                        "isSharingEnabled0",
+                        "()Z",
+                        null,
+                        null
+                )
+                )
+                {
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
+                    {
+                        return VMBoolean.ofFalse(frame);
                     }
                 }
         );

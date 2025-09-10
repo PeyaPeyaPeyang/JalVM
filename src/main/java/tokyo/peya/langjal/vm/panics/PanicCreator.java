@@ -55,18 +55,13 @@ public class PanicCreator
         return new CodeThrownVMPanic(createThrowable(frame, exceptionClass, message, null));
     }
 
-    public static VMArray collectStackTrace(@NotNull VMFrame frame, int depth)
+    public static VMArray collectStackTrace(@NotNull VMFrame frame, @NotNull VMObject exceptionInstance, int depth)
     {
         if (depth < 0)
             throw new VMPanic("NegativeArraySizeException");
         else if (depth == 0)
             depth = Integer.MAX_VALUE;
 
-        // 現在のフレームは Throwable.fillInStackTrace() のフレームなので，new MyException() のところまで遡る。
-        if (!frame.getMethod().getName().equalsIgnoreCase("fillInStackTrace"))
-            throw new VMPanic("PanicCreator.collectStackTrace must be called from Throwable.fillInStackTrace");
-
-        VMObject exceptionInstance = (VMObject) frame.getLocals().getLocal(0, null);
         VMClass exceptionClass = exceptionInstance.getObjectType();
 
         VMFrame prev = frame.getPrevFrame();
@@ -145,7 +140,7 @@ public class PanicCreator
         } while (true);
 
         throwableObj.setField("detailMessage", VMStringObject.createString(frame, message));
-        throwableObj.setField("stackTrace", collectStackTrace(frame, Integer.MAX_VALUE));
+        throwableObj.setField("stackTrace", collectStackTrace(frame, obj, Integer.MAX_VALUE));
         if (cause != null)
             throwableObj.setField("cause", cause);
 

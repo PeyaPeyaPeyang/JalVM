@@ -156,7 +156,7 @@ public class VMMethod implements AccessibleObject
         boolean allMatch = true;
         for (int i = 0; i < parameterTypes.length; i++)
         {
-            if (!parameterTypes[i].isAssignableFrom(args[i]))
+            if (!parameterTypes[i].equals(args[i]))
             {
                 allMatch = false; // 引数の型が一致しない場合
                 break;

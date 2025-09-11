@@ -390,12 +390,13 @@ public class DynamicInvocationHelper
 
         String ownerName = bsmClass.getReference().getFullQualifiedName();
         VMClass caller = frame.getMethod().getClazz();
+
         VMMethod method = bsmClass.findSuitableMethod(
                 caller,
                 bsmClass,
                 name,
                 null,
-                Arrays.stream(bsmParameters).map(VMValue::type).toArray(VMType[]::new)
+                Arrays.stream(bsmDescriptor.getParameterTypes()).map(t -> VMType.of(frame, t)).toArray(VMType[]::new)
         );
         if (method == null)
             throw new VMPanic("No suitable bootstrap method found: " + ownerName + "." + name + bsmDescriptor);

@@ -440,7 +440,7 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
     {
         for (VMMethod method : this.methods)
         {
-            if (method.getName().equals(methodName) && (desc == null || method.getDescriptor().equals(desc)))
+            if (method.getName().equals(methodName) && (desc == null || method.getDescriptor().equals(desc) || method.isSignaturePolymorphic()))
                 return method; // 一致するメソッドを返す
         }
         return null; // 見つからなかった場合はnullを返す

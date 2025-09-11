@@ -35,6 +35,7 @@ import tokyo.peya.langjal.vm.values.metaobjects.VMClassObject;
 import tokyo.peya.langjal.vm.values.metaobjects.VMStringObject;
 import tokyo.peya.langjal.vm.values.metaobjects.reflection.invoke.VMMethodHandleLookupObject;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -389,13 +390,12 @@ public class DynamicInvocationHelper
 
         String ownerName = bsmClass.getReference().getFullQualifiedName();
         VMClass caller = frame.getMethod().getClazz();
-        InvocationHelper.InvocationContext ctxt = InvocationHelper.retrieveCtxt(ownerName, bsmDescriptor, frame);
         VMMethod method = bsmClass.findSuitableMethod(
                 caller,
                 bsmClass,
                 name,
                 null,
-                ctxt.argumentTypes()
+                Arrays.stream(bsmParameters).map(VMValue::type).toArray(VMType[]::new)
         );
         if (method == null)
             throw new VMPanic("No suitable bootstrap method found: " + ownerName + "." + name + bsmDescriptor);

@@ -41,6 +41,7 @@ public class VMMethod implements AccessibleObject
     private final MethodDescriptor descriptor;
     private final VMType<?> returnType;
     private final VMType<?>[] parameterTypes;
+    private final boolean isSignaturePolymorphic;
 
     @Getter(lombok.AccessLevel.NONE)
     private VMMethodObject methodObject;
@@ -62,6 +63,13 @@ public class VMMethod implements AccessibleObject
                                     .map(m -> VMType.of(vm, m))
                                     .toArray(VMType[]::new);
 
+        this.isSignaturePolymorphic =
+                (clazz.getReference().isEqualClass("java/lang/invoke/MethodHandle")
+                        || clazz.getReference().isEqualClass("java/lang/invoke/VarHandle")
+                ) && this.parameterTypes.length == 1
+                        && this.parameterTypes[0].equals(VMType.ofGenericArray(vm))
+                        && this.accessAttributes.has(AccessAttribute.NATIVE)
+                        && this.accessAttributes.has(AccessAttribute.VARARGS);
     }
 
     public VMMethodObject getMethodObject()
@@ -125,6 +133,9 @@ public class VMMethod implements AccessibleObject
 
     protected boolean checkReturnTypeSuitability(@Nullable VMType<?> returnType)
     {
+        if (this.isSignaturePolymorphic) // シグネチャ多相メソッドは戻り値の型を問わない
+            return true;
+
         return returnType == null || returnType.equals(this.getReturnType());
     }
 
@@ -135,6 +146,9 @@ public class VMMethod implements AccessibleObject
 
     protected boolean checkArgumentsSuitability(@NotNull VMType<?>... args)
     {
+        if (this.isSignaturePolymorphic)  // シグネチャ多相メソッドは引数の型を問わない
+            return true;
+
         VMType<?>[] parameterTypes = this.getParameterTypes();
         if (parameterTypes.length != args.length)
             return false;
@@ -142,7 +156,7 @@ public class VMMethod implements AccessibleObject
         boolean allMatch = true;
         for (int i = 0; i < parameterTypes.length; i++)
         {
-            if (!parameterTypes[i].equals(args[i]))
+            if (!parameterTypes[i].isAssignableFrom(args[i]))
             {
                 allMatch = false; // 引数の型が一致しない場合
                 break;
@@ -151,8 +165,6 @@ public class VMMethod implements AccessibleObject
 
         return allMatch;
     }
-
-
 
     public boolean isSuitableToCall(@Nullable VMClass caller, @Nullable VMClass owner, @NotNull String methodName,
                                     @Nullable VMType<?> returnType, @NotNull VMType<?>... args)

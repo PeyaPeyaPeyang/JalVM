@@ -94,7 +94,8 @@ public class VMMethodHandleLookupObject extends VMObject
                         frame.getVM(),
                         currentLookupClass,
                         previousLookupClass,
-                        MethodHandles.Lookup.PUBLIC | MethodHandles.Lookup.PROTECTED | MethodHandles.Lookup.PACKAGE | MethodHandles.Lookup.PRIVATE
+                        // full privileged access
+                        MethodHandles.Lookup.PUBLIC | MethodHandles.Lookup.PROTECTED | MethodHandles.Lookup.PACKAGE | MethodHandles.Lookup.PRIVATE | MethodHandles.Lookup.MODULE
                 );
             else
                 lookup = new VMMethodHandleLookupObject(

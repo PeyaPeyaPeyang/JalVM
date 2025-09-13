@@ -569,10 +569,10 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
     {
         if (this == obj)
             return true;
-        if (!(obj instanceof VMType<?> other))
+        if (!(obj instanceof VMClass other))
             return false;
 
-        return this.getTypeDescriptor().equals(other.getTypeDescriptor());
+        return this.reference.equals(other.getReference());
     }
 
     @Override
@@ -644,4 +644,6 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
     {
         return "L" + this.reference.getFullQualifiedName() + ";";
     }
+
+
 }

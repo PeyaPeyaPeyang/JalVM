@@ -217,14 +217,15 @@ public class InjectorMethodHandleNatives implements Injector
                         VMArray arr = new VMArray(frame, VMType.ofGenericObject(frame), 2);
                         VMClassObject clazzObj = (VMClassObject) memberName.getField("clazz");
                         int flags = ((VMInteger) memberName.getField("flags")).asNumber().intValue();
+                        byte refKind = obtainRefKind(flags);
 
                         VMReferenceValue method = (VMReferenceValue) memberName.getField("method");
                         if (method instanceof VMResolvedMethodName resolved)
                         {
-                            if (resolved.getMethod().getAccessAttributes().has(AccessAttribute.STATIC))
-                                arr.set(0, new VMLong(frame, -1));  // static の場合は -1
-                            else
+                            if (refKind == /* REF_invokeVirtual */ 5 || refKind == /* REF_invokeInterface */ 9)
                                 arr.set(0, new VMLong(frame, resolved.getMethod().getSlot()));
+                            else
+                                arr.set(0, new VMLong(frame, -1));  // static の場合は -1
                             arr.set(1, memberName);
                         }
                         else if (isField(flags))
@@ -328,5 +329,10 @@ public class InjectorMethodHandleNatives implements Injector
     private static int calcFlags(int is, int modifier, int refKind)
     {
         return is | modifier | (refKind << 24);
+    }
+
+    private static byte obtainRefKind(int flags)
+    {
+        return (byte) ((flags >> 24) & 0xFF);
     }
 }

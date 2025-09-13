@@ -41,6 +41,19 @@ public class VMArrayClass extends VMClass
     }
 
     @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj)
+            return true;
+        if (!(obj instanceof VMArrayClass other))
+            return false;
+
+        return this.arrayType.equals(other.arrayType);
+    }
+
+
+
+    @Override
     public @Nullable VMMethod findSuitableMethod(@Nullable VMClass caller, @Nullable VMClass owner,
                                                  @NotNull String methodName, @Nullable VMType<?> returnType,
                                                  @NotNull VMType<?>... args)

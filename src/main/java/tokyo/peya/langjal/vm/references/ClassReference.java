@@ -22,6 +22,8 @@ public class ClassReference
     private final String[] packages;
     private final String className;
 
+    private final int hashCode;
+
     static {
         CACHES = new LinkedHashMap<>(512, 0.75f, true) {
             @Override
@@ -35,6 +37,7 @@ public class ClassReference
     {
         this.packages = normalizePackages(packages);
         this.className = className;
+        this.hashCode = Objects.hash(Arrays.hashCode(this.packages), this.className);
     }
 
     public String getPackageDotName()
@@ -79,8 +82,8 @@ public class ClassReference
             return false;
         else if (this == that)
             return true;
-        return Objects.deepEquals(this.packages, that.packages)
-                && Objects.equals(this.className, that.className);
+
+        return this.hashCode == that.hashCode;
     }
 
     public boolean isEqualClassName(@NotNull String className)
@@ -111,7 +114,7 @@ public class ClassReference
     @Override
     public int hashCode()
     {
-        return Objects.hash(Arrays.hashCode(this.packages), this.className);
+        return this.hashCode;
     }
 
     @Override

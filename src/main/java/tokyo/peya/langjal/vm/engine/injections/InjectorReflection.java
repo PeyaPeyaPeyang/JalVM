@@ -8,10 +8,11 @@ import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.references.ClassReference;
+import tokyo.peya.langjal.vm.values.VMBoolean;
 import tokyo.peya.langjal.vm.values.VMInteger;
-import tokyo.peya.langjal.vm.values.metaobjects.VMClassObject;
 import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMValue;
+import tokyo.peya.langjal.vm.values.metaobjects.VMClassObject;
 
 public class InjectorReflection implements Injector
 {
@@ -69,6 +70,34 @@ public class InjectorReflection implements Injector
                         VMClassObject obj = (VMClassObject) args[0];
                         int access = obj.getRepresentingClass().getClazz().access;
                         return new VMInteger(frame, access);
+                    }
+                }
+        );
+        clazz.injectMethod(
+                new InjectedMethod(
+                        clazz, new MethodNode(
+                        EOpcodes.ACC_PUBLIC | EOpcodes.ACC_STATIC | EOpcodes.ACC_NATIVE,
+                        "areNestMates",
+                        "(Ljava/lang/Class;Ljava/lang/Class;)Z",
+                        null,
+                        null
+                )
+                )
+                {
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
+                    {
+                        VMClassObject classObj1 = (VMClassObject) args[0];
+                        VMClassObject classObj2 = (VMClassObject) args[1];
+
+                        VMClass class1 = classObj1.getRepresentingClass();
+                        VMClass class2 = classObj2.getRepresentingClass();
+
+                        VMClass nestHost1 = class1.getOuterLink() == null ? class1 : class1.getOuterLink();
+                        VMClass nestHost2 = class2.getOuterLink() == null ? class2 : class2.getOuterLink();
+
+                        return VMBoolean.of(frame, nestHost1.equals(nestHost2));
                     }
                 }
         );

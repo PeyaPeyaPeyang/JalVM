@@ -418,10 +418,18 @@ public class InjectorUnsafe implements Injector
                                 getArrayScale(returnType)
                         );
                     }
+                    case VMClassObject clazzObject ->
+                    {
+                        // class の場合は static フィールドを読む
+                        VMClass representingClass = clazzObject.getRepresentingClass();
+                        VMField field = representingClass.findField(offset);
+                        VMValue value = representingClass.getStaticFieldValue(field);
+                        return value.conformValue(returnType);
+                    }
                     case VMObject vmObject ->
                     {
                         VMField field = vmObject.getObjectType().findField(offset);
-                        VMValue value = vmObject.getField(field.getName());
+                        VMValue value = vmObject.getField(field);
                         return value.conformValue(returnType);
                     }
                     case VMNull<?> _ ->
@@ -471,6 +479,12 @@ public class InjectorUnsafe implements Injector
                         if (index < 0 || index >= array.length())
                             throw new VMPanic("Array index out of bounds: " + index);
                         array.set(index, value);
+                    }
+                    case VMClassObject clazzObject -> {
+                        // class の場合は static フィールドをセット
+                        VMClass representingClass = clazzObject.getRepresentingClass();
+                        VMField field = representingClass.findField(offset);
+                        representingClass.setStaticField(field, value);
                     }
                     case VMObject vmObject ->
                     {

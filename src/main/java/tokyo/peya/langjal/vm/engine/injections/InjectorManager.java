@@ -25,6 +25,7 @@ public class InjectorManager
     {
         this.injectors.addAll(Arrays.asList(
                 new InjectorArray(),
+                new InjectorBootLoader(),
                 new InjectorCDS(),
                 new InjectorClass(),
                 new InjectorClassLoader(),

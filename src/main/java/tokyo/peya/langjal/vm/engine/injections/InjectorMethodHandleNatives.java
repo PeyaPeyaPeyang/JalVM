@@ -255,11 +255,7 @@ public class InjectorMethodHandleNatives implements Injector
                     protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
-                        VMObject memberName = (VMObject) args[0];
-                        VMClassObject clazzObj = (VMClassObject) memberName.getField("clazz");
-                        String fieldName = ((VMStringObject) memberName.getField("name")).getString();
-                        VMField field = clazzObj.getRepresentingClass().findField(fieldName);
-                        return new VMLong(frame, field.getFieldID());
+                        return new VMLong(frame, getFieldOffset((VMObject) args[0]));
                     }
                 }
         );
@@ -279,10 +275,37 @@ public class InjectorMethodHandleNatives implements Injector
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMObject memberName = (VMObject) args[0];
-                        return (VMClassObject) memberName.getField("clazz");
+                        return memberName.getField("clazz");
                     }
                 }
         );
+        clazz.injectMethod(
+                new InjectedMethod(
+                        clazz, new MethodNode(
+                        EOpcodes.ACC_STATIC | EOpcodes.ACC_NATIVE,
+                        "objectFieldOffset",
+                        "(Ljava/lang/invoke/MemberName;)J",
+                        null,
+                        null
+                )
+                )
+                {
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
+                    {
+                        return new VMLong(frame, getFieldOffset((VMObject) args[0]));
+                    }
+                }
+        );
+    }
+
+    private static long getFieldOffset(@NotNull VMObject memberName)
+    {
+        VMClassObject clazzObj = (VMClassObject) memberName.getField("clazz");
+        String fieldName = ((VMStringObject) memberName.getField("name")).getString();
+        VMField field = clazzObj.getRepresentingClass().findField(fieldName);
+        return field.getFieldID();
     }
 
     private static MethodDescriptor getDescriptorByMethodType(@NotNull VMObject methodType)

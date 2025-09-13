@@ -92,6 +92,28 @@ public class InjectorClassLoader implements Injector
                     }
                 }
         );
+        clazz.injectMethod(
+                new InjectedMethod(
+                        clazz, new MethodNode(
+                        EOpcodes.ACC_PRIVATE | EOpcodes.ACC_STATIC | EOpcodes.ACC_NATIVE,
+                        "findBootstrapClass",
+                        "(Ljava/lang/String;)Ljava/lang/Class;",
+                        null,
+                        null
+                ))
+                {
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
+                    {
+                        String className = ((VMStringObject) args[0]).getString();
+                        ClassReference classReference = ClassReference.of(className);
+                        VMClass loadedClass = cl.findClass(classReference);
+
+                        return loadedClass.getClassObject();
+                    }
+                }
+        );
     }
 
 }

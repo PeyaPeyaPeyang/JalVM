@@ -408,9 +408,6 @@ public class DynamicInvocationHelper
         frame.getThread().invokeInterrupting(method, (callback) -> {
             if (!(callback instanceof VMObject mayCallSite))
                 throw new VMPanic("Bootstrap method did not return CallSite: " + ownerName + "." + name + bsmDescriptor);
-            if (!mayCallSite.getObjectType().getReference().isEqualClassName("java/lang/invoke/CallSite"))
-                throw new VMPanic("Bootstrap method did not return CallSite: " + ownerName + "." + name + bsmDescriptor);
-
             this.resolvedCallSiteCaches.put(operand, mayCallSite);
         }, bsmParameters);
     }

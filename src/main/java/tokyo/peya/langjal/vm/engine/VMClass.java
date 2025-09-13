@@ -71,7 +71,9 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
     private Function</* owner: */ VMObject, /* target: */ VMObject> instanceCreator;
     @Getter(lombok.AccessLevel.NONE)
     private VMClassObject classObject;
+
     protected VMClass superLink;
+    protected VMClass outerLink;
 
     private VMValue classData;
 
@@ -208,7 +210,7 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
         VMSystemClassLoader cl = vm.getClassLoader();
         // リンク処理 -> クラスのスーパクラスやメンバの参照を解決
         super.link(vm);
-        this.linkInner(cl);
+        this.linkHierarchy(cl);
         this.linkSuper(cl);
         this.linkInterfaces(cl);
         this.linkFields();
@@ -220,7 +222,7 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
         this.isLinked = true; // リンク済みフラグを立てる
     }
 
-    private void linkInner(@NotNull VMSystemClassLoader cl)
+    private void linkHierarchy(@NotNull VMSystemClassLoader cl)
     {
         List<String> innerClassNames = this.clazz.innerClasses.stream()
                 // .filter(inner -> inner.outerName != null && inner.outerName.equals(this.clazz.name))
@@ -232,6 +234,9 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
             VMClass innerClass = cl.findClass(ClassReference.of(innerName));
             this.innerLinks.add(innerClass); // インナークラスをリンク
         }
+
+        if (!(this.clazz.outerClass == null || this.clazz.outerClass.isEmpty()))
+            this.outerLink = cl.findClass(ClassReference.of(this.clazz.outerClass));
     }
 
 
@@ -601,6 +606,17 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
     public void injectInstanceCreator(@NotNull Function<VMObject, VMObject> creator)
     {
         this.instanceCreator = creator;
+    }
+
+    public void addNestedClassDynamically(@NotNull VMClass nestedClass)
+    {
+        if (nestedClass.outerLink != null)
+            throw new VMPanic("Nested class " + nestedClass.reference.getFullQualifiedName() + " already has an outer link to " + nestedClass.outerLink.reference.getFullQualifiedName());
+
+        if (!this.innerLinks.contains(nestedClass))
+            this.innerLinks.add(nestedClass);
+
+        nestedClass.outerLink = this;
     }
 
     @Override

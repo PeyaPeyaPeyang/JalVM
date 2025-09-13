@@ -11,6 +11,7 @@ import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMArray;
 import tokyo.peya.langjal.vm.values.VMBoolean;
 import tokyo.peya.langjal.vm.values.VMInteger;
+import tokyo.peya.langjal.vm.values.VMNull;
 import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMReferenceValue;
 import tokyo.peya.langjal.vm.values.VMValue;
@@ -65,7 +66,7 @@ public class InjectorClassLoader implements Injector
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMReferenceValue loader = (VMReferenceValue) args[0];
-                        VMClassObject lookup = (VMClassObject) args[1];
+                        VMReferenceValue lookup = (VMReferenceValue) args[1];
                         String name = ((VMStringObject) args[2]).getString();
                         VMArray array = (VMArray) args[3];
                         int offset = ((VMInteger) args[4]).asNumber().intValue();
@@ -80,6 +81,9 @@ public class InjectorClassLoader implements Injector
                             data[i] = ((VMInteger) array.get(i + offset)).asNumber().byteValue();
 
                         VMClass clazz = frame.getClassLoader().defineClass(data);
+                        if ((flags & 1) != 0 && lookup instanceof VMClassObject lookupClass)  // lookupClass のネストになる？
+                            lookupClass.getRepresentingClass().addNestedClassDynamically(clazz);
+
                         if (initialise)
                             clazz.initialise(frame.getThread());
                         clazz.setClassData(classData);

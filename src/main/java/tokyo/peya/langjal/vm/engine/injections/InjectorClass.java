@@ -26,6 +26,8 @@ import tokyo.peya.langjal.vm.values.metaobjects.reflection.VMFieldObject;
 import tokyo.peya.langjal.vm.values.metaobjects.reflection.VMMethodObject;
 import tokyo.peya.langjal.vm.values.metaobjects.VMStringObject;
 
+import java.util.Objects;
+
 public class InjectorClass implements Injector
 {
     public static final ClassReference CLAZZ = ClassReference.of("java/lang/Class");
@@ -520,6 +522,30 @@ public class InjectorClass implements Injector
                                 frame,
                                 classObject.getRepresentingClass().isAssignableFrom(objInstance.getObjectType())
                         );
+                    }
+                }
+        );
+        clazz.injectMethod(
+                new InjectedMethod(
+                        clazz, new MethodNode(
+                        EOpcodes.ACC_PRIVATE | EOpcodes.ACC_NATIVE,
+                        "getNestHost0",
+                        "()Ljava/lang/Class;",
+                        null,
+                        null
+                ))
+                {
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
+                    {
+                        VMClassObject obj = (VMClassObject) instance;
+                        assert obj != null;
+                        VMClass clazz = obj.getRepresentingClass();
+                        VMClass outer = clazz.getOuterLink();
+
+                        // アウターが存在しない場合は自分自身を返す（JLS)
+                        return Objects.requireNonNullElse(outer, clazz).getClassObject();
                     }
                 }
         );

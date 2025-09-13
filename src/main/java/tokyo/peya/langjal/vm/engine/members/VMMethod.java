@@ -114,7 +114,7 @@ public class VMMethod implements AccessibleObject
     {
         if (this.accessAttributes.has(AccessAttribute.STATIC))
             throw new NonStaticInvocationPanic(frame.getThread(), this);
-        else if (!this.canAccessFrom(caller))
+        else if (!(isVMDecree || this.canAccessFrom(caller)))  // VM 命令による呼び出しでないならアクセスチェックを行う
             throw new AccessRestrictedPanic(caller, this);
 
         frame.getThread().invokeMethod(this, isVMDecree, instance, args);

@@ -197,9 +197,9 @@ public class VMObject implements VMValue, VMReferenceValue
         VMObject suitableTarget = findSuitableTarget(field.getClazz(), this.owner);
 
         if (field instanceof InjectedField injected)
-            injected.set(suitableTarget.objectType, this, value);
+            injected.set(suitableTarget.objectType, this, conformedValue);
         else
-            suitableTarget.fields.put(field, value);
+            suitableTarget.fields.put(field, conformedValue);
     }
 
     public void setField(@NotNull String fieldName, @NotNull VMValue value)

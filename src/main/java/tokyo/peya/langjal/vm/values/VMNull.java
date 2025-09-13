@@ -40,6 +40,16 @@ public record VMNull<T extends VMValue>(VMType<T> type) implements VMValue, VMRe
     }
 
     @Override
+    public VMValue conformValue(@NotNull VMType<?> expectedType)
+    {
+        if (expectedType.isPrimitive())
+            throw new IllegalArgumentException("Cannot conform a null value to a primitive type: " + expectedType.getTypeDescriptor());
+
+        // プリミティブ以外は参照型 -> null は常に代入可能。
+        return expectedType == this.type ? this : new VMNull<>(expectedType);
+    }
+
+    @Override
     public @NotNull String toString()
     {
         return "NULL";

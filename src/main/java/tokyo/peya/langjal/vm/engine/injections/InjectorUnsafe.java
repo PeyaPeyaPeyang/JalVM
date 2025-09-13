@@ -657,7 +657,8 @@ public class InjectorUnsafe implements Injector
                 if (index < 0 || index >= array.length())
                     throw new VMPanic("Array index out of bounds: " + index);
 
-                if (strategy.compare(array.get(index), expected))
+                VMValue conformedExpected = expected.conformValue(array.getElementType());
+                if (strategy.compare(array.get(index), conformedExpected))
                 {
                     array.set(index, newValue.conformValue(valueType));
                     return true;
@@ -666,7 +667,8 @@ public class InjectorUnsafe implements Injector
             case VMObject obj -> {
                 VMField field = obj.getObjectType().findField(offset);
                 VMValue current = obj.getField(field.getName());
-                if (strategy.compare(current, expected))
+                VMValue conformedExpected = expected.conformValue(field.getType());
+                if (strategy.compare(current, conformedExpected))
                 {
                     obj.setField(field, newValue.conformValue(valueType));
                     return true;
@@ -677,7 +679,8 @@ public class InjectorUnsafe implements Injector
                 if (field == null)
                     throw new VMPanic("No static field with ID: " + offset);
                 VMValue current = field.getOwningClass().getStaticFieldValue(field);
-                if (strategy.compare(current, expected))
+                VMValue conformedExpected = expected.conformValue(field.getType());
+                if (strategy.compare(current, conformedExpected))
                 {
                     field.getOwningClass().setStaticField(field, newValue.conformValue(valueType));
                     return true;

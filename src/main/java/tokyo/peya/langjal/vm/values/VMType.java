@@ -226,7 +226,7 @@ public class VMType<T extends VMValue> implements VMComponent
         if (isBothPrimitive)
         {
             // 配列型は同じ次元数であれば互換性あり
-            if (Objects.equals(this.componentType, other.componentType))
+            if (!Objects.equals(this.componentType, other.componentType))
                 return false;
             return this.isAssignableFromPrimitive((PrimitiveTypes) other.type);
         }
@@ -242,25 +242,31 @@ public class VMType<T extends VMValue> implements VMComponent
 
         return switch ((PrimitiveTypes) this.type)
         {
-            case SHORT -> other == PrimitiveTypes.BYTE;
+            case SHORT -> other == PrimitiveTypes.BYTE
+                    || other == PrimitiveTypes.CHAR
+                    || other == PrimitiveTypes.BOOLEAN;
             case INT -> other == PrimitiveTypes.BYTE
                     || other == PrimitiveTypes.SHORT
-                    || other == PrimitiveTypes.CHAR;
+                    || other == PrimitiveTypes.CHAR
+                    || other == PrimitiveTypes.BOOLEAN;
             case LONG -> other == PrimitiveTypes.BYTE
                     || other == PrimitiveTypes.SHORT
                     || other == PrimitiveTypes.CHAR
-                    || other == PrimitiveTypes.INT;
+                    || other == PrimitiveTypes.INT
+                    || other == PrimitiveTypes.BOOLEAN;
             case FLOAT -> other == PrimitiveTypes.BYTE
                     || other == PrimitiveTypes.SHORT
                     || other == PrimitiveTypes.CHAR
                     || other == PrimitiveTypes.INT
-                    || other == PrimitiveTypes.LONG;
+                    || other == PrimitiveTypes.LONG
+                    || other == PrimitiveTypes.BOOLEAN;
             case DOUBLE -> other == PrimitiveTypes.BYTE
                     || other == PrimitiveTypes.SHORT
                     || other == PrimitiveTypes.CHAR
                     || other == PrimitiveTypes.INT
                     || other == PrimitiveTypes.LONG
-                    || other == PrimitiveTypes.FLOAT;
+                    || other == PrimitiveTypes.FLOAT
+                    || other == PrimitiveTypes.BOOLEAN;
             case BOOLEAN, VOID, CHAR, BYTE -> false;
         };
     }

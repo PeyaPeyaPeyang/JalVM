@@ -534,12 +534,12 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
         return null;
     }
 
-    public boolean isInstance(@Nullable VMObject instance)
+    public boolean isInstance(@Nullable VMValue instance)
     {
-        if (instance == null)
+        if (!(instance instanceof VMObject obj))
             return false;
 
-        return instance.getObjectType().isAssignableFrom(this);
+        return obj.getObjectType().isAssignableFrom(this);
     }
 
     private static VMClass findFieldOwner(@NotNull VMField field, @NotNull VMClass apex)
@@ -570,7 +570,11 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
         if (this == obj)
             return true;
         if (!(obj instanceof VMClass other))
+        {
+            if (obj instanceof VMType<?> otherType)
+                return this.getTypeDescriptor().equals(otherType.getTypeDescriptor());
             return false;
+        }
 
         return this.reference.equals(other.getReference());
     }

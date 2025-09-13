@@ -6,7 +6,7 @@ import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.engine.VMComponent;
 import tokyo.peya.langjal.vm.panics.IllegalOperandPanic;
 
-public sealed class VMInteger extends AbstractVMPrimitive permits VMByte, VMChar, VMShort
+public sealed class VMInteger extends AbstractVMPrimitive permits VMByte, VMChar, VMShort, VMBoolean
 {
     protected final JalVM vm;
 

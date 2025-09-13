@@ -9,7 +9,7 @@ import tokyo.peya.langjal.vm.engine.threading.VMThread;
 
 import java.util.HashMap;
 
-public final class VMBoolean extends AbstractVMPrimitive
+public final class VMBoolean extends VMInteger
 {
     private static final HashMap<@NotNull JalVM, VMBoolean> TRUES = new HashMap<>();
     private static final HashMap<@NotNull JalVM, VMBoolean> FALSES = new HashMap<>();
@@ -18,7 +18,7 @@ public final class VMBoolean extends AbstractVMPrimitive
 
     private VMBoolean(@NotNull VMComponent component, final boolean value)
     {
-        super(VMType.of(component, PrimitiveTypes.BOOLEAN), value ? 1: 0);
+        super(component, VMType.of(component, PrimitiveTypes.BOOLEAN), value ? 1: 0);
         this.vm = component.getVM();
     }
 

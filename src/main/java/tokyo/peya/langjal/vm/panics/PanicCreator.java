@@ -41,6 +41,15 @@ public class PanicCreator
         return new IllegalOperationPanic(message, createThrowable(frame, verificationErrorClass, message, cause));
     }
 
+    public static LinkagePanic createClassNotFoundPanic(@NotNull VMFrame frame, @NotNull String message, @Nullable VMObject cause)
+    {
+        VMClass verificationErrorClass = frame.getClassLoader().findClass(
+                ClassReference.of("java/lang/ClassNotFoundException")
+        );
+        return new LinkagePanic(message, createThrowable(frame, verificationErrorClass, message, cause));
+    }
+
+
     public static IllegalOperationPanic createIllegalOperationPanic(@NotNull VMFrame frame, @NotNull String message)
     {
         return createIllegalOperationPanic(frame, message, null);

@@ -65,7 +65,7 @@ public class InjectorMethodHandle implements Injector
         clazz.injectMethod(
                 new InjectedMethod(
                         clazz, new MethodNode(
-                        EOpcodes.ACC_PUBLIC | EOpcodes.ACC_FINAL | EOpcodes.ACC_NATIVE,
+                        EOpcodes.ACC_PUBLIC | EOpcodes.ACC_FINAL | EOpcodes.ACC_VARARGS | EOpcodes.ACC_NATIVE,
                         "invokeExact",
                         "([Ljava/lang/Object;)Ljava/lang/Object;",
                         null,
@@ -98,7 +98,7 @@ public class InjectorMethodHandle implements Injector
         clazz.injectMethod(
                 new InjectedMethod(
                         clazz, new MethodNode(
-                        EOpcodes.ACC_PUBLIC | EOpcodes.ACC_FINAL | EOpcodes.ACC_NATIVE,
+                        EOpcodes.ACC_PUBLIC | EOpcodes.ACC_FINAL | EOpcodes.ACC_VARARGS | EOpcodes.ACC_NATIVE,
                         "invokeBasic",
                         "([Ljava/lang/Object;)Ljava/lang/Object;",
                         null,

@@ -7,6 +7,7 @@ import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMFrame;
+import tokyo.peya.langjal.vm.panics.PanicCreator;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMArray;
 import tokyo.peya.langjal.vm.values.VMBoolean;
@@ -108,7 +109,9 @@ public class InjectorClassLoader implements Injector
                     {
                         String className = ((VMStringObject) args[0]).getString();
                         ClassReference classReference = ClassReference.of(className);
-                        VMClass loadedClass = cl.findClass(classReference);
+                        VMClass loadedClass = cl.findClassSafe(classReference);
+                        if (loadedClass == null)
+                            return new VMNull<>(cl.findClass(ClassReference.of("java/lang/Class")));
 
                         return loadedClass.getClassObject();
                     }

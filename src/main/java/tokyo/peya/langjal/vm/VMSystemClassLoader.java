@@ -217,7 +217,7 @@ public class VMSystemClassLoader implements VMComponent
         ClassNode classNode = new ClassNode();
         try
         {
-            reader.accept(classNode, 0);
+            reader.accept(classNode, ClassReader.EXPAND_FRAMES);
         }
         catch (Exception e)
         {

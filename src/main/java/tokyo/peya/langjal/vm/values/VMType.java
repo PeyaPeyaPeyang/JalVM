@@ -151,7 +151,7 @@ public class VMType<T extends VMValue> implements VMComponent
     public VMValue defaultValue()
     {
         // 非プリミティブまたは配列は「参照型」であるから， null
-        if (this.type instanceof ClassReferenceType)
+        if (this.type instanceof ClassReferenceType || this.componentType != null)
             return new VMNull<>(this);
 
         // プリミティブ型のデフォルト値を返す

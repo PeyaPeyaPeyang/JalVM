@@ -3,7 +3,7 @@ package tokyo.peya.langjal.vm.engine.members;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.objectweb.asm.tree.MethodInsnNode;
+import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import tokyo.peya.langjal.compiler.jvm.AccessAttribute;
 import tokyo.peya.langjal.compiler.jvm.AccessAttributeSet;
@@ -90,7 +90,7 @@ public class VMMethod implements AccessibleObject
         return new BytecodeInterpreter(this.vm, this.methodNode);
     }
 
-    public void invokeStatic(@Nullable MethodInsnNode operand, @NotNull VMFrame frame, @Nullable VMClass caller, boolean isVMDecree,
+    public void invokeStatic(@Nullable AbstractInsnNode operand, @NotNull VMFrame frame, @Nullable VMClass caller, boolean isVMDecree,
                              @NotNull VMValue... args)
     {
         if (!this.accessAttributes.has(AccessAttribute.STATIC))
@@ -109,7 +109,7 @@ public class VMMethod implements AccessibleObject
         frame.getThread().invokeInterrupting(this, (_) -> {}, args);
     }
 
-    public void invokeInstanceMethod(@Nullable MethodInsnNode operand, @NotNull VMFrame frame, @Nullable VMClass caller,
+    public void invokeInstanceMethod(@Nullable AbstractInsnNode operand, @NotNull VMFrame frame, @Nullable VMClass caller,
                                      @NotNull VMObject instance, boolean isVMDecree, @NotNull VMValue... args)
     {
         if (this.accessAttributes.has(AccessAttribute.STATIC))

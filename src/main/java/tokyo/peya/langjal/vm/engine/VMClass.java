@@ -3,6 +3,7 @@ package tokyo.peya.langjal.vm.engine;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
@@ -31,6 +32,7 @@ import tokyo.peya.langjal.vm.values.VMValue;
 import tokyo.peya.langjal.vm.values.metaobjects.VMClassObject;
 
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -441,6 +443,12 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
     }
 
     @Nullable
+    public VMMethod findMethod(@NotNull String methodName)
+    {
+        return this.findMethod(methodName, null);
+    }
+
+    @Nullable
     public VMMethod findMethod(@NotNull String methodName, @Nullable MethodDescriptor desc)
     {
         for (VMMethod method : this.methods)
@@ -649,5 +657,11 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
         return "L" + this.reference.getFullQualifiedName() + ";";
     }
 
-
+    public String base64()
+    {
+        ClassWriter writer = new ClassWriter(0);
+        this.clazz.accept(writer);
+        byte[] classBytes = writer.toByteArray();
+        return Base64.getEncoder().encodeToString(classBytes);
+    }
 }

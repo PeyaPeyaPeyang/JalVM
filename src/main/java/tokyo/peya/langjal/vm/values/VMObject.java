@@ -268,7 +268,7 @@ public class VMObject implements VMValue, VMReferenceValue
     }
 
     @Override
-    public @NotNull VMType<?> type()
+    public @NotNull VMClass type()
     {
         return this.objectType;
     }

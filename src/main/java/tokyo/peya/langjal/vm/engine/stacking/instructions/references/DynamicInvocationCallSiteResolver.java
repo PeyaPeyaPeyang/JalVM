@@ -39,14 +39,14 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DynamicInvocationHelper
+public class DynamicInvocationCallSiteResolver
 {
     private final Map<InvokeDynamicInsnNode, VMObject> resolvedCallSiteCaches;
     private final Map<Handle, VMObject> resolvedHandleCaches;
     private final Map<ConstantDynamic, VMObject> resolvedConstantCaches;
     private final Map<MethodDescriptor, VMObject> resolvedMethodTypeCaches;
 
-    public DynamicInvocationHelper()
+    public DynamicInvocationCallSiteResolver()
     {
         this.resolvedCallSiteCaches = new HashMap<>();
         this.resolvedHandleCaches = new HashMap<>();
@@ -408,6 +408,7 @@ public class DynamicInvocationHelper
         frame.getThread().invokeInterrupting(method, (callback) -> {
             if (!(callback instanceof VMObject mayCallSite))
                 throw new VMPanic("Bootstrap method did not return CallSite: " + ownerName + "." + name + bsmDescriptor);
+
             this.resolvedCallSiteCaches.put(operand, mayCallSite);
         }, bsmParameters);
     }

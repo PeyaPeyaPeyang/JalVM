@@ -2,7 +2,7 @@ package tokyo.peya.langjal.vm.engine.injections;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.objectweb.asm.tree.MethodInsnNode;
+import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMFrame;
@@ -33,7 +33,7 @@ public abstract class InjectedMethod extends VMMethod
     }
 
     @Override
-    public void invokeInstanceMethod(@Nullable MethodInsnNode operand, @NotNull VMFrame frame, @Nullable VMClass caller, @NotNull VMObject instance,
+    public void invokeInstanceMethod(@Nullable AbstractInsnNode operand, @NotNull VMFrame frame, @Nullable VMClass caller, @NotNull VMObject instance,
                                      boolean isVMDecree, @NotNull VMValue... args)
     {
         // インジェクションされたメソド内で違うフレームを作る可能性があるため，ここで保持しておく。
@@ -53,7 +53,7 @@ public abstract class InjectedMethod extends VMMethod
     }
 
     @Override
-    public void invokeStatic(@Nullable MethodInsnNode operand, @NotNull VMFrame frame, @Nullable VMClass caller, boolean isVMDecree,
+    public void invokeStatic(@Nullable AbstractInsnNode operand, @NotNull VMFrame frame, @Nullable VMClass caller, boolean isVMDecree,
                              @NotNull VMValue... args)
     {
         // インジェクションされたメソド内で違うフレームを作る可能性があるため，ここで保持しておく。

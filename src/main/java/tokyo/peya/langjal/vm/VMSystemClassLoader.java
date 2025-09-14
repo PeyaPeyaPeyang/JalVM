@@ -42,11 +42,11 @@ public class VMSystemClassLoader implements VMComponent
     {
         this.vm = vm;
         this.heap = heap;
-        this.injector = new InjectorManager();
-        this.linkingQueue = new ConcurrentLinkedDeque<>();
-
         this.executor = Executors.newWorkStealingPool();
         this.defining = new ConcurrentHashMap<>();
+
+        this.injector = new InjectorManager(this);
+        this.linkingQueue = new ConcurrentLinkedDeque<>();
     }
 
     @Nullable

@@ -14,14 +14,14 @@ public class InjectorManager
     private final InjectorFileDescriptor fdInjector;
     private final @NotNull List<Injector> injectors;
 
-    public InjectorManager()
+    public InjectorManager(@NotNull VMSystemClassLoader cl)
     {
         this.injectors = new LinkedList<>();
         this.fdInjector = new InjectorFileDescriptor();
-        this.initialiseDefaultInjectors();
+        this.initialiseDefaultInjectors(cl);
     }
 
-    private void initialiseDefaultInjectors()
+    private void initialiseDefaultInjectors(@NotNull VMSystemClassLoader cl)
     {
         this.injectors.addAll(Arrays.asList(
                 new InjectorArray(),
@@ -39,7 +39,7 @@ public class InjectorManager
                 new InjectorFloat(),
                 new InjectorInet4Address(),
                 new InjectorInet6Address(),
-                new InjectorMethodHandle(),
+                new InjectorMethodHandle(cl),
                 new InjectorMethodHandleNatives(),
                 new InjectorNativeAccessor(),
                 new InjectorNativeEntryPoint(),

@@ -5,21 +5,28 @@ import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.tree.MethodNode;
 import tokyo.peya.langjal.compiler.jvm.AccessAttribute;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
+import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
+import tokyo.peya.langjal.vm.engine.VMComponent;
 import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.members.VMField;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
 import tokyo.peya.langjal.vm.panics.VMPanic;
 import tokyo.peya.langjal.vm.references.ClassReference;
+import tokyo.peya.langjal.vm.values.VMArray;
+import tokyo.peya.langjal.vm.values.VMInteger;
 import tokyo.peya.langjal.vm.values.VMLong;
 import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
 import tokyo.peya.langjal.vm.values.metaobjects.VMClassObject;
+import tokyo.peya.langjal.vm.values.metaobjects.VMListAccessor;
 import tokyo.peya.langjal.vm.values.metaobjects.reflection.invoke.VMResolvedMethodName;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class InjectorMethodHandle implements Injector
@@ -28,9 +35,16 @@ public class InjectorMethodHandle implements Injector
 
     private final Map<Integer, VMValue> resultCache;
 
-    public InjectorMethodHandle()
+    private /* final */ VMClass fieldAccessor;
+    private /* final */ VMClass fieldAccessorStatic;
+    private /* final */ VMClass constructorAccessor;
+    private /* final */ VMClass boundMethodHandle;
+    private /* final */ VMClass speciesData;
+
+    public InjectorMethodHandle(@NotNull VMSystemClassLoader cl)
     {
         this.resultCache = new HashMap<>();
+
     }
 
     @Override
@@ -42,9 +56,11 @@ public class InjectorMethodHandle implements Injector
     @Override
     public void inject(@NotNull VMSystemClassLoader cl, @NotNull VMClass clazz)
     {
-        VMClass fieldAccessor = cl.findClass(ClassReference.of("java/lang/invoke/DirectMethodHandle$Accessor"));
-        VMClass fieldAccessorStatic = cl.findClass(ClassReference.of("java/lang/invoke/DirectMethodHandle$StaticAccessor"));
-        VMClass constructorAccessor = cl.findClass(ClassReference.of("java/lang/invoke/DirectMethodHandle$Constructor"));
+        this.fieldAccessor = cl.findClass(ClassReference.of("java/lang/invoke/DirectMethodHandle$Accessor"));
+        this.fieldAccessorStatic = cl.findClass(ClassReference.of("java/lang/invoke/DirectMethodHandle$StaticAccessor"));
+        this.constructorAccessor = cl.findClass(ClassReference.of("java/lang/invoke/DirectMethodHandle$Constructor"));
+        this.boundMethodHandle = cl.findClass(ClassReference.of("java/lang/invoke/BoundMethodHandle"));
+        this.speciesData = cl.findClass(ClassReference.of("java/lang/invoke/BoundMethodHandle$SpeciesData"));
 
         clazz.injectMethod(
                 new InjectedMethod(
@@ -74,15 +90,7 @@ public class InjectorMethodHandle implements Injector
                     protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
-                        assert instance != null;
-                        if (fieldAccessor.isInstance(instance))
-                            return accessInstanceField();
-                        else if (fieldAccessorStatic.isInstance(instance))
-                            return accessStaticField(frame, instance);
-                        else if (constructorAccessor.isInstance(instance))
-                            return InjectorMethodHandle.this.accessConstructor(frame, caller, instance, args);
-
-                        throw new UnsupportedOperationException("Unsupported MethodHandle type: " + instance.getClass().getName());
+                        return InjectorMethodHandle.this.invoke(frame, caller, instance, args);
                     }
                 }
         );
@@ -115,49 +123,74 @@ public class InjectorMethodHandle implements Injector
                     protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
-                        assert instance != null;
-
-                        if (fieldAccessor.isInstance(instance))
-                            return accessInstanceField();
-                        else if (fieldAccessorStatic.isInstance(instance))
-                            return accessStaticField(frame, instance);
-                        else if (constructorAccessor.isInstance(instance))
-                            return InjectorMethodHandle.this.accessConstructor(frame, caller, instance, args);
-
-                        throw new UnsupportedOperationException("Unsupported MethodHandle type: " + instance.getClass().getName());
+                        return InjectorMethodHandle.this.invoke(frame, caller, instance, args);
                     }
                 }
         );
     }
 
-    private static @NotNull VMValue accessInstanceField()
+    private VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                           @Nullable VMObject instance, @NotNull VMValue[] args)
     {
-        throw new UnsupportedOperationException();
+        if (instance == null)
+            throw new VMPanic("Cannot invoke MethodHandle method on null instance");
+
+        if (this.fieldAccessor.isInstance(instance))
+            return accessInstanceField(instance, (VMObject) args[0]);
+        else if (this.fieldAccessorStatic.isInstance(instance))
+            return accessStaticField(frame, instance);
+        else if (this.constructorAccessor.isInstance(instance))
+            return this.accessConstructor(frame, caller, instance, args);
+
+        return this.accessLambdaForm(frame, instance, args);
     }
 
-    private static @NotNull VMValue accessStaticField(@NotNull VMFrame frame, @NotNull VMObject instance)
+    private VMValue invokeFieldGetter(@NotNull VMComponent com, @NotNull VMObject getter, @Nullable VMObject instance)
+    {
+        if (this.fieldAccessorStatic.isInstance(getter))
+            return accessStaticField(com, getter);
+        else if (this.fieldAccessor.isInstance(getter))
+            return accessInstanceField(getter, instance);
+        else
+            throw new VMPanic("Not a field accessor: " + getter.getObjectType().getReference().toString());
+    }
+
+    private static @NotNull VMValue accessInstanceField(@NotNull VMObject getter, @Nullable VMObject instance)
+    {
+        if (instance == null)
+            throw new VMPanic("Instance field accessor requires non-null instance");
+
+        int instanceOffset = ((VMInteger) getter.getField("fieldOffset")).asNumber().intValue();
+        VMField field = instance.getObjectType().findField(instanceOffset);
+
+        VMClass fieldType = ((VMClassObject) getter.getField("fieldType")).getRepresentingClass();
+        return instance.getField(field).conformValue(fieldType);
+    }
+
+    private static @NotNull VMValue accessStaticField(@NotNull VMComponent com, @NotNull VMObject instance)
     {
         VMClass fieldType = ((VMClassObject) instance.getField("fieldType")).getRepresentingClass();
         long staticOffset = ((VMLong) instance.getField("staticOffset")).asNumber().longValue();
-        VMField field = frame.getVM().getHeap().getStaticFieldByID(staticOffset);
+        VMField field = com.getVM().getHeap().getStaticFieldByID(staticOffset);
         if (field == null)
             throw new NullPointerException("Static field not found by ID: " + staticOffset + " (field type: " + fieldType.getReference().toString() + ")");
 
         return field.getClazz().getStaticFieldValue(field);
     }
 
-    private @Nullable VMValue accessInvocation(@NotNull VMFrame frame, @NotNull VMObject instance, @NotNull VMValue[] args)
+    private @Nullable VMValue accessLambdaForm(@NotNull VMFrame frame, @NotNull VMObject methodHandle, @NotNull VMValue[] args)
     {
-        VMValue cached = this.checkCache(instance);
+        VMValue cached = this.checkCache(methodHandle);
         if (cached != null)
             return cached;
 
-        VMObject initMethod = (VMObject) instance.getField("initMethod");
-        VMClassObject instanceClass = (VMClassObject) instance.getField("instanceClass");
-        VMResolvedMethodName resolved = (VMResolvedMethodName) initMethod.getField("method");
+        VMObject lambdaForm = (VMObject) methodHandle.getField("form");
+
+        VMObject vmEntry  = (VMObject) lambdaForm.getField("vmentry");
+        VMResolvedMethodName resolved = (VMResolvedMethodName) vmEntry.getField("method");
 
         VMMethod method = resolved.getMethod();
-        VMValue[] invokeArgs = obtainArguments(args, method);
+        VMValue[] invokeArgs = this.obtainLambdaArguments(lambdaForm, method, methodHandle, args);
 
         VMObject thisObject;  // this をセットする
         if (method.getAccessAttributes().has(AccessAttribute.STATIC))
@@ -173,7 +206,7 @@ public class InjectorMethodHandle implements Injector
         frame.rerunInstruction();
         frame.getThread().invokeInterrupting(
                 method,
-                v -> this.setResultCache(instance, v),
+                v -> this.setResultCache(methodHandle, v),
                 thisObject,
                 invokeArgs
         );
@@ -181,7 +214,46 @@ public class InjectorMethodHandle implements Injector
         return null;
     }
 
-    private static VMValue[] obtainArguments(@NotNull VMValue[] args, VMMethod method)
+    private VMValue[] obtainLambdaArguments(@NotNull VMObject lambdaForm,
+                                            @NotNull VMMethod method,
+                                            @NotNull VMObject methodHandle,
+                                            @NotNull VMValue[] args)
+    {
+        /*
+        // BoundMethodHandle ならば，あらかじめ構成されている引数を取り出す
+        VMArray names = (VMArray) lambdaForm.getField("names");  // LambdaForm$Name[]
+        assert names.length() > 0;
+        VMObject firstName = (VMObject) names.get(0);  // LambdaForm$Name
+        VMObject constraint = (VMObject) firstName.getField("constraint");  // Object
+        if (this.speciesData.isInstance(constraint))
+        {
+            JalVM vm = method.getClazz().getVM();
+            VMObject getters = (VMObject) constraint.getField("getters");  // List<LambdaForm$Name>
+            VMValue[] getterValues = VMListAccessor.values(getters);
+            VMValue[] boundArgs = new VMValue[getterValues.length];
+            for (int i = 0; i < getterValues.length; i++)
+            {
+                VMObject getter = (VMObject) getterValues[i];
+                VMValue getterResult = this.invokeFieldGetter(vm, getter, methodHandle);
+                boundArgs[i] = getterResult;
+            }
+
+            // 引数リストを結合する
+            VMValue[] newArgs = new VMValue[boundArgs.length + args.length];
+            System.arraycopy(boundArgs, 0, newArgs, 0, boundArgs.length);
+            System.arraycopy(args, 0, newArgs, boundArgs.length, args.length);
+            args = newArgs;
+        }*/
+
+        VMValue[] newArgs = new VMValue[1 + args.length];
+        newArgs[0] = methodHandle;
+        System.arraycopy(args, 0, newArgs, 1, args.length);
+
+        return this.obtainArguments(method, newArgs);
+    }
+
+    private VMValue[] obtainArguments(@NotNull VMMethod method,
+                                      @NotNull VMValue[] args)
     {
         VMType<?>[] paramTypes = method.getParameterTypes();
         if (paramTypes.length != args.length)
@@ -190,6 +262,7 @@ public class InjectorMethodHandle implements Injector
         VMValue[] invokeArgs = new VMValue[paramTypes.length];
         for (int i = 0; i < paramTypes.length; i++)
             invokeArgs[i] = args[0].conformValue(paramTypes[i]);
+
         return invokeArgs;
     }
 
@@ -225,7 +298,7 @@ public class InjectorMethodHandle implements Injector
         VMResolvedMethodName resolved = (VMResolvedMethodName) initMethod.getField("method");
 
         VMMethod method = resolved.getMethod();
-        VMValue[] invokeArgs = obtainArguments(args, method);
+        VMValue[] invokeArgs = this.obtainArguments(method, args);
 
         VMClass thisClass = instanceClass.getRepresentingClass();
         VMObject newInstance = thisClass.createInstance();

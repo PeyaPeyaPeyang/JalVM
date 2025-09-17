@@ -547,7 +547,7 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
         if (!(instance instanceof VMObject obj))
             return false;
 
-        return obj.getObjectType().isAssignableFrom(this);
+        return this.isAssignableFrom(obj.getObjectType());
     }
 
     private static VMClass findFieldOwner(@NotNull VMField field, @NotNull VMClass apex)

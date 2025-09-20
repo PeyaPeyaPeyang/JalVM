@@ -185,9 +185,14 @@ public class VMType<T extends VMValue> implements VMComponent
         else if (this.linkedClass == null)
         {
             assert this.type instanceof ClassReferenceType;
-            ClassReferenceType classRefType = (ClassReferenceType) this.type;
-            VMSystemClassLoader cl = vm.getClassLoader();
-            this.linkedClass = cl.findClass(ClassReference.of(classRefType));
+            if (this instanceof VMClass thisClass)
+                this.linkedClass = thisClass;  // 自身がVMClassの場合はそれを使う
+            else
+            {
+                ClassReferenceType classRefType = (ClassReferenceType) this.type;
+                VMSystemClassLoader cl = vm.getClassLoader();
+                this.linkedClass = cl.findClass(ClassReference.of(classRefType));
+            }
         }
     }
 

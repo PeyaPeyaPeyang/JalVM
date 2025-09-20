@@ -26,17 +26,16 @@ public class OperatorPutField extends AbstractInstructionOperator<FieldInsnNode>
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull FieldInsnNode operand)
     {
-        String owner = operand.owner;
-        VMClass clazz = frame.getClassLoader().findClass(ClassReference.of(owner));
         String name = operand.name;
+        VMValue value = frame.getStack().pop();  // 値がオペランドの先
 
-        VMValue value = frame.getStack().pop();
-
-        VMReferenceValue referenceValue = frame.getStack().popType(clazz);
+        VMReferenceValue referenceValue = frame.getStack().popType(VMType.ofGenericObject(frame));
         if (!(referenceValue instanceof VMObject object))
             throw new VMPanic("Expected an object to access field '" + name + "', but got " + referenceValue.getClass().getSimpleName());
 
-        VMField field = clazz.findField(name);
+        // クラスをframe.getCL().findClassで取得しないのは，ラムダ用などの動的クラスは名前が重複しているから。
+        VMClass clazz = referenceValue.type().getLinkedClass();
+        VMField field = clazz.findField(name, ClassReference.of(operand.owner));
         if (!object.getObjectType().isSubclassOf(clazz))
             throw new VMPanic("Object type " + object.getObjectType().getReference().getFullQualifiedName()
                                       + " is not a subclass of " + clazz.getReference().getFullQualifiedName());

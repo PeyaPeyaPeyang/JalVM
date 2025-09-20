@@ -494,14 +494,20 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
     }
 
     @NotNull
-    public VMField findField(@NotNull String fieldName)
+    public VMField findField(@NotNull String fieldName, @Nullable ClassReference owner)
     {
-        VMField field = this.findFieldSafe(fieldName);
+        VMField field = this.findFieldSafe(fieldName, owner);
         if (field != null)
             return field;
 
         throw new VMPanic("Field not found: " + fieldName + " in class " + this.reference.getFullQualifiedName());
     }
+
+    @NotNull
+    public VMField findField(@NotNull String fieldName)
+    {
+        return this.findField(fieldName, null);
+        }
 
     @NotNull
     public VMField findField(long id)
@@ -526,12 +532,25 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
     @Nullable
     public VMField findFieldSafe(@NotNull String fieldName)
     {
+        return this.findFieldSafe(fieldName, null);
+    }
+
+    @Nullable
+    public VMField findFieldSafe(@NotNull String fieldName, @Nullable ClassReference owner)
+    {
+        boolean ownerFound = owner == null;  // オーナーが指定されていない場合は最初から true
         VMClass current = this;
         do
         {
-            for (VMField field : current.fields)
-                if (field.getName().equals(fieldName))
-                    return field; // 一致するフィールドを返す
+            // オーナーが指定されている場合はオーナーと一致するか確認
+            if (!ownerFound)
+                ownerFound = current.reference.equals(owner);
+
+            // オーナーが見つかっている場合のみフィールドを検索
+            if (ownerFound)
+                for (VMField field : current.fields)
+                    if (field.getName().equals(fieldName))
+                        return field; // 一致するフィールドを返す
 
             if (current == current.superLink)
                 break;

@@ -12,6 +12,7 @@ import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
 import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMReferenceValue;
+import tokyo.peya.langjal.vm.values.VMType;
 import tokyo.peya.langjal.vm.values.VMValue;
 
 public class OperatorGetField extends AbstractInstructionOperator<FieldInsnNode>
@@ -25,20 +26,22 @@ public class OperatorGetField extends AbstractInstructionOperator<FieldInsnNode>
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull FieldInsnNode operand)
     {
-        String owner = operand.owner;
         String name = operand.name;
 
-        // Retrieve the static field value from the class
-        VMClass clazz = frame.getClassLoader().findClass(ClassReference.of(owner));
-        VMField field = clazz.findField(name);
+        VMReferenceValue referenceValue = frame.getStack().popType(VMType.ofGenericObject(frame));
+        if (!(referenceValue instanceof VMObject obj))
+            throw new VMPanic("Expected an object to access field '" + name + "', but got " + referenceValue.getClass().getSimpleName());
+
+        // クラスをframe.getCL().findClassで取得しないのは，ラムダ用などの動的クラスは名前が重複しているから。
+        VMClass clazz = referenceValue.type().getLinkedClass();
+        VMField field = clazz.findField(name, ClassReference.of(operand.owner));
+        if (!obj.getObjectType().isSubclassOf(clazz))
+            throw new VMPanic("Object type " + obj.getObjectType().getReference().getFullQualifiedName()
+                                      + " is not a subclass of " + clazz.getReference().getFullQualifiedName());
+
         if (!field.canAccessFrom(frame.getMethod().getClazz()))
             throw new VMPanic("Field " + name + " cannot be accessed from method "
                                       + frame.getMethod().getClazz().getReference().getFullQualifiedName());
-
-
-        VMReferenceValue referenceValue = frame.getStack().popType(clazz);
-        if (!(referenceValue instanceof VMObject obj))
-            throw new VMPanic("Expected an object to access field '" + name + "', but got " + referenceValue.getClass().getSimpleName());
 
         VMValue value = obj.getField(field);
         VMValue conformed = value.conformValue(field.getType());

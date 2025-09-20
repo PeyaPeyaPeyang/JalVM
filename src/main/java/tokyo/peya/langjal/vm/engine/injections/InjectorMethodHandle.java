@@ -184,8 +184,7 @@ public class InjectorMethodHandle implements Injector
 
     private void invokeMethodWithOptionalThis(@NotNull VMFrame frame,
                                                           @NotNull VMMethod method,
-                                                          @NotNull VMValue[] args,
-                                                          @Nullable VMObject methodHandleOrMember)
+                                                          @NotNull VMValue[] args)
     {
         VMValue[] invokeArgs = this.obtainArguments(method, args);
 
@@ -193,15 +192,13 @@ public class InjectorMethodHandle implements Injector
         if (!method.getAccessAttributes().has(AccessAttribute.STATIC))
             invokeArgs = removeFirstArg(invokeArgs);
 
-        // frame.rerunInstruction();
-        frame.getThread().invokeInterrupting(
+        frame.getThread().invokeMethod(
                 method,
-                v -> {
-                    if (methodHandleOrMember != null) setResultCache(methodHandleOrMember, v);
-                },
+                false,
                 thisObject,
                 invokeArgs
         );
+
     }
 
     private @Nullable VMValue accessBoundMethodHandle(@NotNull VMFrame frame, @NotNull VMObject methodHandle,
@@ -226,10 +223,9 @@ public class InjectorMethodHandle implements Injector
         if (thisObject != null)
             invokeArgs = removeFirstArg(invokeArgs);
 
-        // frame.rerunInstruction();
-        frame.getThread().invokeInterrupting(
+        frame.getThread().invokeMethod(
                 method,
-                v -> this.setResultCache(methodHandle, v),
+                false,
                 thisObject,
                 invokeArgs
         );
@@ -251,7 +247,7 @@ public class InjectorMethodHandle implements Injector
         VMResolvedMethodName resolved = (VMResolvedMethodName) member.getField("method");
         VMMethod method = resolved.getMethod();
 
-        this.invokeMethodWithOptionalThis(frame, method, args, methodHandle);
+        this.invokeMethodWithOptionalThis(frame, method, args);
         return null;
     }
 
@@ -294,7 +290,7 @@ public class InjectorMethodHandle implements Injector
         if (thisObject == null && !method.getAccessAttributes().has(AccessAttribute.STATIC))
             throw new VMPanic("No instance for non-static method");
 
-        this.invokeMethodWithOptionalThis(frame, method, invokeArgs, methodMemberName);
+        this.invokeMethodWithOptionalThis(frame, method, invokeArgs);
         return null;
     }
 

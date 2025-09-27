@@ -135,7 +135,13 @@ public class InjectorMethodHandleNatives implements Injector
                                 memberName.setField("name", lookup.getField("name"));
                                 memberName.setField("type", lookup.getField("type"));
                             }
-                            case VMConstructorObject _ -> flags = calcMethodFlags(modifiersInt, true);
+                            case VMConstructorObject constructor -> {
+                                flags = calcMethodFlags(modifiersInt, true);
+                                VMMethod constructorMethod = constructor.getMethod();
+                                memberName.setField("clazz", lookup.getField("clazz"));
+                                memberName.setField("name", VMStringObject.createString(frame, "<init>"));
+                                memberName.setField("method", new VMResolvedMethodName(cl, constructorMethod));
+                            }
                             case VMMethodObject _ -> flags = calcMethodFlags(modifiersInt, false);
                             default -> flags = 0;
                         }

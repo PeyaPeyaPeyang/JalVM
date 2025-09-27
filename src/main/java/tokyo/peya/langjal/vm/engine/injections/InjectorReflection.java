@@ -44,8 +44,7 @@ public class InjectorReflection implements Injector
                     {
                         assert caller != null;
                         // caller を返せば一見良さそうだが，実際はもう一個上。
-                        VMFrame prevFrame = frame.getPrevFrame()  // Reflection.getCallerClass() を呼んだフレーム
-                                                 .getPrevFrame(); // そのまた呼び出し元
+                        VMFrame prevFrame = frame.getPrevFrame();
                         assert prevFrame != null;
 
                         return prevFrame.getMethod().getOwningClass().getClassObject();

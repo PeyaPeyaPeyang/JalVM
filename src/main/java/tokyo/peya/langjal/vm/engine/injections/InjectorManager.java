@@ -61,7 +61,8 @@ public class InjectorManager
                 new InjectorThrowable(),
                 new InjectorUnsafe(),
                 new InjectorVM(),
-                new InjectorWin32ErrorMode()
+                new InjectorWin32ErrorMode(),
+                new InjectorWinNTFileSystem()
         ));
     }
 

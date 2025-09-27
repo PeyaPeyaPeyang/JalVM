@@ -5,6 +5,7 @@ import org.objectweb.asm.tree.TypeInsnNode;
 import tokyo.peya.langjal.compiler.jvm.ClassReferenceType;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
+ import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMFrame;
@@ -27,18 +28,19 @@ public class OperatorANewArray extends AbstractInstructionOperator<TypeInsnNode>
     @Override
     public void execute(@NotNull VMFrame frame, @NotNull TypeInsnNode operand)
     {
-        VMSystemClassLoader cl = frame.getClassLoader();
-
         String descriptor = operand.desc;
-        ClassReferenceType classReferenceType = ClassReferenceType.parse(descriptor);
-        VMClass vmClass = cl.findClass(ClassReference.of(classReferenceType));
-        VMInteger arrayLength = frame.getStack().popType(VMType.of(frame, PrimitiveTypes.INT));
+        VMType<?> type;
+        if (descriptor.startsWith("["))
+            type = VMType.of(frame, TypeDescriptor.parse(descriptor));
+        else  // なぜか DESC じゃないことがある。
+            type = frame.getClassLoader().findClass(ClassReference.of(descriptor));
 
+        VMInteger arrayLength = frame.getStack().popType(VMType.of(frame, PrimitiveTypes.INT));
         int length = arrayLength.asNumber().intValue();
         if (length < 0)
             throw new VMPanic("Array length cannot be negative: " + length);
 
-        VMArray array = new VMArray(frame.getVM(), vmClass, length);
+        VMArray array = new VMArray(frame.getVM(), type, length);
         frame.getTracer().pushHistory(
                 ValueTracingEntry.generation(
                         array,

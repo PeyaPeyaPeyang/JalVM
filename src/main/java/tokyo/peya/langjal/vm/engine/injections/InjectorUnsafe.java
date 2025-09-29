@@ -94,7 +94,10 @@ public class InjectorUnsafe implements Injector
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMClassObject clazzObject = (VMClassObject) args[0];
-                        int scale = getArrayScale(clazzObject.getRepresentingClass());
+                        VMClass representingClass = clazzObject.getRepresentingClass();  // [I とか
+                        VMType<?> arrayBaseType = representingClass.getComponentType();  // I を得る
+
+                        int scale = getArrayScale(arrayBaseType);
                         return new VMInteger(frame, scale);
                     }
                 }

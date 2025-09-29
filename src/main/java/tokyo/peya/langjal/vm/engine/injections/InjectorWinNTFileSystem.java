@@ -111,7 +111,7 @@ public class InjectorWinNTFileSystem implements Injector
                         clazz, new MethodNode(
                         EOpcodes.ACC_PRIVATE | EOpcodes.ACC_NATIVE,
                         "getBooleanAttributes0",
-                        "(Ljava/lang/File;)I",
+                        "(Ljava/io/File;)I",
                         null,
                         null
                 )

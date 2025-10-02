@@ -246,12 +246,19 @@ public class DynamicInvocationCallSiteResolver
         VMSystemClassLoader cl = vm.getClassLoader();
 
         final VMClass lookupClass = cl.findClass(ClassReference.of("java/lang/invoke/MethodHandles$Lookup"));
-        final VMClass typeClass = cl.findClass(ClassReference.of("java/lang/Class"));
+        final VMClass classClass = cl.findClass(ClassReference.of("java/lang/Class"));
+        final VMClass typeClass = cl.findClass(ClassReference.of("java/lang/invoke/MethodType"));
         final VMClass typeMethodHandle = cl.findClass(ClassReference.of("java/lang/invoke/MethodHandle"));
 
         Handle handle = unresolved.getHandle();
         if (handle.getTag() != EOpcodes.H_NEWINVOKESPECIAL)
             throw new VMPanic("Unsupported MethodHandle tag for constructor: " + handle.getTag());
+
+        MethodDescriptor desc = MethodDescriptor.parse(handle.getDesc());
+        VMObject methodType = this.resolveMethodType(thread, desc);
+        if (methodType == null)
+            return;  // 次のループで解決されるまで待つ
+
         String lookupMethodName = "findConstructor";
 
         VMMethod lookupMethod = lookupClass
@@ -259,22 +266,19 @@ public class DynamicInvocationCallSiteResolver
                         caller,
                         lookupMethodName,
                         typeMethodHandle,
-                        typeClass,
+                        classClass,
                         typeClass
                 );
         if (lookupMethod == null)
             throw new VMPanic("No suitable MethodHandle factory method found: " + lookupClass.getReference().getFullQualifiedName() + "." + lookupMethodName);
 
         VMClass ownerClass = cl.findClass(ClassReference.of(handle.getOwner()));
-        TypeDescriptor type = TypeDescriptor.parse(handle.getDesc());
-        VMClass fieldType = VMType.of(vm ,type).getLinkedClass();
-
         thread.invokeInterrupting(
                 lookupMethod,
                 (callback) -> this.resolvedHandleCaches.put(unresolved.getHandle(), (VMObject) callback),
                 lookup,
                 ownerClass.getClassObject(),
-                fieldType.getClassObject()
+                methodType
         );
     }
 

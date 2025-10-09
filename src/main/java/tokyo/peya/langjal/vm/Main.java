@@ -101,9 +101,8 @@ public class Main
     private static void addClasspathEntries(String raw, List<? super Path> dest)
     {
         if (raw == null || raw.isEmpty())
-        {
             return;
-        }
+
         String[] parts = raw.split(File.pathSeparator);
         Arrays.stream(parts)
               .map(String::trim)

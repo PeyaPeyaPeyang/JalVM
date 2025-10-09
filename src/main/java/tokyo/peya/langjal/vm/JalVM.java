@@ -9,6 +9,7 @@ import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMComponent;
 import tokyo.peya.langjal.vm.engine.VMEngine;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
+import tokyo.peya.langjal.vm.loader.ClassProviders;
 import tokyo.peya.langjal.vm.panics.VMPanic;
 import tokyo.peya.langjal.vm.ffi.NativeCaller;
 import tokyo.peya.langjal.vm.references.ClassReference;
@@ -22,8 +23,8 @@ public class JalVM implements VMComponent
     private final VMConfiguration config;
 
     private final VMHeap heap;
-    private final ClassPaths classPaths;
     private final VMSystemClassLoader classLoader;
+    private final ClassProviders classProviders;
     private final VMEngine engine;
     private final NativeCaller nativeCaller;
     private final VMEventManager eventManager;
@@ -46,7 +47,7 @@ public class JalVM implements VMComponent
 
         this.heap = new VMHeap();
         this.classLoader = new VMSystemClassLoader(this, this.heap);
-        this.classPaths = new ClassPaths();
+        this.classProviders = new ClassProviders();
         VMType.initVM(this);
         this.engine = new VMEngine(this);
         this.nativeCaller = new NativeCaller(this);

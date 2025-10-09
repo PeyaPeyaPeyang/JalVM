@@ -12,6 +12,7 @@ import tokyo.peya.langjal.vm.api.events.VMLinkClassEvent;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMComponent;
 import tokyo.peya.langjal.vm.engine.injections.InjectorManager;
+import tokyo.peya.langjal.vm.loader.ProvidedClass;
 import tokyo.peya.langjal.vm.panics.VMPanic;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.VMType;
@@ -96,11 +97,11 @@ public class VMSystemClassLoader implements VMComponent
 
     private VMClass defineClass(@NotNull ClassReference ref)
     {
-        byte[] classBytes = this.vm.getClassPaths().findClassBytes(ref);
-        if (classBytes == null)
+        ProvidedClass foundClass = this.vm.getClassProviders().findClass(ref);
+        if (foundClass == null)
             return null;
 
-        return this.defineClass(classBytes);
+        return this.defineClass(foundClass.bytecode());
     }
 
     @NotNull

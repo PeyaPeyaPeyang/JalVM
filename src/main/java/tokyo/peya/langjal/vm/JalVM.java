@@ -80,12 +80,7 @@ public class JalVM implements VMComponent
 
     public void initialiseVM()
     {
-        VMClass systemClass = this.classLoader.findClass(ClassReference.of("java/lang/System"));
-        VMMethod initPhase1 = systemClass.findMethod("initPhase1", MethodDescriptor.parse("()V"));
-        if (initPhase1 == null)
-            throw new VMPanic("System class does not have initPhase1 method");
-        this.engine.getMainThread().invokeVMInitialisation(initPhase1);
-        this.engine.startEngine();
+        this.engine.getMainThread().invokeVMInitialisationMethod("initPhase1");
     }
 
     public void executeMain()

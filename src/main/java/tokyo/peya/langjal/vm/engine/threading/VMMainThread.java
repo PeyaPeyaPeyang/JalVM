@@ -1,10 +1,11 @@
 package tokyo.peya.langjal.vm.engine.threading;
 
 import org.jetbrains.annotations.NotNull;
+import tokyo.peya.langjal.compiler.jvm.MethodDescriptor;
 import tokyo.peya.langjal.vm.JalVM;
 import tokyo.peya.langjal.vm.engine.VMClass;
-import tokyo.peya.langjal.vm.engine.VMFrame;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
+import tokyo.peya.langjal.vm.panics.VMPanic;
 import tokyo.peya.langjal.vm.references.ClassReference;
 import tokyo.peya.langjal.vm.values.metaobjects.VMStringObject;
 
@@ -15,22 +16,36 @@ public final class VMMainThread extends VMThread
         super(vm, group, "main");
     }
 
-    public void invokeVMInitialisation(@NotNull VMMethod method)
+    public void invokeVMInitialisationMethod(@NotNull String methodName)
     {
+        if (!methodName.startsWith("initPhase"))
+            return;
+
         this.group.setMainThread(this);
+
+        VMClass systemClass = this.vm.getClassLoader().findClass(ClassReference.of("java/lang/System"));
+        VMMethod initPhaseMethod = systemClass.findMethod(methodName, MethodDescriptor.parse("()V"));
+        if (initPhaseMethod == null)
+            throw new VMPanic("Could not find System." + methodName + " method");
+
         this.firstFrame = this.createFrame(
-                method,
+                initPhaseMethod,
                 true
         );
         this.currentFrame = this.firstFrame;
 
         this.firstFrame.activate();
 
-        // AccessibleObject の <clinit> を実行して， SharedSecrets の javaLangReflectAccess を設定する。
-        // ２回実行するのは，最初に親を，次に子を初期化するため。
-        VMClass accessibleObjectClass = this.vm.getClassLoader().findClass(ClassReference.of("java/lang/reflect/AccessibleObject"));
-        accessibleObjectClass.initialise(this);
-        accessibleObjectClass.initialise(this);
+        if (methodName.equals("initPhase1"))
+        {
+            // AccessibleObject の <clinit> を実行して， SharedSecrets の javaLangReflectAccess を設定する。
+            // ２回実行するのは，最初に親を，次に子を初期化するため。
+            VMClass accessibleObjectClass = this.vm.getClassLoader().findClass(ClassReference.of("java/lang/reflect/AccessibleObject"));
+            accessibleObjectClass.initialise(this);
+            accessibleObjectClass.initialise(this);
+        }
+
+        this.vm.getEngine().startEngine();
     }
 
     public void startMainThread(@NotNull VMMethod entryPointMethod, @NotNull String[] args)

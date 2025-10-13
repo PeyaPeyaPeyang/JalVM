@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.vm.VMSystemClassLoader;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.references.ClassReference;
+import tokyo.peya.langjal.vm.values.VMObject;
 
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -12,12 +13,14 @@ import java.util.List;
 public class InjectorManager
 {
     private final InjectorFileDescriptor fdInjector;
+    private final InjectorBootLoader blInjector;
     private final @NotNull List<Injector> injectors;
 
     public InjectorManager(@NotNull VMSystemClassLoader cl)
     {
         this.injectors = new LinkedList<>();
         this.fdInjector = new InjectorFileDescriptor();
+        this.blInjector = new InjectorBootLoader();
         this.initialiseDefaultInjectors(cl);
     }
 
@@ -25,7 +28,7 @@ public class InjectorManager
     {
         this.injectors.addAll(Arrays.asList(
                 new InjectorArray(),
-                new InjectorBootLoader(),
+                this.blInjector,
                 new InjectorCDS(),
                 new InjectorClass(),
                 new InjectorClassLoader(),
@@ -64,6 +67,11 @@ public class InjectorManager
                 new InjectorWin32ErrorMode(),
                 new InjectorWinNTFileSystem()
         ));
+    }
+
+    public VMObject getUnnamedModuleObject()
+    {
+        return this.blInjector.getUnnamedModuleRef().get();
     }
 
     public Injector findInjector(@NotNull ClassReference reference)

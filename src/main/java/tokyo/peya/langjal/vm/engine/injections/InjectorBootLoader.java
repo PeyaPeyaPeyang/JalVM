@@ -1,5 +1,6 @@
 package tokyo.peya.langjal.vm.engine.injections;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.tree.MethodNode;
@@ -18,6 +19,14 @@ public class InjectorBootLoader implements Injector
 {
     public static final ClassReference CLAZZ = ClassReference.of("jdk/internal/loader/BootLoader");
 
+    @Getter
+    private final AtomicReference<VMObject> unnamedModuleRef;
+
+    public InjectorBootLoader()
+    {
+        this.unnamedModuleRef = new AtomicReference<>();
+    }
+
     @Override
     public @NotNull ClassReference suitableClass()
     {
@@ -27,7 +36,6 @@ public class InjectorBootLoader implements Injector
     @Override
     public void inject(@NotNull VMSystemClassLoader cl, @NotNull VMClass clazz)
     {
-        AtomicReference<VMObject> unnamedModuleRef = new AtomicReference<>();
         clazz.injectMethod(
                 new InjectedMethod(
                         clazz, new MethodNode(
@@ -44,7 +52,7 @@ public class InjectorBootLoader implements Injector
                                              @Nullable VMObject instance, @NotNull VMValue[] args)
                     {
                         VMObject module = (VMObject) args[0];
-                        unnamedModuleRef.set(module);
+                        InjectorBootLoader.this.unnamedModuleRef.set(module);
                         return null;
                     }
                 }

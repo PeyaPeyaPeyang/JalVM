@@ -507,7 +507,7 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
     public VMField findField(@NotNull String fieldName)
     {
         return this.findField(fieldName, null);
-        }
+    }
 
     @NotNull
     public VMField findField(long id)

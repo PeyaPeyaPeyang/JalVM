@@ -108,6 +108,26 @@ public class InjectorThread implements Injector
         clazz.injectMethod(
                 new InjectedMethod(
                         clazz, new MethodNode(
+                        EOpcodes.ACC_PUBLIC | EOpcodes.ACC_STATIC | EOpcodes.ACC_NATIVE,
+                        "currentCarrierThread",
+                        "()Ljava/lang/Thread;",
+                        null,
+                        null
+                )
+                )
+                {
+                    @Override
+                    @Nullable
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
+                    {
+                        return frame.getThread().getThreadObject();
+                    }
+                }
+        );
+        clazz.injectMethod(
+                new InjectedMethod(
+                        clazz, new MethodNode(
                         EOpcodes.ACC_PRIVATE | EOpcodes.ACC_STATIC | EOpcodes.ACC_NATIVE,
                         "yield0",
                         "()V",

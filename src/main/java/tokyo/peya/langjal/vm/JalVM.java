@@ -13,6 +13,7 @@ import tokyo.peya.langjal.vm.loader.ClassProviders;
 import tokyo.peya.langjal.vm.panics.VMPanic;
 import tokyo.peya.langjal.vm.ffi.NativeCaller;
 import tokyo.peya.langjal.vm.references.ClassReference;
+import tokyo.peya.langjal.vm.values.VMBoolean;
 import tokyo.peya.langjal.vm.values.VMType;
 
 import java.time.Instant;
@@ -81,6 +82,10 @@ public class JalVM implements VMComponent
     public void initialiseVM()
     {
         this.engine.getMainThread().invokeVMInitialisationMethod("initPhase1");
+
+        VMBoolean printToStderr = VMBoolean.ofTrue(this);
+        VMBoolean printStackTrace = VMBoolean.ofTrue(this);
+        this.engine.getMainThread().invokeVMInitialisationMethod("initPhase2", printToStderr, printStackTrace);
     }
 
     public void executeMain()

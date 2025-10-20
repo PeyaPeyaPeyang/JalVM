@@ -68,7 +68,8 @@ public class VMThreadObject extends VMObject
             throw new IllegalStateException("Thread owner does not have run() method.");
 
         VMFrame f = newThread.createFrame(runMethod, false);
-        f.activate();
+        f.getLocals().setArgumentSlot(0, this);  // this オブジェクトをローカル変数の最初のスロットにセット
+    f.activate();
     }
 
     private VMThread createNewThread()

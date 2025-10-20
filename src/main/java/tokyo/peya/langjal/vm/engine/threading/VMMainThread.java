@@ -7,6 +7,7 @@ import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.members.VMMethod;
 import tokyo.peya.langjal.vm.panics.VMPanic;
 import tokyo.peya.langjal.vm.references.ClassReference;
+import tokyo.peya.langjal.vm.values.VMValue;
 import tokyo.peya.langjal.vm.values.metaobjects.VMStringObject;
 
 public final class VMMainThread extends VMThread
@@ -16,21 +17,23 @@ public final class VMMainThread extends VMThread
         super(vm, group, "main");
     }
 
-    public void invokeVMInitialisationMethod(@NotNull String methodName)
+    public void invokeVMInitialisationMethod(@NotNull String methodName, VMValue... args)
     {
         if (!methodName.startsWith("initPhase"))
             return;
 
+        this.setState(VMThreadState.NEW);
         this.group.setMainThread(this);
 
         VMClass systemClass = this.vm.getClassLoader().findClass(ClassReference.of("java/lang/System"));
-        VMMethod initPhaseMethod = systemClass.findMethod(methodName, MethodDescriptor.parse("()V"));
+        VMMethod initPhaseMethod = systemClass.findMethod(methodName);
         if (initPhaseMethod == null)
             throw new VMPanic("Could not find System." + methodName + " method");
 
         this.firstFrame = this.createFrame(
                 initPhaseMethod,
-                true
+                true,
+                args
         );
         this.currentFrame = this.firstFrame;
 

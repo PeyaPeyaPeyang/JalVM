@@ -35,7 +35,7 @@ public class VMThreadGroupObject extends VMObject
         this.forceInitialise(com.getClassLoader());
     }
 
-    public VMThreadGroupObject(@NotNull VMComponent com, @NotNull VMObject owner)
+    public VMThreadGroupObject(@NotNull VMComponent com, @Nullable VMObject owner)
     {
         super(com.getClassLoader().findClass(ClassReference.of("java/lang/ThreadGroup")), owner);
         this.vm = com.getVM();

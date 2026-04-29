@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.compiler.jvm.MethodDescriptor;
 import tokyo.peya.langjal.vm.api.VMEventManager;
 import tokyo.peya.langjal.vm.api.VMPluginLoader;
+import tokyo.peya.langjal.vm.api.events.VMStartupEvent;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMComponent;
 import tokyo.peya.langjal.vm.engine.VMEngine;
@@ -70,6 +71,9 @@ public class JalVM implements VMComponent
         this.initialiseVM();
         this.initialisationFinishedAt = Instant.now();
         System.out.println("VM Initialisation SUCCESS, took " + (this.initialisationFinishedAt.toEpochMilli() - this.initialisationStartedAt.toEpochMilli()) + " ms");
+
+        this.startedAt = Instant.now();
+        this.eventManager.dispatchEvent(new VMStartupEvent());
 
         // メインメソッド開始
         System.out.println("Launching main method: " + mainMethod.getOwningClass() + "->" + mainMethod.getName() + mainMethod.getDescriptor());

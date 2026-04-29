@@ -40,4 +40,17 @@ public class VMThreadTracer
     {
         return Collections.unmodifiableList(this.history);
     }
+
+    public void clear()
+    {
+        this.history.clear();
+    }
+
+    public void clearAll() {
+        this.history.stream()
+                    .map(ThreadTracingEntry::thread)
+                    .map(VMThread::getTracer)
+                    .forEach(VMFrameTracer::clearAll);
+        this.history.clear();
+    }
 }

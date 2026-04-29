@@ -5,35 +5,24 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
-import org.objectweb.asm.tree.VarInsnNode;
 import org.objectweb.asm.util.Printer;
 import org.objectweb.asm.util.Textifier;
 import org.objectweb.asm.util.TraceMethodVisitor;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.vm.api.VMEventHandler;
 import tokyo.peya.langjal.vm.api.VMListener;
-import tokyo.peya.langjal.vm.api.events.VMDefineClassEvent;
 import tokyo.peya.langjal.vm.api.events.VMFrameInEvent;
 import tokyo.peya.langjal.vm.api.events.VMFrameOutEvent;
-import tokyo.peya.langjal.vm.api.events.VMLinkClassEvent;
+import tokyo.peya.langjal.vm.api.events.VMStartupEvent;
 import tokyo.peya.langjal.vm.api.events.VMStepInEvent;
-import tokyo.peya.langjal.vm.api.events.VMThreadDeathEvent;
 import tokyo.peya.langjal.vm.engine.VMClass;
 import tokyo.peya.langjal.vm.engine.VMEngine;
 import tokyo.peya.langjal.vm.engine.VMFrame;
-import tokyo.peya.langjal.vm.engine.threading.VMThread;
 import tokyo.peya.langjal.vm.references.ClassReference;
-import tokyo.peya.langjal.vm.tracing.FrameManipulationType;
-import tokyo.peya.langjal.vm.tracing.FrameTracingEntry;
-import tokyo.peya.langjal.vm.tracing.ThreadManipulationType;
-import tokyo.peya.langjal.vm.tracing.ThreadTracingEntry;
-import tokyo.peya.langjal.vm.tracing.VMFrameTracer;
-import tokyo.peya.langjal.vm.tracing.VMThreadTracer;
-import tokyo.peya.langjal.vm.tracing.VMValueTracer;
-import tokyo.peya.langjal.vm.tracing.ValueTracingEntry;
 
-import java.util.List;
+import java.util.Arrays;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 public class DebugMain
 {
@@ -180,226 +169,293 @@ public class DebugMain
                 false // Is interface
         );
     }
+    private static class EventListeners implements VMListener {
 
-    private static class EventListeners implements VMListener
-    {
         private static final Scanner scanner = new Scanner(System.in);
 
-        private boolean stepIn = false;
+        private final StepController step = new StepController();
 
-        private void printFrame(VMFrame frame, VMEngine engine)
-        {
-            System.out.printf("Current frame: %s%n", frame.toString());
-            System.out.printf("Current thread: %s%n", engine.getCurrentThread().getName());
-            System.out.printf("Current method: %s%n", frame.getMethod().getMethodNode().name);
-            System.out.printf("Stack: %s%n", frame.getStack());
-            System.out.printf("Locals: %s%n", frame.getLocals());
+        private boolean quiet = true;
+        private int currentDepth = 0;
+
+        // =========================
+        // STARTUP
+        // =========================
+        @VMEventHandler
+        public void onStartup(@NotNull VMStartupEvent event) {
+            this.quiet = false;
+            this.currentDepth = 0;
+            this.step.reset();
         }
 
-        private String getInstructionText(AbstractInsnNode insn)
-        {
+        // =========================
+        // STEP EVENT
+        // =========================
+        @VMEventHandler
+        public void onStepIn(@NotNull VMStepInEvent event) {
+
+            if (!this.step.shouldStop(event)) {
+                return;
+            }
+
+            if (!this.quiet) {
+                printStep(event);
+            }
+
+            debugLoop(event);
+        }
+
+        private void printStep(VMStepInEvent event) {
+            System.out.printf("""
+                
+                ▶ STEP (depth=%d)
+                  opcode : %s
+                  insn   : %s
+                  frame  : %s
+                """,
+                              this.currentDepth,
+                              EOpcodes.getName(event.getInstruction().getOpcode()),
+                              getInstructionText(event.getInstruction()),
+                              event.getFrame()
+            );
+        }
+
+        // =========================
+        // DEBUG CONSOLE
+        // =========================
+        private void debugLoop(VMStepInEvent event) {
+            if (this.quiet) {
+                return;
+            }
+
+            while (true) {
+                System.out.print("debug> ");
+                String input = scanner.nextLine().trim();
+
+                if (input.isEmpty()) continue;
+
+                String[] parts = input.split("\\s+");
+                String cmd = parts[0].toLowerCase();
+
+                switch (cmd) {
+
+                    case "h", "help" -> printHelp();
+
+                    case "z", "show" ->
+                            printFrame(event.getFrame(), event.getFrame().getVM().getEngine());
+
+                    case "s", "step" -> {
+                        this.step.stepIn();
+                        return;
+                    }
+
+                    case "n", "next" -> {
+                        this.step.stepOver(event.getFrame());
+                        return;
+                    }
+
+                    case "o", "out" -> {
+                        this.step.stepOut(event.getFrame());
+                        return;
+                    }
+
+                    case "c", "continue" -> {
+                        if (parts.length >= 2) {
+                            try {
+                                this.step.cont(Integer.parseInt(parts[1]));
+                            } catch (NumberFormatException e) {
+                                System.out.println("Invalid step count: " + parts[1]);
+                                continue;
+                            }
+                        } else {
+                            this.step.contInfinite();
+                        }
+                        return;
+                    }
+
+                    case "q", "quit" -> {
+                        System.out.println("Debugger terminated.");
+                        this.step.contInfinite();
+                        return;
+                    }
+
+                    default -> {
+                        System.out.println("Unknown command: " + cmd);
+                    }
+                }
+            }
+        }
+
+        private void printHelp() {
+            System.out.println("""
+        === Debug Commands ===
+
+          h, help         : show this help
+          z, show         : show current frame snapshot
+          s, step         : step into
+          n, next         : step over
+          o, out          : step out
+          c, continue [n] : continue execution
+          q, quit         : quit debugger
+
+        ======================
+        """);
+        }
+
+        // =========================
+        // FRAME EVENTS
+        // =========================
+        @VMEventHandler
+        public void onFrameIn(@NotNull VMFrameInEvent e) {
+
+            if (!this.quiet)
+                System.out.printf("→ FRAME IN  : %s%n", e.getFrame());
+        }
+
+        @VMEventHandler
+        public void onFrameOut(@NotNull VMFrameOutEvent e) {
+            this.step.notifyFrameOut(e.getFrame());
+
+            if (!this.quiet)
+                System.out.printf("← FRAME OUT : %s%n", e.getFrame());
+        }
+
+        // =========================
+        // FRAME SNAPSHOT
+        // =========================
+        private void printFrame(VMFrame frame, VMEngine engine) {
+            System.out.printf("""
+                ===== FRAME SNAPSHOT =====
+                Thread : %s
+                Method : %s
+                Frame  : %s
+                
+                [Stack]
+                %s
+                
+                [Locals]
+                %s
+                =========================
+                %n""",
+                              engine.getCurrentThread().getName(),
+                              frame.getMethod().getMethodNode().name,
+                              frame,
+                              indent(frame.getStack()),
+                              indent(frame.getLocals())
+            );
+        }
+
+        // =========================
+        // STEP CONTROLLER
+        // =========================
+        private static class StepController {
+
+            private Mode mode = Mode.STEP_IN;
+
+            private int remainingSteps = 0;
+
+            private VMFrame targetFrame;
+            private boolean armed = false;
+            private boolean forceStop = false;
+
+            enum Mode {
+                STEP_IN,
+                STEP_OVER,
+                STEP_OUT,
+                CONTINUE
+            }
+
+            void reset() {
+                this.mode = Mode.STEP_IN;
+                this.remainingSteps = 0;
+                this.targetFrame = null;
+                this.armed = false;
+                this.forceStop = false;
+            }
+
+            void stepIn() {
+                this.mode = Mode.STEP_IN;
+            }
+
+            void stepOver(VMFrame frame) {
+                this.mode = Mode.STEP_OVER;
+                this.targetFrame = frame;
+                this.armed = false;
+            }
+
+            void stepOut(VMFrame frame) {
+                this.mode = Mode.STEP_OUT;
+                this.targetFrame = frame;
+            }
+
+            void cont(int n) {
+                this.mode = Mode.CONTINUE;
+                this.remainingSteps = n;
+            }
+
+            void contInfinite() {
+                this.mode = Mode.CONTINUE;
+                this.remainingSteps = -1;
+            }
+
+            void notifyFrameOut(VMFrame frame) {
+                if (this.mode == Mode.STEP_OUT && frame == this.targetFrame) {
+                    this.forceStop = true;
+                }
+            }
+
+            boolean shouldStop(VMStepInEvent event) {
+
+                if (this.forceStop) {
+                    this.forceStop = false;
+                    this.mode = Mode.STEP_IN;
+                    return true;
+                }
+
+                VMFrame current = event.getFrame();
+
+                return switch (this.mode) {
+
+                    case STEP_IN -> true;
+
+                    case CONTINUE -> this.remainingSteps >= 0 && this.remainingSteps-- <= 0;
+
+                    case STEP_OVER -> {
+                        if (current != targetFrame) {
+                            // deeper に潜った
+                            armed = true;
+                            yield false;
+                        }
+                        // 同一フレームに戻ってきた
+                        yield armed;
+                    }
+
+                    case STEP_OUT -> false;
+                };
+            }
+        }
+
+        // =========================
+        // UTIL
+        // =========================
+        private String indent(Object obj) {
+            if (obj == null) return "  (null)";
+
+            return Arrays.stream(obj.toString().split("\n"))
+                         .map(s -> "  " + s)
+                         .collect(Collectors.joining("\n"));
+        }
+
+        private String getInstructionText(AbstractInsnNode insn) {
             Printer printer = new Textifier();
             TraceMethodVisitor tmv = new TraceMethodVisitor(printer);
             insn.accept(tmv);
-            String instructionText = printer.getText().toString();
-            // 末尾の \n を削除
-            return instructionText.endsWith("\n]") ? instructionText.substring(
-                    1,
-                    instructionText.length() - 2
-            ): instructionText;
-        }
 
-        private void debugOptions(VMStepInEvent event)
-        {
-            String instructionText = this.getInstructionText(event.getInstruction());
-            System.out.println("STEP: " + instructionText);
-            while (true)
-            {
-                String input = scanner.nextLine();
-                String[] parts = input.split(" ");
-                if (parts.length == 0)
-                {
-                    System.out.println("No command entered. Please try again.");
-                    continue;
-                }
-                String command = parts[0].toLowerCase();
-                switch (command)
-                {
-                    case "show", "z" ->
-                    {
-                        this.printFrame(event.getFrame(), event.getFrame().getVM().getEngine());
-                    }
-                    case "next", "x" ->
-                    {
-                        return;
-                    }
-                    case "quit", "q" ->
-                    {
-                        System.out.println("Exiting debugger.");
-                        this.stepIn = false;
-                        return; // Exit the debugger
-                    }
-                    default ->
-                    {
-                        System.out.println("Unknown command: " + command);
-                        System.out.println("Commands: ");
-                        System.out.println("  show (z) - Show current frame information");
-                        System.out.println("  next (x) - Continue to the next instruction");
-                        System.out.println("  quit (q) - Exit the debugger");
-                    }
-                }
-            }
-        }
+            String text = printer.getText().toString();
 
-        @VMEventHandler
-        public void onStepIn(@NotNull VMStepInEvent event)
-        {
-            System.out.println("Executing instruction: " + EOpcodes.getName(event.getInstruction().getOpcode()) + " in frame: " + event.getFrame());
-            if (!this.stepIn)
-                return; // Debugging is disabled
-
-            this.debugOptions(event);
-        }
-
-        // @VMEventHandler
-        public void onThreadDestroy(@NotNull VMThreadDeathEvent event)
-        {
-            VMEngine engine = event.getVM().getEngine();
-            System.out.printf("Thread %s has terminated.%n", event.getThread().getName());
-            VMThreadTracer threadTracer = engine.getTracer();
-            List<ThreadTracingEntry> history = threadTracer.getHistory(event.getThread());
-
-            System.out.printf("TRACED THREAD MANIPULATIONS: %d%n", history.size());
-            System.out.printf("--- BEGIN OF THREAD MANIPULATION HISTORIES ---%n");
-            for (int i = 0; i < history.size(); i++)
-            {
-                ThreadTracingEntry entry = history.get(i);
-                VMThread thread = entry.thread();
-                System.out.printf("[t%d] %s: %s%n", i, thread.getName(), entry.type().name());
-                if (entry.type() == ThreadManipulationType.CREATION)
-                    this.dumpThreadHistory(thread);
-            }
-
-            System.out.println("--- END OF THREAD MANIPULATION HISTORIES ---");
-        }
-        private void dumpThreadHistory(@NotNull VMThread thread)
-        {
-            VMFrameTracer frameTracer = thread.getTracer();
-            List<FrameTracingEntry> frames = frameTracer.getHistory();
-
-            System.out.printf("  TRACED FRAMES: %d%n", frames.size());
-
-            for (int i = 0; i < frames.size(); i++)
-            {
-                FrameTracingEntry entry = frames.get(i);
-                VMFrame frame = entry.frame();
-
-                System.out.printf("  [f%d] %s: %s%n",
-                                  i, entry.type().name(), frame.getMethod());
-
-                if (entry.type() == FrameManipulationType.FRAME_OUT)
-                    dumpValueHistory(frame);
-            }
-        }
-
-        private void dumpValueHistory(@NotNull VMFrame frame)
-        {
-            VMValueTracer frameTracer = frame.getTracer();
-            List<ValueTracingEntry> history = frameTracer.getHistory();
-
-            System.out.printf("    TRACED MANIPULATIONS: %d%n", history.size());
-
-            for (int i = 0; i < history.size(); i++)
-            {
-                ValueTracingEntry entry = history.get(i);
-                String value = safeValue(entry.value());
-                String comb1 = safeValue(entry.combinationValue());
-                String comb2 = safeValue(entry.combinationValue2());
-                String field = safeValue(entry.field());
-                String method = safeValue(entry.inMethod());
-                String instr = safeInstr(entry.manipulatingInstruction());
-
-                switch (entry.type())
-                {
-                    case GENERATION ->
-                            print(i, "GENERATION", value, instr);
-
-                    case MANIPULATION ->
-                            print(i, "MANIPULATION", "%s -> %s".formatted(value, comb1), instr);
-
-                    case DESTRUCTION ->
-                            print(i, "DESTRUCTION", value, instr);
-
-                    case FIELD_GET ->
-                            print(i, "FIELD_GET", "%s VALUE %s".formatted(field, value), instr);
-
-                    case FIELD_SET ->
-                            print(i, "FIELD_SET", "%s VALUE %s".formatted(field, value), instr);
-
-                    case PASSING_AS_ARGUMENT ->
-                            print(i, "PASSING_AS_ARGUMENT", "%s TO %s".formatted(value, method), instr);
-
-                    case RETURNING_FROM ->
-                            print(i, "RETURNING_FROM", "%s FROM %s".formatted(value, method), instr);
-
-                    case COMBINATION ->
-                            print(i, "COMBINATION",
-                                  "%s + %s -> %s".formatted(comb1, comb2, value), instr);
-
-                    case FROM_LOCAL ->
-                    {
-                        String var = entry.manipulatingInstruction() instanceof VarInsnNode varInsn
-                                ? String.valueOf(varInsn.var)
-                                : "?";
-                        print(i, "FROM_LOCAL", "%s <- local[%s]".formatted(value, var), instr);
-                    }
-
-                    case TO_LOCAL ->
-                    {
-                        String var = entry.manipulatingInstruction() instanceof VarInsnNode varInsn
-                                ? String.valueOf(varInsn.var)
-                                : "?";
-                        print(i, "TO_LOCAL", "%s -> local[%s]".formatted(value, var), instr);
-                    }
-                }
-            }
-        }
-
-        private String safeValue(Object v)
-        {
-            return v == null ? "null" : v.toString().replace("\n", "\n    ");
-        }
-
-        private String safeInstr(AbstractInsnNode instr)
-        {
-            return instr == null ? "unknown instruction" : getInstructionText(instr);
-        }
-
-        private void print(int index, String type, String value, String instr)
-        {
-            System.out.printf("    [v%d] %s: %s, by %s%n", index, type, value, instr);
-        }
-
-        @VMEventHandler
-        public void onFrameIn(@NotNull VMFrameInEvent e)
-        {
-            System.out.printf("--[FRAME  IN]->: %s%n", e.getFrame().toString());
-        }
-        @VMEventHandler
-        public void onFrameOut(@NotNull VMFrameOutEvent e)
-        {
-            System.out.printf("<-[FRAME OUT]--: %s%n", e.getFrame().toString());
-        }
-        @VMEventHandler
-        public void onClassDefine(@NotNull VMDefineClassEvent e)
-        {
-            System.out.printf("Defining class: %s%n", e.getReference().getFullQualifiedName());
-        }
-
-        @VMEventHandler
-        public void onClassLink(@NotNull VMLinkClassEvent e)
-        {
-            System.out.printf("Linking class: %s%n", e.getLinking());
+            return text.endsWith("\n]")
+                    ? text.substring(1, text.length() - 2)
+                    : text.trim();
         }
     }
 }

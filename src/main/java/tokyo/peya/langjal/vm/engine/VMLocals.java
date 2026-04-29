@@ -100,14 +100,33 @@ public class VMLocals
 
         return value;
     }
-
     @Override
     public String toString()
     {
-        return "[" + this.locals.entrySet().stream()
-                                .map(entry -> entry.getKey() + ": " + entry.getValue().toString())
-                                .reduce((a, b) -> a + ", " + b)
-                                .orElse("") + "]";
+        if (this.locals.isEmpty()) return "{empty locals}";
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("Locals\n");
+
+        this.locals.entrySet().stream()
+                   .sorted(Map.Entry.comparingByKey())
+                   .forEach(e -> sb.append(String.format(
+                           "  [%02d] %s%n",
+                           e.getKey(),
+                           formatValue(e.getValue())
+                   )));
+
+        return sb.toString();
+    }
+
+    private String formatValue(Object v)
+    {
+        if (v == null) return "null";
+
+        return "(%s) %s".formatted(
+                v.getClass().getSimpleName(),
+                v.toString().replace("\n", " ")
+        );
     }
 
     @NotNull

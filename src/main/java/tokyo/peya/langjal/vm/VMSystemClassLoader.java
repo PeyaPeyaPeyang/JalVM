@@ -7,6 +7,7 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
+import tokyo.peya.langjal.vm.api.events.VMClassDefineEvent;
 import tokyo.peya.langjal.vm.api.events.VMDefineClassEvent;
 import tokyo.peya.langjal.vm.api.events.VMLinkClassEvent;
 import tokyo.peya.langjal.vm.engine.VMClass;
@@ -122,7 +123,8 @@ public class VMSystemClassLoader implements VMComponent
         //    throw new IllegalStateException("Class " + name + " is already defined!");
 
         ClassReference ref = ClassReference.of(name);
-        System.out.println("Defining class: " + ref.getFullQualifiedName());
+        this.vm.getEventManager().dispatchEvent(new VMClassDefineEvent.Pre(ref));
+
         VMDefineClassEvent event = new VMDefineClassEvent(this.vm, ref, classNode);
         this.vm.getEventManager().dispatchEvent(event);
 
@@ -131,6 +133,8 @@ public class VMSystemClassLoader implements VMComponent
 
         this.defineDependingClasses(classNode);
         this.linkType(vmClass);
+
+        this.vm.getEventManager().dispatchEvent(new VMClassDefineEvent.Post(ref, vmClass));
 
         return vmClass;
     }

@@ -43,4 +43,9 @@ public class VMValueTracer
     {
         return Collections.unmodifiableList(this.history);
     }
+
+    public void clear()
+    {
+        this.history.clear();
+    }
 }

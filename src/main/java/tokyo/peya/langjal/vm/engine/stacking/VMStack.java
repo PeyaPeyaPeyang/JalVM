@@ -86,9 +86,16 @@ public class VMStack
     @Override
     public String toString()
     {
-        return "[" + this.stack.stream()
-                               .map(VMValue::toString)
-                               .reduce((a, b) -> a + ", " + b)
-                               .orElse("") + "]";
+        if (this.stack.isEmpty()) return "[empty stack]";
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("Stack (top -> bottom)\n");
+
+        for (int i = this.stack.size() - 1; i >= 0; i--)
+        {
+            sb.append(String.format("  [%02d] %s%n", i, this.stack.get(i)));
+        }
+
+        return sb.toString();
     }
 }

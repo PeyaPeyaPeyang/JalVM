@@ -33,7 +33,9 @@ public class NativeCaller
     private final JalVM vm;
     private final Arena arena = Arena.ofShared();
 
-    private final Map<ClassReference, NativeLibrary> libraries;
+    private final Map<ClassReference, LoadedClassLibraries> libraries;
+
+    private long lastHandleID = 1L;  // 0 は無効なので，1 から始める
 
     public NativeCaller(@NotNull JalVM vm)
     {
@@ -41,14 +43,18 @@ public class NativeCaller
         this.libraries = new HashMap<>();
     }
 
-    public SymbolLookup registerLibrary(@NotNull ClassReference caller, @NotNull String name)
+    public NativeLibrary registerLibrary(@NotNull ClassReference caller, @NotNull String name)
     {
-        Map<String, SymbolLookup> symbols;
-        NativeLibrary nativeLibrary = this.libraries.get(caller);
-        if (nativeLibrary == null)
-            this.libraries.put(caller, new NativeLibrary(name, symbols = new HashMap<>(), new HashMap<>()));
+        Map<String, NativeLibrary> symbols;
+        LoadedClassLibraries loadedClassLibraries = this.libraries.get(caller);
+        if (loadedClassLibraries == null)
+        {
+            LoadedClassLibraries lcl;
+            this.libraries.put(caller, lcl = new LoadedClassLibraries(name));
+            symbols = lcl.symbols;
+        }
         else
-            symbols = nativeLibrary.symbols;
+            symbols = loadedClassLibraries.symbols;
 
         if (symbols.containsKey(name))
             return symbols.get(name);
@@ -68,12 +74,18 @@ public class NativeCaller
                 throw new VMPanic("Failed to register native library: " + name, e2);
             }
         }
-        symbols.put(name, lookup);
 
-        return lookup;
+        NativeLibrary nativeLibrary;
+        symbols.put(name, nativeLibrary = new NativeLibrary(
+                name,
+                lookup,
+                this.lastHandleID++
+        ));
+
+        return nativeLibrary;
     }
 
-    private MethodHandle createCachedMethodHandle(@NotNull NativeLibrary nativeLibrary,
+    private MethodHandle createCachedMethodHandle(@NotNull NativeCaller.LoadedClassLibraries loadedClassLibraries,
                                                   @NotNull String name,
                                                   @NotNull VMType<?> returningType,
                                                   @NotNull VMValue... args)
@@ -81,9 +93,9 @@ public class NativeCaller
         VMType<?>[] argTypes = Arrays.stream(args)
                                   .map(VMValue::type)
                                   .toArray(VMType<?>[]::new);
-        List<MethodHandleCache> caches = nativeLibrary.handles.get(name);
+        List<MethodHandleCache> caches = loadedClassLibraries.handles.get(name);
         if (caches == null)
-            nativeLibrary.handles.put(name, caches = new ArrayList<>());
+            loadedClassLibraries.handles.put(name, caches = new ArrayList<>());
         else
         {
             for (MethodHandleCache cached : caches)
@@ -94,10 +106,11 @@ public class NativeCaller
                 }
         }
 
-        SymbolLookup lookup = nativeLibrary.symbols.get(name);
-        if (lookup == null)
+        NativeLibrary library = loadedClassLibraries.symbols.get(name);
+        if (library == null)
             throw new LinkagePanic("No symbol found for name: " + name);
 
+        SymbolLookup lookup = library.lookup;
         MemorySegment seg = lookup.find(name)
                                   .orElseThrow(() -> new LinkagePanic("Failed to find symbol: " + name));
 
@@ -125,12 +138,12 @@ public class NativeCaller
                            @NotNull VMType<?> returningType, @NotNull VMValue... args)
     {
         List<VMValue> results = new ArrayList<>();
-        NativeLibrary nativeLibrary = this.libraries.get(owner);
-        if (nativeLibrary == null)
+        LoadedClassLibraries loadedClassLibraries = this.libraries.get(owner);
+        if (loadedClassLibraries == null)
             throw new LinkagePanic("No native library registered for the current class, can't call native function: " + name
                                            + " (owner: " + owner + ")");
 
-        MethodHandle methodHandle = this.createCachedMethodHandle(nativeLibrary, name, returningType, args);
+        MethodHandle methodHandle = this.createCachedMethodHandle(loadedClassLibraries, name, returningType, args);
         Object[] convertedArgs = new Object[args.length];
         for (int i = 0; i < args.length; i++)
             convertedArgs[i] = args[i].toJavaObject();
@@ -175,13 +188,26 @@ public class NativeCaller
         };
     }
 
-    private record NativeLibrary(
+    private record LoadedClassLibraries(
             @NotNull
             String name,
             @NotNull
-            Map<String, SymbolLookup> symbols,
+            Map<String, NativeLibrary> symbols,
             @NotNull
             Map<String, List<MethodHandleCache>> handles
+    ) {
+        private LoadedClassLibraries (@NotNull String name)
+        {
+            this(name, new HashMap<>(), new HashMap<>());
+        }
+    }
+
+    public record NativeLibrary(
+            @NotNull
+            String name,
+            @NotNull
+            SymbolLookup lookup,
+            long handle
     ) {}
 
     private record MethodHandleCache(

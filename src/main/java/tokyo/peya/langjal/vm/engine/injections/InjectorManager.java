@@ -46,6 +46,7 @@ public class InjectorManager
                 new InjectorMethodHandleNatives(),
                 new InjectorNativeAccessor(),
                 new InjectorNativeEntryPoint(),
+                new InjectorNativeLibraries(),
                 new InjectorObject(),
                 new InjectorPerf(),
                 new InjectorRandomAccessFile(),
@@ -63,8 +64,10 @@ public class InjectorManager
                 new InjectorThreadGroup(),
                 new InjectorThrowable(),
                 new InjectorUnsafe(),
+                new InjectorUnsafeConstants(),
                 new InjectorVM(),
                 new InjectorWin32ErrorMode(),
+                new InjectorWindowsNativeDispatcher(),
                 new InjectorWinNTFileSystem()
         ));
     }

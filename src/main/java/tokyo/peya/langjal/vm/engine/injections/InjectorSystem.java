@@ -13,6 +13,7 @@ import tokyo.peya.langjal.vm.values.VMInteger;
 import tokyo.peya.langjal.vm.values.VMLong;
 import tokyo.peya.langjal.vm.values.VMObject;
 import tokyo.peya.langjal.vm.values.VMValue;
+import tokyo.peya.langjal.vm.values.metaobjects.VMStringObject;
 
 public class InjectorSystem implements Injector
 {
@@ -233,6 +234,36 @@ public class InjectorSystem implements Injector
                     {
                         VMValue obj = args[0];
                         return new VMInteger(frame, obj.identityHashCode());
+                    }
+                }
+        );
+        clazz.injectMethod(
+                new InjectedMethod(
+                        clazz, new MethodNode(
+                        EOpcodes.ACC_PUBLIC | EOpcodes.ACC_STATIC | EOpcodes.ACC_NATIVE,
+                        "mapLibraryName",
+                        "(Ljava/lang/String;)Ljava/lang/String;",
+                        null,
+                        null
+                )
+                )
+                {
+                    @Override
+                    protected VMValue invoke(@NotNull VMFrame frame, @Nullable VMClass caller,
+                                             @Nullable VMObject instance, @NotNull VMValue[] args)
+                    {
+                        // プラットフォームごとに異なるライブラリ名のマッピングを行う。
+                        String libName = ((VMStringObject) args[0]).getString();
+                        String mappedName;
+                        String osName = System.getProperty("os.name").toLowerCase();
+                        if (osName.contains("win"))
+                            mappedName = libName + ".dll";
+                        else if (osName.contains("mac"))
+                            mappedName = "lib" + libName + ".dylib";
+                        else
+                            mappedName = "lib" + libName + ".so";
+
+                        return VMStringObject.createString(frame, mappedName);
                     }
                 }
         );

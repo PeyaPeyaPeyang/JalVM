@@ -87,9 +87,12 @@ public class JalVM implements VMComponent
     {
         this.engine.getMainThread().invokeVMInitialisationMethod("initPhase1");
 
-        VMBoolean printToStderr = VMBoolean.ofTrue(this);
-        VMBoolean printStackTrace = VMBoolean.ofTrue(this);
-        this.engine.getMainThread().invokeVMInitialisationMethod("initPhase2", printToStderr, printStackTrace);
+        // VMBoolean printToStderr = VMBoolean.ofTrue(this);
+        // VMBoolean printStackTrace = VMBoolean.ofTrue(this);
+        // this.engine.getMainThread().invokeVMInitialisationMethod("initPhase2", printToStderr, printStackTrace);
+
+        this.engine.getMainThread().invokeVMInitialisationMethod("initPhase3");
+
     }
 
     public void executeMain()

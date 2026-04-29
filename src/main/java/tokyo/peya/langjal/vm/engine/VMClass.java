@@ -157,7 +157,15 @@ public class VMClass extends VMType<VMReferenceValue> implements AccessibleObjec
     public void injectField(@NotNull VMField field)
     {
         // 既存のフィールドを削除
-        this.fields.removeIf(existingField -> existingField.getName().equals(field.getName()));
+        for (int i = 0; i < this.fields.size(); i++)
+        {
+            VMField existing = this.fields.get(i);
+            if (existing.getName().equals(field.getName()) && existing.getType().equals(field.getType()))
+            {
+                this.fields.remove(i);
+                break;
+            }
+        }
         // 新しいフィールドを追加
         this.fields.add(field);
 

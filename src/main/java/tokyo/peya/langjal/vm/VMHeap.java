@@ -92,9 +92,6 @@ public class VMHeap
 
     public void recognizeStaticField(@NotNull VMField field)
     {
-        if (this.staticFieldPool.containsKey(field.getFieldID()))
-            throw new IllegalStateException("Static field ID " + field.getFieldID() + " is already registered!");
-
         long fieldId = field.getFieldID();
         if (fieldId < 0xFFFF)  // fieldID は原則クラス内で一意かつ0始まり。65536 / 16 個も非性的フィールドを持つクラスは存在しないと考えられるため，初期値65535以下のIDは不正とみなす。
             throw new IllegalStateException("Static field ID must be an ID assigned by VMHeap#assignStaticFieldID(), but got " + fieldId);

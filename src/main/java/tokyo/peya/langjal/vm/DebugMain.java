@@ -206,17 +206,18 @@ public class DebugMain
         }
 
         private void printStep(VMStepInEvent event) {
-            System.out.printf("""
-                
-                ▶ STEP (depth=%d)
-                  opcode : %s
-                  insn   : %s
-                  frame  : %s
-                """,
-                              this.currentDepth,
-                              EOpcodes.getName(event.getInstruction().getOpcode()),
-                              getInstructionText(event.getInstruction()),
-                              event.getFrame()
+            System.out.printf(
+                    """
+                    
+                    ▶ STEP (depth=%d)
+                      opcode : %s
+                      insn   : %s
+                      frame  : %s
+                    """,
+                    this.currentDepth,
+                    EOpcodes.getName(event.getInstruction().getOpcode()),
+                    getInstructionText(event.getInstruction()),
+                    event.getFrame()
             );
         }
 
@@ -239,9 +240,9 @@ public class DebugMain
 
                 switch (cmd) {
 
-                    case "h", "help" -> printHelp();
+                    case "h", "?", "help" -> printHelp();
 
-                    case "z", "show" ->
+                    case "x", "show" ->
                             printFrame(event.getFrame(), event.getFrame().getVM().getEngine());
 
                     case "s", "step" -> {
@@ -249,17 +250,17 @@ public class DebugMain
                         return;
                     }
 
-                    case "n", "next" -> {
+                    case "c", "next" -> {
                         this.step.stepOver(event.getFrame());
                         return;
                     }
 
-                    case "o", "out" -> {
+                    case "z", "out" -> {
                         this.step.stepOut(event.getFrame());
                         return;
                     }
 
-                    case "c", "continue" -> {
+                    case "q", "continue" -> {
                         if (parts.length >= 2) {
                             try {
                                 this.step.cont(Integer.parseInt(parts[1]));
@@ -270,12 +271,6 @@ public class DebugMain
                         } else {
                             this.step.contInfinite();
                         }
-                        return;
-                    }
-
-                    case "q", "quit" -> {
-                        System.out.println("Debugger terminated.");
-                        this.step.contInfinite();
                         return;
                     }
 
@@ -290,13 +285,12 @@ public class DebugMain
             System.out.println("""
         === Debug Commands ===
 
-          h, help         : show this help
-          z, show         : show current frame snapshot
-          s, step         : step into
-          n, next         : step over
-          o, out          : step out
-          c, continue [n] : continue execution
-          q, quit         : quit debugger
+        h, ?, help   : Show this help message
+        x, show      : Show current frame snapshot
+        s, step       : Step into the next instruction
+        c, next       : Step over (execute current instruction and stop at the next one)
+        z, out        : Step out (run until the current method returns)
+        q, continue [n] : Continue execution for n steps (or indefinitely if n is not provided)
 
         ======================
         """);
@@ -355,7 +349,6 @@ public class DebugMain
             private int remainingSteps = 0;
 
             private VMFrame targetFrame;
-            private boolean armed = false;
             private boolean forceStop = false;
 
             enum Mode {
@@ -369,7 +362,6 @@ public class DebugMain
                 this.mode = Mode.STEP_IN;
                 this.remainingSteps = 0;
                 this.targetFrame = null;
-                this.armed = false;
                 this.forceStop = false;
             }
 
@@ -380,7 +372,6 @@ public class DebugMain
             void stepOver(VMFrame frame) {
                 this.mode = Mode.STEP_OVER;
                 this.targetFrame = frame;
-                this.armed = false;
             }
 
             void stepOut(VMFrame frame) {
@@ -420,15 +411,7 @@ public class DebugMain
 
                     case CONTINUE -> this.remainingSteps >= 0 && this.remainingSteps-- <= 0;
 
-                    case STEP_OVER -> {
-                        if (current != targetFrame) {
-                            // deeper に潜った
-                            armed = true;
-                            yield false;
-                        }
-                        // 同一フレームに戻ってきた
-                        yield armed;
-                    }
+                    case STEP_OVER -> current == this.targetFrame;
 
                     case STEP_OUT -> false;
                 };

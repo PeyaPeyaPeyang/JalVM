@@ -202,7 +202,7 @@ public class VMMethod implements AccessibleObject
     public String toString()
     {
         return this.clazz.getReference() + "->" + this.methodNode.name + this.methodNode.desc +
-                " (access: " + this.accessLevel + ", attributes: " + this.accessAttributes + ")";
+                " (" + this.accessLevel + " " + this.accessAttributes + ")";
     }
 
     public boolean isConstructor()

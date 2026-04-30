@@ -1,6 +1,7 @@
 package tokyo.peya.langjal.vm;
 
 import org.jetbrains.annotations.NotNull;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
@@ -28,7 +29,7 @@ public class DebugMain
 {
     public static void main(String[] args)
     {
-        JalVM jalVM = new JalVM(VMConfiguration.builder(ClassReference.of("tokyo/peya/langjal/vm/TestClass"))
+        JalVM jalVM = new JalVM(VMConfiguration.builder(ClassReference.of("DebugMain"))
                                                .enableAssertions(true)
                                                .debugVM(true)
                                                .build()
@@ -40,7 +41,7 @@ public class DebugMain
         classNode.visit(
                 Opcodes.V11,
                 0, // Class access flags
-                "tokyo/peya/langjal/vm/TestClass", // Class name
+                "DebugMain", // Class name
                 null, // Signature
                 "java/lang/Object", // Super class
                 null // Interfaces
@@ -147,8 +148,12 @@ public class DebugMain
     }
     private static void helloWorld(MethodNode node)
     {
+        line(node, 0);
         node.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
+
+        line(node, 1);
         node.visitLdcInsn("Hello, World!");
+        line(node, 1);
         node.visitMethodInsn(
                 Opcodes.INVOKEVIRTUAL,
                 "java/io/PrintStream",
@@ -156,6 +161,13 @@ public class DebugMain
                 "(Ljava/lang/String;)V",
                 false // Is interface
         );
+    }
+
+    private static void line(MethodNode node, int line)
+    {
+        Label label = new Label();
+        node.visitLabel(label);
+        node.visitLineNumber(line, label);
     }
 
     private static void getProp(MethodNode node)
@@ -176,7 +188,15 @@ public class DebugMain
         private final StepController step = new StepController();
 
         private boolean quiet = true;
-        private int currentDepth = 0;
+        private boolean frameInfo = false;
+
+        static {
+            int insns = 200;  // goto_w 以降は Printer に存在しない。
+            for (int i = 0; i < insns; i++) {
+                String name = EOpcodes.INSTRUCTION_NAMES[i];
+                Printer.OPCODES[i] = name;
+            }
+        }
 
         // =========================
         // STARTUP
@@ -184,7 +204,6 @@ public class DebugMain
         @VMEventHandler
         public void onStartup(@NotNull VMStartupEvent event) {
             this.quiet = false;
-            this.currentDepth = 0;
             this.step.reset();
         }
 
@@ -206,16 +225,16 @@ public class DebugMain
         }
 
         private void printStep(VMStepInEvent event) {
+            int insnIndex = event.getFrame().getInterpreter().getCurrentInstructionIndex();
             System.out.printf(
                     """
-                    
-                    ▶ STEP (depth=%d)
-                      opcode : %s
+                    OK.
+                    ▶ STEP (%d at line %d)
                       insn   : %s
                       frame  : %s
                     """,
-                    this.currentDepth,
-                    EOpcodes.getName(event.getInstruction().getOpcode()),
+                    insnIndex,
+                    event.getFrame().getInterpreter().getLineNumberOf(insnIndex),
                     getInstructionText(event.getInstruction()),
                     event.getFrame()
             );
@@ -230,7 +249,7 @@ public class DebugMain
             }
 
             while (true) {
-                System.out.print("debug> ");
+                System.out.print("DBG> ");
                 String input = scanner.nextLine().trim();
 
                 if (input.isEmpty()) continue;
@@ -240,24 +259,26 @@ public class DebugMain
 
                 switch (cmd) {
 
-                    case "h", "?", "help" -> printHelp();
+                    case "h", "?", "help" -> {
+                        printHelp();
+                        continue;
+                    }
 
-                    case "x", "show" ->
-                            printFrame(event.getFrame(), event.getFrame().getVM().getEngine());
+                    case "x", "show" -> {
+                        printFrame(event.getFrame(), event.getFrame().getVM().getEngine());
+                        continue;
+                    }
 
                     case "s", "step" -> {
                         this.step.stepIn();
-                        return;
                     }
 
                     case "c", "next" -> {
                         this.step.stepOver(event.getFrame());
-                        return;
                     }
 
                     case "z", "out" -> {
                         this.step.stepOut(event.getFrame());
-                        return;
                     }
 
                     case "q", "continue" -> {
@@ -271,29 +292,38 @@ public class DebugMain
                         } else {
                             this.step.contInfinite();
                         }
-                        return;
+                    }
+
+                    case "ff", "frameinfo" -> {
+                        this.frameInfo = !this.frameInfo;
+                        System.out.println("Frame info " + (this.frameInfo ? "enabled" : "disabled"));
+                        continue;
                     }
 
                     default -> {
                         System.out.println("Unknown command: " + cmd);
+                        return;
                     }
                 }
+                return;
             }
         }
 
         private void printHelp() {
-            System.out.println("""
-        === Debug Commands ===
-
-        h, ?, help   : Show this help message
-        x, show      : Show current frame snapshot
-        s, step       : Step into the next instruction
-        c, next       : Step over (execute current instruction and stop at the next one)
-        z, out        : Step out (run until the current method returns)
-        q, continue [n] : Continue execution for n steps (or indefinitely if n is not provided)
-
-        ======================
-        """);
+            System.out.println(
+                    """
+                    === Debug Commands ===
+            
+                    h, ?, help   : Show this help message
+                    x, show      : Show current frame snapshot
+                    s, step       : Step into the next instruction
+                    c, next       : Step over (execute current instruction and stop at the next one)
+                    z, out        : Step out (run until the current method returns)
+                    q, continue [n] : Continue execution for n steps (or indefinitely if n is not provided)
+            
+                    ======================
+                    """
+            );
         }
 
         // =========================
@@ -302,7 +332,7 @@ public class DebugMain
         @VMEventHandler
         public void onFrameIn(@NotNull VMFrameInEvent e) {
 
-            if (!this.quiet)
+            if (!this.quiet && this.frameInfo)
                 System.out.printf("→ FRAME IN  : %s%n", e.getFrame());
         }
 
@@ -310,7 +340,7 @@ public class DebugMain
         public void onFrameOut(@NotNull VMFrameOutEvent e) {
             this.step.notifyFrameOut(e.getFrame());
 
-            if (!this.quiet)
+            if (!this.quiet && this.frameInfo)
                 System.out.printf("← FRAME OUT : %s%n", e.getFrame());
         }
 
@@ -437,7 +467,7 @@ public class DebugMain
             String text = printer.getText().toString();
 
             return text.endsWith("\n]")
-                    ? text.substring(1, text.length() - 2)
+                    ? text.substring(1, text.length() - 2).trim()
                     : text.trim();
         }
     }
